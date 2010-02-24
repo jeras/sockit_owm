@@ -1,3 +1,5 @@
+`timescale 10ns / 10ps
+
 module counter_tb;
 
 // counter width local parameter
@@ -17,7 +19,7 @@ initial begin
   $dumpvars(0, counter_tb);
 end
 
- // clock generation
+// clock generation
 initial    clk = 1'b1;
 always #10 clk = ~clk;
 
