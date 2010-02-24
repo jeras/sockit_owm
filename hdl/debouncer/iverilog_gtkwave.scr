@@ -1,0 +1,13 @@
+
+# cleanup first
+rm debouncer.out
+rm debouncer.vcd
+
+# compile the verilog sources (testbench and RTL)
+iverilog -o debouncer.out debouncer_tb.v debouncer.v
+
+# run the simulation
+vvp debouncer.out
+
+# open the waveform and detach it
+gtkwave debouncer.vcd gtkwave.sav &
