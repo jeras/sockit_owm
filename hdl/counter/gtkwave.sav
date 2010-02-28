@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-19.877010 260 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-16.555084 260 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] counter_tb.
 @28
 counter_tb.clk
@@ -12,3 +12,5 @@ counter_tb.ena
 @28
 counter_tb.cnt[2:0]
 counter_tb.out
+[pattern_trace] 1
+[pattern_trace] 0
