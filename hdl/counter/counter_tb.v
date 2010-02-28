@@ -1,4 +1,4 @@
-`timescale 10ns / 10ps
+`timescale 1ns / 1ps
 
 module counter_tb;
 
@@ -6,8 +6,8 @@ module counter_tb;
 localparam CW = 3;
 
 // list of local signals
-reg           rst;  // clock
-reg           clk;  // reset (asynchronous)
+reg           clk;  // clock
+reg           rst;  // reset (asynchronous)
 reg           ena;  // clear (synchronous)
 reg           clr;  // enable
 wire [CW-1:0] cnt;  // counter
