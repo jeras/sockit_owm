@@ -17,10 +17,12 @@ initial cnt <= 0;
 always @ (posedge clk)
 d_r <= d_i;
 
+// the counter should start running on a change
 always @ (posedge clk)
 if (|cnt)          cnt <= cnt - 1;
 else if (d_r^d_o)  cnt <= CN;
 
+// when the counter is zero the output should follow the input
 always @ (posedge clk)
 if (~|cnt) d_o <= d_r;
 
