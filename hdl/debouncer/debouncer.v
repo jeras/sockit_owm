@@ -8,14 +8,20 @@ module debouncer #(
 );
 
 reg [CW-1:0] cnt;           // counter
+reg          d_r;           // input register
 
+// TODO
 initial cnt <= 0;
 
+// prevention of metastability problems
 always @ (posedge clk)
-if (d_i)        cnt <= CN;
-else if (|cnt)  cnt <= cnt - 1;
+d_r <= d_i;
 
 always @ (posedge clk)
-d_o <= |cnt;
+if (|cnt)          cnt <= cnt - 1;
+else if (d_r^d_o)  cnt <= CN;
+
+always @ (posedge clk)
+if (~|cnt) d_o <= d_r;
 
 endmodule
