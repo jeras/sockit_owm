@@ -39,12 +39,12 @@ generate for (d=0; d<DW; d=d+1) begin
     d_i[d] = 1'b0;
     # 50_000_000;
     // switch ON random pulses (max 10ms)
-    bounce (d, 1'b1, 30, 5000, 10_000, 200_000, 80);
+    bounce (d, 1'b1, 30, 5000, 10_000, 100_000, 80);
     // stable ON state for 50ms
     d_i[d] = 1'b1;
     # 50_000_000;
     // switch OFF random pulses (max 10ms)
-    bounce (d, 1'b0, 30, 5000, 10_000, 200_000, 80);
+    bounce (d, 1'b0, 30, 5000, 10_000, 100_000, 80);
     // stable OFF state at the end for 50ms
     d_i[d] = 1'b0;
     # 50_000_000;
