@@ -1,6 +1,6 @@
 module counter #(
   parameter CW = 8,         // counter bit width
-  parameter CR = (1<<CW)-1  // counter reset value
+  parameter CR = {CW{1'b1}}  // counter reset value
 )(
   input               clk,  // clock
   input               rst,  // reset (asynchronous)
@@ -13,7 +13,7 @@ module counter #(
 always @ (posedge clk, negedge rst)
 if (rst)              cnt <= CR;
 else if (ena) begin
-  if (clr)            cnt <= (1<<CW)-1;
+  if (clr)            cnt <= CR;
   else if (cnt != 0)  cnt <= cnt - 1;
 end
 
