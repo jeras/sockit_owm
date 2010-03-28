@@ -13,10 +13,10 @@ input   [3:0] KEY,          // Pushbutton[3:0]
 // DPDT Switch
 input   [9:0] SW,           // Toggle Switch[9:0]
 // 7-SEG Dispaly
-output  [9:0] HEX0,         // Seven Segment Digit 0
-output  [9:0] HEX1,         // Seven Segment Digit 1
-output  [9:0] HEX2,         // Seven Segment Digit 2
-output  [9:0] HEX3,         // Seven Segment Digit 3
+output  [6:0] HEX0,         // Seven Segment Digit 0
+output  [6:0] HEX1,         // Seven Segment Digit 1
+output  [6:0] HEX2,         // Seven Segment Digit 2
+output  [6:0] HEX3,         // Seven Segment Digit 3
 // LED
 output  [7:0] LEDG,         // LED Green[7:0]
 output  [9:0] LEDR,         // LED Red[9:0]
