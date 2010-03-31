@@ -96,7 +96,7 @@ assign GPIO_1      = 36'hzzzzzzzzz;
 
 reg [23+8-1:0] cnt;
 
-always @ (posedge CLOCK_24, negedge KEY[0])
+always @ (posedge CLOCK_24[0], negedge KEY[0])
 if (~KEY[0]) cnt <= 0;
 else         cnt <= cnt + 1;
 
