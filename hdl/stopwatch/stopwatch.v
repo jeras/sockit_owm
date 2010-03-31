@@ -130,10 +130,10 @@ end else begin
     if (          & wrp_sec_1 & wrp_sec_0 & pulse) cnt_min_0 <= wrp_min_0 ? 4'd0 : cnt_min_0 + 4'd1;
     if (wrp_min_0 & wrp_sec_1 & wrp_sec_0 & pulse) cnt_min_1 <= wrp_min_1 ? 4'd0 : cnt_min_1 + 4'd1;
   end else if (~sts_hld & b_clr) begin
-    sec_0 <= 4'd0;
-    sec_1 <= 4'd0;
-    min_0 <= 4'd0;
-    min_1 <= 4'd0;
+    cnt_sec_0 <= 4'd0;
+    cnt_sec_1 <= 4'd0;
+    cnt_min_0 <= 4'd0;
+    cnt_min_1 <= 4'd0;
   end
 end
 
