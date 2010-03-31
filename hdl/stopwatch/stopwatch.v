@@ -1,7 +1,7 @@
 module stopwatch #(
   // timing parameters
   parameter SPN = 1024,         // second period number
-  parameter SPL = $clog2(SPN-1) // second period logarithm (counter width)
+  parameter SPL = $clog2(SPN)   // second period logarithm (counter width)
 )(
   // system signals
   input  wire       clk,        // clock
@@ -44,11 +44,8 @@ reg [SPL-1:0] clk_cnt;
 reg           pulse;
 
 always @ (posedge clk, posedge rst)
-if (rst)                 clk_cnt <= 'd0;
-else begin
-  if (clk_cnt == SPN-1)  clk_cnt <= 'd0;
-  else                   clk_cnt <= clk_cnt + 'd1;
-end
+if (rst)  clk_cnt <= 'd0;
+else      clk_cnt <= (clk_cnt == SPN-1) ? 'd0 : clk_cnt + 'd1;
 
 always @ (posedge clk, posedge rst)
 if (rst)  pulse   <= 1'b0;
@@ -86,7 +83,7 @@ if (rst) begin
   sts_hld <= 1'b0;
 end else begin
   if (b_run_pdg) sts_run <= ~sts_run;
-  if (b_clr_pdg) sts_hld <= ~sts_hld;
+  if (b_clr_pdg) sts_hld <= ~sts_hld & sts_run;
 end
 
 //////////////////////////////////////////////////////////////////////////////

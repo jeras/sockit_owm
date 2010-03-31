@@ -1,12 +1,13 @@
 [timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-47.255890 478530000000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-47.358280 51049991832000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] stopwatch_tb.
 @28
 stopwatch_tb.clk
 stopwatch_tb.rst
 stopwatch_tb.b_run
+@29
 stopwatch_tb.b_clr
 @22
 stopwatch_tb.stopwatch_i.mux_sec_0[3:0]
@@ -20,5 +21,12 @@ stopwatch_tb.min_1[6:0]
 @28
 stopwatch_tb.stopwatch_i.b_run_pdg
 stopwatch_tb.stopwatch_i.b_clr_pdg
+@22
+stopwatch_tb.stopwatch_i.cnt_sec_0[3:0]
+stopwatch_tb.stopwatch_i.cnt_sec_1[3:0]
+stopwatch_tb.stopwatch_i.cnt_min_0[3:0]
+stopwatch_tb.stopwatch_i.cnt_min_1[3:0]
+@28
+stopwatch_tb.stopwatch_i.sts_hld
 [pattern_trace] 1
 [pattern_trace] 0
