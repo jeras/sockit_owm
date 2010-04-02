@@ -1,0 +1,26 @@
+[timestart] 0
+[size] 1366 694
+[pos] -1 -1
+*-17.229500 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] uart_tx_tb.
+@28
+uart_tx_tb.clk
+uart_tx_tb.rst
+uart_tx_tb.avalon_write
+uart_tx_tb.avalon_read
+uart_tx_tb.avalon_address
+@22
+uart_tx_tb.avalon_byteenable[3:0]
+uart_tx_tb.avalon_writedata[31:0]
+@23
+uart_tx_tb.avalon_readdata[31:0]
+@28
+uart_tx_tb.avalon_waitrequest
+uart_tx_tb.uart_tx
+@22
+uart_tx_tb.uart_tx_i.shift_cnt[3:0]
+@28
+uart_tx_tb.uart_tx_i.shift_pulse
+uart_tx_tb.uart_tx_i.shift_run
+[pattern_trace] 1
+[pattern_trace] 0
