@@ -1,7 +1,7 @@
 module stopwatch #(
   // timing parameters
-  parameter SPN = 1024,         // second period number
-  parameter SPL = $clog2(SPN)   // second period logarithm (counter width)
+  parameter SPN = 1024,         // second clock periods number
+  parameter SPL = $clog2(SPN)   // second clock periods logarithm (counter width)
 )(
   // system signals
   input  wire       clk,        // clock

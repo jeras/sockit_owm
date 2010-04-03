@@ -2,10 +2,11 @@
 
 module stopwatch_tb;
 
-//localparam FRQ = 24_000_000;  // 24MHz // realistic optiony
-localparam FRQ = 24_0;  // 240Hz // option for faster simulation
-localparam SPN = FRQ;
+//localparam real FRQ = 24_000_000;  // 24MHz // realistic optiony
+localparam real FRQ = 24_0;  // 240Hz // option for faster simulation
 localparam real CP = 1000000000/FRQ;  // clock period
+
+localparam SPN = FRQ; // second clock periods number
 
 // list of local signals
 reg        clk;       // clock
