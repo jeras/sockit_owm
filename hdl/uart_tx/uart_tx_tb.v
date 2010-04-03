@@ -2,10 +2,18 @@
 
 module uart_tx_tb;
 
-// uart_tx width local parameter
+// system clock parameters
+//localparam FRQ = 24_000_000;  // 24MHz // realistic option                                                                                                            
+localparam FRQ =  1_000_000;  //  1MHz // option for faster simulation
+localparam real CP = 1000000000/FRQ;  // clock period
+
+// Avalon MM parameters
 localparam AAW = 1;      // address width
 localparam ADW = 32;     // data width
 localparam ABW = ADW/8;  // byte enable width
+
+// UART parameters
+localparam BAUDRATE = 9600;
 
 // system_signals
 reg            clk;  // clock
@@ -32,8 +40,8 @@ initial begin
 end
 
 // clock generation
-initial    clk = 1'b1;
-always #10 clk = ~clk;
+initial        clk = 1'b1;
+always #(CP/2) clk = ~clk;
 
 // test signal generation
 initial begin
@@ -53,14 +61,16 @@ initial begin
   avalon_cycle (1, 0, 4'hf, "l", data);
   avalon_cycle (1, 0, 4'hf, "o", data);
   avalon_cycle (1, 0, 4'hf, ",", data);
+  repeat (20) @(posedge clk);
   avalon_cycle (1, 0, 4'hf, " ", data);
+  repeat (1) @(posedge clk);
   avalon_cycle (1, 0, 4'hf, "W", data);
   avalon_cycle (1, 0, 4'hf, "o", data);
   avalon_cycle (1, 0, 4'hf, "r", data);
   avalon_cycle (1, 0, 4'hf, "l", data);
   avalon_cycle (1, 0, 4'hf, "d", data);
   avalon_cycle (1, 0, 4'hf, "!", data);
-  repeat (30) @(posedge clk);
+  repeat (20) @(posedge clk);
   $finish(); 
 end
 
@@ -73,8 +83,8 @@ task avalon_cycle (
   output [ADW-1:0] rdt
 );
 begin
-  $write ("Avalon MM cycle: T_start=%8tns, %s transfer address=%08x byteenable=%04b writedata=%08x - ",
-                            $time/1000.0, r_w?"read ":"write", adr, ben,           wdt              );
+  $write ("Avalon MM cycle: T_start=%10tns, %s transfer address=%08x byteenable=%04b writedata=%08x - ",
+                            $time/1000.0, r_w?"write":"read ", adr, ben,           wdt              );
   // start an Avalon cycle
   avalon_read       <= ~r_w;
   avalon_write      <=  r_w;
@@ -88,7 +98,7 @@ begin
   avalon_write      <= 1'b0;
   // read data
   rdt = avalon_readdata;
-  $write ("readdata=%08x, T_stop=%8tns\n",
+  $write ("readdata=%08x, T_stop=%10tns\n",
            rdt,           $time/1000.0  );
 end
 endtask
