@@ -10,7 +10,7 @@ module debouncer #(
 reg [CW-1:0] cnt;           // counter
 reg          d_r;           // input register
 
-// TODO
+// TODO, check if this is done acording to Altera specifications
 initial cnt <= 0;
 
 // prevention of metastability problems
