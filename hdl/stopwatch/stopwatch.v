@@ -14,12 +14,15 @@ module stopwatch #(
   output reg  [6:0] sec_1,      // ten seconds
   output reg  [6:0] min_0,      //     minutes
   output reg  [6:0] min_1,      // ten minutes
-  // screen status and hold status indicators
-  output wire       s_run,
-  output wire       s_hld
+  // status indicators
+  output reg        s_run,      // run     status (0-stop, 1-running)
+  output reg        s_hld       // display status (0-realtime, 1-hold)
 );
 
-// binary coded decimal to 7 segment conversion
+//////////////////////////////////////////////////////////////////////////////
+// BCD (binary coded decimal) to 7 segment conversion
+//////////////////////////////////////////////////////////////////////////////
+
 function [6:0] seg7 (input [3:0] bcd);
   case (bcd)
     4'h0    : seg7 = 7'h3F;
@@ -37,7 +40,7 @@ function [6:0] seg7 (input [3:0] bcd);
 endfunction
 
 //////////////////////////////////////////////////////////////////////////////
-// clock divider
+// clock divider, generates a single clock period pulse every second
 //////////////////////////////////////////////////////////////////////////////
 
 reg [SPL-1:0] clk_cnt;
@@ -61,6 +64,7 @@ reg  b_clr_d;
 wire b_run_pdg;
 wire b_clr_pdg;
 
+// delaying the button status by one clock period
 always @ (posedge clk, posedge rst)
 if (rst) begin
   b_run_d <= 1'b0;
@@ -70,20 +74,18 @@ end else begin
   b_clr_d <= b_clr;
 end
 
+// detecting Positive eDGes on button signals
 assign b_run_pdg = ~b_run_d & b_run;
 assign b_clr_pdg = ~b_clr_d & b_clr;
 
-// stopwatch status
-reg  sts_run;   // run     status (0-stop, 1-running)
-reg  sts_hld;   // display status (0-realtime, 1-hold)
-
+// run and hold status logic
 always @ (posedge clk, posedge rst)
 if (rst) begin
-  sts_run <= 1'b0;
-  sts_hld <= 1'b0;
+  s_run <= 1'b0;
+  s_hld <= 1'b0;
 end else begin
-  if (b_run_pdg) sts_run <= ~sts_run;
-  if (b_clr_pdg) sts_hld <= ~sts_hld & sts_run;
+  if (b_run_pdg) s_run <= ~s_run;
+  if (b_clr_pdg) s_hld <= ~s_hld & s_run;
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -106,7 +108,7 @@ wire wrp_sec_1;                   // ten seconds
 wire wrp_min_0;                   //     minutes
 wire wrp_min_1;                   // ten minutes
 
-// wrapping
+// wrapping from the digit max value back to 0
 assign wrp_sec_0 = (cnt_sec_0 == 4'd9);
 assign wrp_sec_1 = (cnt_sec_1 == 4'd5);
 assign wrp_min_0 = (cnt_min_0 == 4'd9);
@@ -121,12 +123,13 @@ if (rst) begin
   cnt_min_1 <= 4'd0;
 end else begin
   // if stopwatch is running increment the counters
-  if (sts_run) begin
+  if (s_run) begin
     if (          &                         pulse) cnt_sec_0 <= wrp_sec_0 ? 4'd0 : cnt_sec_0 + 4'd1;
     if (          &             wrp_sec_0 & pulse) cnt_sec_1 <= wrp_sec_1 ? 4'd0 : cnt_sec_1 + 4'd1;
     if (          & wrp_sec_1 & wrp_sec_0 & pulse) cnt_min_0 <= wrp_min_0 ? 4'd0 : cnt_min_0 + 4'd1;
     if (wrp_min_0 & wrp_sec_1 & wrp_sec_0 & pulse) cnt_min_1 <= wrp_min_1 ? 4'd0 : cnt_min_1 + 4'd1;
-  end else if (~sts_hld & b_clr) begin
+  // else if stopwatch is not running, not on hold and clear/split button is pressed
+  end else if (~s_hld & b_clr) begin
     cnt_sec_0 <= 4'd0;
     cnt_sec_1 <= 4'd0;
     cnt_min_0 <= 4'd0;
@@ -134,20 +137,20 @@ end else begin
   end
 end
 
-// hold value registers
+// hold (split) value registers
 always @ (posedge clk)
-if (sts_run & b_clr) begin
+if (s_run & b_clr) begin
   hld_sec_0 <= cnt_sec_0;
   hld_sec_1 <= cnt_sec_1;
   hld_min_0 <= cnt_min_0;
   hld_min_1 <= cnt_min_1;
 end
 
-// counter, hold multiplexer
-assign mux_sec_0 = (sts_hld) ? hld_sec_0 : cnt_sec_0;
-assign mux_sec_1 = (sts_hld) ? hld_sec_1 : cnt_sec_1;
-assign mux_min_0 = (sts_hld) ? hld_min_0 : cnt_min_0;
-assign mux_min_1 = (sts_hld) ? hld_min_1 : cnt_min_1;
+// multiplexer between the counter and hold value
+assign mux_sec_0 = (s_hld) ? hld_sec_0 : cnt_sec_0;
+assign mux_sec_1 = (s_hld) ? hld_sec_1 : cnt_sec_1;
+assign mux_min_0 = (s_hld) ? hld_min_0 : cnt_min_0;
+assign mux_min_1 = (s_hld) ? hld_min_1 : cnt_min_1;
 
 //////////////////////////////////////////////////////////////////////////////
 // conversion to 7 segment for display
@@ -166,8 +169,5 @@ end else begin
   min_0 <= seg7(mux_min_0);
   min_1 <= seg7(mux_min_1);
 end
-
-assign s_run = sts_run;
-assign s_hld = sts_hld;
 
 endmodule

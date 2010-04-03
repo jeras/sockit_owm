@@ -35,7 +35,6 @@ always #(CP/2) clk = ~clk;
 
 // test signal generation
 initial begin
-  $display ("SPN = ", SPN);
   // buttons are initially not active
   b_run = 1'b0;
   b_clr = 1'b0;
@@ -63,7 +62,7 @@ initial begin
   b_run <= 1'b1;
   repeat (10) @(posedge clk);
   b_run <= 1'b0;
-  repeat (SPN*(7)-10) @(posedge clk);
+  repeat (SPN*(8)-10) @(posedge clk);
   // clear the stopwatch and wait for 5s
   b_clr <= 1'b1;
   repeat (10) @(posedge clk);
