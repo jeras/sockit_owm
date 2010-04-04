@@ -1,0 +1,29 @@
+[timestart] 0
+[size] 1366 694
+[pos] -1 -1
+*-18.878267 164000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] avalon_ram_tb.
+@200
+-system signals
+@28
+avalon_ram_tb.clk
+avalon_ram_tb.rst
+@200
+-Avalon bus
+@28
+avalon_ram_tb.avalon_read
+avalon_ram_tb.avalon_write
+@22
+avalon_ram_tb.avalon_address[7:0]
+avalon_ram_tb.avalon_byteenable[3:0]
+avalon_ram_tb.avalon_writedata[31:0]
+avalon_ram_tb.avalon_readdata[31:0]
+@28
+avalon_ram_tb.avalon_waitrequest
+@200
+-Avalon RAM internals
+@28
+avalon_ram_tb.avalon_ram_i.data_valid
+avalon_ram_tb.avalon_ram_i.transfer
+[pattern_trace] 1
+[pattern_trace] 0
