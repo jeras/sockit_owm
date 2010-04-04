@@ -27,16 +27,22 @@ uart_tx_tb.avalon_waitrequest
 @200
 -UART bus
 @28
-uart_tx_tb.uart_tx
+uart_tx_tb.uart_TxD
 @200
 -RTL internal signals
-@29
-uart_tx_tb.avalon_transfer
 @28
+uart_tx_tb.avalon_transfer
 uart_tx_tb.uart_tx_i.pulse
 uart_tx_tb.uart_tx_i.shift_run
 uart_tx_tb.uart_tx_i.shift_pulse
 @22
 uart_tx_tb.uart_tx_i.shift_cnt[3:0]
+@200
+-testbench local signals
+@22
+uart_tx_tb.uart_cnt[31:0]
+uart_tx_tb.uart_dat[7:0]
+@29
+uart_tx_tb.uart_sample
 [pattern_trace] 1
 [pattern_trace] 0
