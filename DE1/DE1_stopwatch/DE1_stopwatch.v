@@ -87,9 +87,20 @@ inout  [35:0] GPIO_1        // GPIO Connection 1
 
 localparam FRQ = 24000000;  // 24MHz
 
+// debounced button signals
 wire b_rst;
 wire b_run;
 wire b_clr;
+
+// status LED signals
+wire s_run;
+wire s_hld;
+
+// active high 7 segment signals requiering negation
+wire [6:0] HEX0_t;
+wire [6:0] HEX1_t;
+wire [6:0] HEX2_t;
+wire [6:0] HEX3_t;
 
 // All inout port turn to tri-state
 assign SD_DAT      = 1'bz;
@@ -100,10 +111,12 @@ assign AUD_BCLK    = 1'bz;
 assign GPIO_0      = 36'hzzzzzzzzz;
 assign GPIO_1      = 36'hzzzzzzzzz;
 
-debouncer #(.CN (FRQ/ 50)) debouncer_rst (.clk (CLOCK_24[0]), .d_i (KEY[0]), .d_o (b_rst));
-debouncer #(.CN (FRQ/100)) debouncer_run (.clk (CLOCK_24[0]), .d_i (KEY[1]), .d_o (b_run));
-debouncer #(.CN (FRQ/100)) debouncer_clr (.clk (CLOCK_24[0]), .d_i (KEY[2]), .d_o (b_clr));
+// debouncing of command buttons (buttons are active low)
+debouncer #(.CN (FRQ/ 50)) debouncer_rst (.clk (CLOCK_24[0]), .d_i (~KEY[0]), .d_o (b_rst));
+debouncer #(.CN (FRQ/100)) debouncer_run (.clk (CLOCK_24[0]), .d_i (~KEY[1]), .d_o (b_run));
+debouncer #(.CN (FRQ/100)) debouncer_clr (.clk (CLOCK_24[0]), .d_i (~KEY[2]), .d_o (b_clr));
 
+// stopwatch RTL instance
 stopwatch #(
   .SPN     (FRQ)
 ) stopwatch_i (
@@ -114,15 +127,22 @@ stopwatch #(
   .b_run   (b_run),
   .b_clr   (b_clr),
   // time outputs
-  .sec_0   (HEX0),
-  .sec_1   (HEX1),
-  .min_0   (HEX2),
-  .min_1   (HEX3),
+  .sec_0   (HEX0_t),
+  .sec_1   (HEX1_t),
+  .min_0   (HEX2_t),
+  .min_1   (HEX3_t),
   // screen status and hold status indicators
-  .s_run   (),
-  .s_hld   ()
+  .s_run   (s_run),
+  .s_hld   (s_hld)
 );
 
-assign LEDG[2:0] = {b_clr, b_run, b_rst};
+// active low 7 segment outputs
+assign HEX0 = ~HEX0_t;
+assign HEX1 = ~HEX1_t;
+assign HEX2 = ~HEX2_t;
+assign HEX3 = ~HEX3_t;
+
+// active hight green LED status outputs
+assign LEDG[2:0] = {s_hld, s_run, b_rst};
 
 endmodule
