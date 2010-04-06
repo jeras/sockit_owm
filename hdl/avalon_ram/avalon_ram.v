@@ -20,7 +20,7 @@ module avalon_ram #(
 wire transfer;
 
 reg [ADW-1:0] mem [0:ASZ-1];
-reg [ADW-1:0] data;
+reg [AAW-1:0] address_d;
 reg           data_valid;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -38,9 +38,9 @@ end endgenerate
 
 // read access (readdata is available one clock period after read is asserted)
 always @ (posedge clk)
-if (read)  data <= mem[address];
+if (read)  address_d <= address;
 
-assign readdata = data;
+assign readdata = mem[address_d];
 
 //////////////////////////////////////////////////////////////////////////////
 // avalon interface code
