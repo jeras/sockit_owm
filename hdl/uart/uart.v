@@ -1,4 +1,4 @@
-module uart_tx #(
+module uart #(
   parameter AAW = 1,     // address width
   parameter ADW = 32,    // data width
   parameter ABW = ADW/8  // byte enable width
@@ -15,8 +15,8 @@ module uart_tx #(
   output     [ADW-1:0] avalon_readdata,     //
   output               avalon_waitrequest,  //
   // UART
-//  input                uart_rx,  // receive
-  output reg           uart_tx  // transmit
+  input                uart_rxd,  // receive
+  output reg           uart_txd  // transmit
 );
 
 wire avalon_transfer;
@@ -62,10 +62,10 @@ end
 
 // output register
 always @ (posedge clk, posedge rst)
-if (rst)                 uart_tx <= 1'b1;                                
+if (rst)                 uart_txd <= 1'b1;                                
 else begin                                
-  if (avalon_transfer)   uart_tx <= 1'b0;        
-  else if (shift_pulse)  uart_tx <= shift_reg[0];
+  if (avalon_transfer)   uart_txd <= 1'b0;        
+  else if (shift_pulse)  uart_txd <= shift_reg[0];
 end
 
 endmodule

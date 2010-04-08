@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # cleanup first
-rm uart_tx.out
-rm uart_tx.vcd
+rm uart.out
+rm uart.vcd
 
 # compile the verilog sources (testbench and RTL)
-iverilog -o uart_tx.out uart_tx_tb.v uart_tx.v
+iverilog -o uart.out uart_tb.v uart.v
 
 # run the simulation
-vvp uart_tx.out
+vvp uart.out
 
 # open the waveform and detach it
-gtkwave uart_tx.vcd gtkwave.sav &
+gtkwave uart.vcd gtkwave.sav &

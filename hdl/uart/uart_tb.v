@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module uart_tx_tb;
+module uart_tb;
 
 // system clock parameters
 //localparam real FRQ = 24_000_000;  // 24MHz // realistic option
@@ -40,8 +40,8 @@ wire           uart_TxD;
 
 // request for a dumpfile
 initial begin
-  $dumpfile("uart_tx.vcd");
-  $dumpvars(0, uart_tx_tb);
+  $dumpfile("uart.vcd");
+  $dumpvars(0, uart_tb);
 end
 
 
@@ -51,7 +51,7 @@ always #(CP/2) clk = ~clk;
 
 // test signal generation
 initial begin
-  // initially the uart_tx is under reset end disabled
+  // initially the uart is under reset end disabled
   rst = 1'b1;
   // Avalon MM interface is idle
   avalon_read  = 1'b0;
@@ -144,11 +144,11 @@ initial begin
 end
 
 
-// instantiate uart_tx RTL
-uart_tx #(
+// instantiate uart RTL
+uart #(
   .AAW   (AAW),
   .ADW   (ADW)
-) uart_tx_i (
+) uart_i (
   // system
   .clk  (clk),
   .rst  (rst),
@@ -161,8 +161,8 @@ uart_tx #(
   .avalon_readdata     (avalon_readdata),
   .avalon_waitrequest  (avalon_waitrequest),
   // UART
-  //.uart_rx             (uart_RxD),
-  .uart_tx             (uart_TxD)
+  .uart_rxd            (uart_RxD),
+  .uart_txd            (uart_TxD)
 );
 
 endmodule
