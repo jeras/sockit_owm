@@ -4,7 +4,7 @@ module uart_tb;
 
 // system clock parameters
 //localparam real FRQ = 24_000_000;  // 24MHz // realistic option
-localparam real FRQ =  1_000_000;  //  1MHz // option for faster simulation
+localparam real FRQ =  48000;  //  48kHz // option for faster simulation
 localparam real CP = 1000000000/FRQ;  // clock period
 
 // Avalon MM parameters
@@ -16,9 +16,10 @@ localparam ABW = ADW/8;  // byte enable width
 localparam      BYTESIZE = 8;
 localparam      PARITY   = "NONE";
 localparam      STOPSIZE = 1;
-// localparam real BAUDRATE = 9600;  // realistic baudrate value
-localparam real BAUDRATE = FRQ;    // baudrate for UART at system clock
-localparam real T_BIT = 1_000_000_000.0/BAUDRATE;  // T=1.0s/baudrate
+localparam real BAUDRATE = 9600;  // realistic baudrate value
+//localparam real BAUDRATE = FRQ;    // baudrate for UART at system clock
+localparam      N_BIT =           FRQ/BAUDRATE;  // T=f/baudrate
+localparam real T_BIT = 1_000_000_000/BAUDRATE;  // T=1.0s/baudrate
 
 // system_signals
 reg            clk;  // clock
@@ -146,6 +147,12 @@ end
 
 // instantiate uart RTL
 uart #(
+  // UART parameters
+  .BYTESIZE (BYTESIZE),
+  .PARITY   (PARITY),
+  .STOPSIZE (STOPSIZE),
+  .N_BIT    (N_BIT),
+  // Avalon parameters
   .AAW   (AAW),
   .ADW   (ADW)
 ) uart_i (

@@ -1,7 +1,7 @@
-[timestart] 0
+[timestart] 1915000000
 [size] 1366 694
 [pos] -1 -1
-*-25.071293 80000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.743940 197916000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] uart_tb.
 @200
 -System signals
@@ -26,20 +26,28 @@ uart_tb.avalon_readdata[31:0]
 uart_tb.avalon_waitrequest
 @200
 -UART bus
-@29
-uart_tb.uart_RxD
 @28
+uart_tb.uart_RxD
 uart_tb.uart_TxD
 @200
--RTL internal signals
+-RTL Avalon
 @28
-uart_tb.avalon_transfer
-uart_tb.uart_i.pulse
-uart_tb.uart_i.shift_run
-uart_tb.uart_i.shift_pulse
-@22
-uart_tb.uart_i.shift_cnt[3:0]
+uart_tb.uart_i.avalon_write_transfer
+uart_tb.uart_i.avalon_read_transfer
 @200
+-RTL txd
+@29
+uart_tb.uart_i.txd_baud_cnt[2:0]
+@28
+uart_tb.uart_i.txd_shift_pulse
+@22
+uart_tb.uart_i.txd_shift_cnt[3:0]
+@28
+uart_tb.uart_i.txd_shift_run
+@22
+uart_tb.uart_i.txd_shift_reg[8:0]
+@200
+-RTL rxd
 -testbench local signals
 @22
 uart_tb.uart_cnt[31:0]
