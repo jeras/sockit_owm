@@ -1,4 +1,5 @@
 module uart #(
+  parameter CPB = 1,     // cycles per bit
   parameter AAW = 1,     // address width
   parameter ADW = 32,    // data width
   parameter ABW = ADW/8  // byte enable width
@@ -7,16 +8,19 @@ module uart #(
   input                clk,  // clock
   input                rst,  // reset (asynchronous)
   // Avalon MM interface
-  input                avalon_read,         //
-  input                avalon_write,        //
-  input      [AAW-1:0] avalon_address,      //
-  input      [ABW-1:0] avalon_byteenable,   //
-  input      [ADW-1:0] avalon_writedata,    //
-  output     [ADW-1:0] avalon_readdata,     //
-  output               avalon_waitrequest,  //
+  input                avalon_read,
+  input                avalon_write,
+  input      [AAW-1:0] avalon_address,
+  input      [ABW-1:0] avalon_byteenable,
+  input      [ADW-1:0] avalon_writedata,
+  output     [ADW-1:0] avalon_readdata,
+  output               avalon_waitrequest,
+  // receiver status
+  output               status_irq,  // interrupt
+  output               status_err,  // error
   // UART
   input                uart_rxd,  // receive
-  output reg           uart_txd  // transmit
+  output reg           uart_txd   // transmit
 );
 
 wire avalon_transfer;
@@ -38,7 +42,7 @@ assign pulse = 1'b1;
 assign shift_pulse = shift_run & pulse;
 
 // bit counter
-always @ (posedge clk, negedge rst)
+always @ (posedge clk, posedge rst)
 if (rst)                 shift_cnt <= 0;
 else begin
   if (avalon_transfer)   shift_cnt <= 'd8;
@@ -46,7 +50,7 @@ else begin
 end
 
 // shift status
-always @ (posedge clk, negedge rst)
+always @ (posedge clk, posedge rst)
 if (rst)                 shift_run <= 1'b0;
 else begin                                
   if (avalon_transfer)   shift_run <= 1'b1;        

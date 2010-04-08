@@ -160,6 +160,9 @@ uart #(
   .avalon_writedata    (avalon_writedata),
   .avalon_readdata     (avalon_readdata),
   .avalon_waitrequest  (avalon_waitrequest),
+  // receiver status
+  .status_irq          (),
+  .status_err          (),
   // UART
   .uart_rxd            (uart_RxD),
   .uart_txd            (uart_TxD)
