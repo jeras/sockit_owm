@@ -162,8 +162,6 @@ uart #(
   // Avalon
   .avalon_read         (avalon_read),
   .avalon_write        (avalon_write),
-  .avalon_address      (avalon_address),
-  .avalon_byteenable   (avalon_byteenable),
   .avalon_writedata    (avalon_writedata),
   .avalon_readdata     (avalon_readdata),
   .avalon_waitrequest  (avalon_waitrequest),

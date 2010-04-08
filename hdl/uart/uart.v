@@ -16,8 +16,6 @@ module uart #(
   // Avalon MM interface
   input                avalon_read,
   input                avalon_write,
-  input      [AAW-1:0] avalon_address,
-  input      [ABW-1:0] avalon_byteenable,
   input      [ADW-1:0] avalon_writedata,
   output     [ADW-1:0] avalon_readdata,
   output               avalon_waitrequest,
