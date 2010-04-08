@@ -86,7 +86,8 @@ inout  [35:0] GPIO_1        // GPIO Connection 1
 );
 
 localparam FRQ = 24000000;  // 24MHz
-localparam BAUD = 9600;  // UART baudrate
+localparam BAUDRATE = 9600;  // UART baudrate
+localparam N_BIT = FRQ/BAUDRATE;  // T=f/baudrate
 
 // local clock and reset
 wire clk;
@@ -143,16 +144,14 @@ assign avalon_writedata = SW[7:0];
 
 // stopwatch RTL instance
 uart #(
-  .CPB     (FRQ/BAUD)
+  .N_BIT  (N_BIT)
 ) uart_i (
   // system signals
-  .clk     (clk),
-  .rst     (rst),
+  .clk                 (clk),
+  .rst                 (rst),
   // Avalon
   .avalon_read         (avalon_read),
   .avalon_write        (avalon_write),
-  .avalon_address      (0),
-  .avalon_byteenable   (1),
   .avalon_writedata    (avalon_writedata),
   .avalon_readdata     (avalon_readdata),
   .avalon_waitrequest  (),
