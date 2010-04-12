@@ -1,7 +1,7 @@
-[timestart] 1915000000
+[timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-28.743940 197916000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-31.346968 93748500 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] uart_tb.
 @200
 -System signals
@@ -32,20 +32,20 @@ uart_tb.uart_TxD
 @200
 -RTL Avalon
 @28
-uart_tb.uart_i.avalon_write_transfer
-uart_tb.uart_i.avalon_read_transfer
+uart_tb.uart_i.avalon_trn_w
+uart_tb.uart_i.avalon_trn_r
 @200
 -RTL txd
+@24
+uart_tb.uart_i.txd_bdr[2:0]
+@28
+uart_tb.uart_i.txd_ena
+uart_tb.uart_i.txd_run
+@22
+uart_tb.uart_i.txd_cnt[3:0]
+uart_tb.uart_i.txd_dat[7:0]
 @29
-uart_tb.uart_i.txd_baud_cnt[2:0]
-@28
-uart_tb.uart_i.txd_shift_pulse
-@22
-uart_tb.uart_i.txd_shift_cnt[3:0]
-@28
-uart_tb.uart_i.txd_shift_run
-@22
-uart_tb.uart_i.txd_shift_reg[8:0]
+uart_tb.uart_i.txd_prt
 @200
 -RTL rxd
 -testbench local signals

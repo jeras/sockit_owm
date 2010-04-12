@@ -17,7 +17,6 @@ localparam      BYTESIZE = 8;
 localparam      PARITY   = "NONE";
 localparam      STOPSIZE = 1;
 localparam real BAUDRATE = 9600;  // realistic baudrate value
-//localparam real BAUDRATE = FRQ;    // baudrate for UART at system clock
 localparam      N_BIT =           FRQ/BAUDRATE;  // T=f/baudrate
 localparam real T_BIT = 1_000_000_000/BAUDRATE;  // T=1.0s/baudrate
 
@@ -36,7 +35,7 @@ wire           avalon_waitrequest;  //
 wire           avalon_transfer;
 reg  [ADW-1:0] data;
 // UART
-//wire           uart_RxD;
+wire           uart_RxD;
 wire           uart_TxD;
 
 // request for a dumpfile
@@ -45,22 +44,31 @@ initial begin
   $dumpvars(0, uart_tb);
 end
 
+//////////////////////////////////////////////////////////////////////////////
+// clock and reset
+//////////////////////////////////////////////////////////////////////////////
 
 // clock generation
 initial        clk = 1'b1;
 always #(CP/2) clk = ~clk;
 
-// test signal generation
+// reset generation
 initial begin
-  // initially the uart is under reset end disabled
   rst = 1'b1;
+  repeat (2) @(posedge clk);
+  rst = 1'b0;
+end
+
+//////////////////////////////////////////////////////////////////////////////
+// Avalon write and read transfers
+//////////////////////////////////////////////////////////////////////////////
+
+// Avalon write transfers
+initial begin
   // Avalon MM interface is idle
   avalon_read  = 1'b0;
   avalon_write = 1'b0;
-  repeat (2) @(posedge clk);
-  // remove reset
-  rst = 1'b0;
-  repeat (2) @(posedge clk);
+  repeat (4) @(posedge clk);
   // perform Avalon MM fundamental writes
   avalon_cycle (1, 0, 4'hf, "H", data);
   avalon_cycle (1, 0, 4'hf, "e", data);
@@ -68,7 +76,7 @@ initial begin
   avalon_cycle (1, 0, 4'hf, "l", data);
   avalon_cycle (1, 0, 4'hf, "o", data);
   avalon_cycle (1, 0, 4'hf, ",", data);
-  repeat (20) @(posedge clk);
+  repeat (20*N_BIT) @(posedge clk);
   avalon_cycle (1, 0, 4'hf, " ", data);
   repeat (1) @(posedge clk);
   avalon_cycle (1, 0, 4'hf, "W", data);
@@ -81,9 +89,13 @@ initial begin
   $finish(); 
 end
 
+// avalon read transfers
 
-// avalon transfer cycle generation task
-task avalon_cycle (
+//////////////////////////////////////////////////////////////////////////////
+// Avalon transfer cycle generation task
+//////////////////////////////////////////////////////////////////////////////
+
+task automatic avalon_cycle (
   input            r_w,  // 0-read or 1-write cycle
   input  [AAW-1:0] adr,
   input  [ABW-1:0] ben,
@@ -112,13 +124,14 @@ endtask
 // avalon cycle transfer cycle end status
 assign avalon_transfer = (avalon_read | avalon_write) & ~avalon_waitrequest;
 
+//////////////////////////////////////////////////////////////////////////////
+// UART monitor (receiver)
+//////////////////////////////////////////////////////////////////////////////
 
-// UART monitor (receiver) signals
 event     uart_sample;  // a semple event should be placed in the middle of each bit
 integer   uart_cnt;     // bit counter
 reg [7:0] uart_dat;     // byte of data
 
-// UART monitor (receiver)
 initial begin
   wait (~rst);
   while (1) begin
@@ -144,8 +157,10 @@ initial begin
   end
 end
 
+//////////////////////////////////////////////////////////////////////////////
+// RTL instance
+//////////////////////////////////////////////////////////////////////////////
 
-// instantiate uart RTL
 uart #(
   // UART parameters
   .BYTESIZE (BYTESIZE),
@@ -172,5 +187,9 @@ uart #(
   .uart_rxd            (uart_RxD),
   .uart_txd            (uart_TxD)
 );
+
+// UART loopback
+assign uart_RxD = uart_TxD;
+
 
 endmodule
