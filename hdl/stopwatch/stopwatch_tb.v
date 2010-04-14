@@ -2,11 +2,12 @@
 
 module stopwatch_tb;
 
-//localparam real FRQ = 24_000_000;  // 24MHz // realistic optiony
-localparam real FRQ = 24_0;  // 240Hz // option for faster simulation
-localparam real CP = 1000000000/FRQ;  // clock period
+//localparam real FRQ = 24_000_000;        // 24MHz  // realistic optiony
+localparam real FRQ = 1000;              // 1000Hz // option for faster simulation
+localparam real CP = 1_000_000_000/FRQ;  // clock period
 
-localparam SPN = FRQ; // second clock periods number
+localparam  SPN = FRQ;                    //               a second in clock periods number
+localparam HSPN = SPN/100;                // hundredths of a second in clock periods number
 
 // list of local signals
 reg        clk;       // clock
@@ -15,10 +16,12 @@ reg        rst;      // reset (asynchronous)
 reg        b_run;     // run/stop    button
 reg        b_clr;     // clear/split button
 // 7 segment time outputs
-wire [6:0] sec_0;     //     seconds
-wire [6:0] sec_1;     // ten seconds
-wire [6:0] min_0;     //     minutes
-wire [6:0] min_1;     // ten minutes
+wire [3:0] t_hnd_0;   //     hundredths
+wire [3:0] t_hnd_1;   // ten hundredths
+wire [3:0] t_sec_0;   //     seconds
+wire [3:0] t_sec_1;   // ten seconds
+wire [3:0] t_min_0;   //     minutes
+wire [3:0] t_min_1;   // ten minutes
 // screen status and hold status indicators
 wire       s_run;     // run status
 wire       s_hld;     // hold status
@@ -35,6 +38,7 @@ always #(CP/2) clk = ~clk;
 
 // test signal generation
 initial begin
+  $display ("DEBUG: SPN=%d, HSPN=%d, SPN*(31)-10=%d.", SPN, HSPN, SPN*(31)-10);
   // buttons are initially not active
   b_run = 1'b0;
   b_clr = 1'b0;
@@ -79,22 +83,24 @@ end
 // instantiate counter RTL
 stopwatch #(
   // timing parameters
-  .SPN    (SPN)
+  .HSPN     (HSPN)
 ) stopwatch_i (
   // system signals
-  .clk    (clk),
-  .rst    (rst),
+  .clk      (clk),
+  .rst      (rst),
   // buttons
-  .b_run  (b_run),
-  .b_clr  (b_clr),
-  // time outputs
-  .sec_0  (sec_0),
-  .sec_1  (sec_1),
-  .min_0  (min_0),
-  .min_1  (min_1),
+  .b_run    (b_run),
+  .b_clr    (b_clr),
+  // bcd time outputs
+  .t_hnd_0  (t_hnd_0),
+  .t_hnd_1  (t_hnd_1),
+  .t_sec_0  (t_sec_0),
+  .t_sec_1  (t_sec_1),
+  .t_min_0  (t_min_0),
+  .t_min_1  (t_min_1),
   // screen status and hold status indicators
-  .s_run  (s_run),
-  .s_hld  (s_hld)
+  .s_run    (s_run),
+  .s_hld    (s_hld)
 );
 
 endmodule
