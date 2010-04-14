@@ -31,15 +31,15 @@ initial begin
   ena = 1'b0;
   repeat (2) @(posedge clk);
   // remove reset
-  rst = 1'b0;
+  rst <= 1'b0;
   repeat (2) @(posedge clk);
   // enable counter
-  ena = 1'b1;
+  ena <= 1'b1;
   repeat (8) @(posedge clk);
   // test the clear functionality
-  clr = 1'b1;
+  clr <= 1'b1;
   repeat (4) @(posedge clk);
-  clr = 1'b0;
+  clr <= 1'b0;
   repeat (8) @(posedge clk);
   $finish(); 
 end

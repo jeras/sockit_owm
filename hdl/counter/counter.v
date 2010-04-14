@@ -10,7 +10,7 @@ module counter #(
   output wire         out   // running status output
 );
 
-always @ (posedge clk, negedge rst)
+always @ (posedge clk, posedge rst)
 if (rst)              cnt <= CR;
 else if (ena) begin
   if (clr)            cnt <= CR;
