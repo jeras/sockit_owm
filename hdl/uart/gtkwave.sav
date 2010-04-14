@@ -1,14 +1,14 @@
-[timestart] 0
+[timestart] 268000000
 [size] 1366 694
 [pos] -1 -1
-*-28.346968 1124982000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-29.346968 1187481000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] uart_tb.
-@200
+@201
 -System signals
 @28
 uart_tb.clk
 uart_tb.rst
-@200
+@800200
 -Avalon MM bus
 @28
 uart_tb.avalon_write
@@ -20,20 +20,22 @@ uart_tb.avalon_writedata[31:0]
 uart_tb.avalon_readdata[31:0]
 @28
 uart_tb.avalon_waitrequest
-@200
+@1000200
+-Avalon MM bus
+@800200
 -UART bus
 @28
 uart_tb.uart_RxD
 uart_tb.uart_TxD
-@22
-uart_tb.uart_i.data[7:0]
-@29
-uart_tb.uart_i.parity
+@1000200
+-UART bus
 @200
 -RTL Avalon
 @28
 uart_tb.uart_i.avalon_trn_w
 uart_tb.uart_i.avalon_trn_r
+uart_tb.uart_i.status_irq
+uart_tb.uart_i.status_err
 @200
 -RTL txd
 @24
@@ -60,6 +62,10 @@ uart_tb.uart_i.rxd_cnt[3:0]
 uart_tb.uart_i.rxd_dat[7:0]
 @28
 uart_tb.uart_i.rxd_prt
+@22
+uart_tb.uart_i.data[7:0]
+@28
+uart_tb.uart_i.parity
 @200
 -testbench local signals
 @22

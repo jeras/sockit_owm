@@ -13,10 +13,11 @@ localparam ADW = 32;     // data width
 localparam ABW = ADW/8;  // byte enable width
 
 // UART parameters
-localparam      BYTESIZE = 8;
-localparam      PARITY   = "NONE";
-localparam      STOPSIZE = 1;
-localparam real BAUDRATE = 9600;  // realistic baudrate value
+localparam      BYTESIZE = 8;                    // oprions are ..., 7, 8, ...
+//localparam      PARITY   = "NONE";               // options are "NONE", "EVEN", "ODD"
+localparam      PARITY   = "ODD";               // options are "NONE", "EVEN", "ODD"
+localparam      STOPSIZE = 1;                    // options are 1,2,...
+localparam real BAUDRATE = 9600;                 // realistic baudrate value
 localparam      N_BIT =           FRQ/BAUDRATE;  // T=f/baudrate
 localparam real T_BIT = 1_000_000_000/BAUDRATE;  // T=1.0s/baudrate
 
@@ -31,9 +32,15 @@ reg  [ABW-1:0] avalon_byteenable;   //
 reg  [ADW-1:0] avalon_writedata;    //
 wire [ADW-1:0] avalon_readdata;     //
 wire           avalon_waitrequest;  //
+
+// UART status
+wire           status_irq;
+wire           status_err;
+
 // Avalon MM local signals
 wire           avalon_transfer;
 reg  [ADW-1:0] data;
+
 // UART
 wire           uart_RxD;
 wire           uart_TxD;
@@ -63,12 +70,12 @@ end
 // Avalon write and read transfers
 //////////////////////////////////////////////////////////////////////////////
 
-// Avalon write transfers
 initial begin
   // Avalon MM interface is idle
   avalon_read  = 1'b0;
   avalon_write = 1'b0;
   repeat (4) @(posedge clk);
+
   // perform Avalon MM fundamental writes
   avalon_cycle (1, 0, 4'hf, "H", data);
   avalon_cycle (1, 0, 4'hf, "e", data);
@@ -85,11 +92,21 @@ initial begin
   avalon_cycle (1, 0, 4'hf, "l", data);
   avalon_cycle (1, 0, 4'hf, "d", data);
   avalon_cycle (1, 0, 4'hf, "!", data);
-  repeat (20) @(posedge clk);
+  repeat (20*N_BIT) @(posedge clk);
+
+  // read from Avalon to clear interrupt and fifo error
+  avalon_cycle (0, 0, 4'hf, 'hx, data);
+
+  // send (loop) receive an UART byte, wait for interrupt and read data
+  avalon_cycle (1, 0, 4'hf, "T", data);
+  @ (posedge clk); while (~status_irq) @ (posedge clk);
+  avalon_cycle (0, 0, 4'hf, 'hx, data);
+  $display ("DEBUG: Received character \'%s\' expected \'T\'", data[BYTESIZE-1:0]);
+
+  // wait a few cycles and finish
+  repeat (4) @(posedge clk);
   $finish(); 
 end
-
-// avalon read transfers
 
 //////////////////////////////////////////////////////////////////////////////
 // Avalon transfer cycle generation task
@@ -181,8 +198,8 @@ uart #(
   .avalon_readdata     (avalon_readdata),
   .avalon_waitrequest  (avalon_waitrequest),
   // receiver status
-  .status_irq          (),
-  .status_err          (),
+  .status_irq          (status_irq),
+  .status_err          (status_err),
   // UART
   .uart_rxd            (uart_RxD),
   .uart_txd            (uart_TxD)

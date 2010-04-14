@@ -31,7 +31,7 @@ module uart #(
 localparam UTL = BYTESIZE + (PARITY!="NONE") + STOPSIZE;
 
 // parity option
-localparam PRT = (PARITY!="ODD");
+localparam PRT = (PARITY!="EVEN");
 
 // Avalon signals
 wire avalon_trn_w;
@@ -54,10 +54,13 @@ reg                parity;
 // Avalon logic
 //////////////////////////////////////////////////////////////////////////////
 
-// avalon transfer status
-assign avalon_waitrequest = avalon_read | txd_run;
+// Avalon transfer status
+assign avalon_waitrequest = txd_run & ~avalon_read;
 assign avalon_trn_w = avalon_write & ~avalon_waitrequest;
 assign avalon_trn_r = avalon_read  & ~avalon_waitrequest;
+
+// Avalon read data
+assign avalon_readdata = {status_irq, status_err, {ADW-BYTESIZE-3{1'b0}}, parity, data};
 
 //////////////////////////////////////////////////////////////////////////////
 // UART transmitter
@@ -104,7 +107,7 @@ always @ (posedge clk, posedge rst)
 if (rst)             uart_txd <= 1'b1;
 else begin
   if (avalon_trn_w)  uart_txd <= 1'b0;
-  else if (txd_ena)  uart_txd <= ((PARITY!="NONE") & (txd_cnt==STOPSIZE)) ? txd_prt : txd_dat[0];
+  else if (txd_ena)  uart_txd <= ((PARITY!="NONE") & (txd_cnt==STOPSIZE+1)) ? txd_prt : txd_dat[0];
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -117,13 +120,13 @@ reg uart_rxd_dly;
 always @ (posedge clk)
 uart_rxd_dly <= uart_rxd;
 
-assign rxd_start = uart_rxd_dly & ~uart_rxd;
+assign rxd_start = uart_rxd_dly & ~uart_rxd & ~rxd_run;
 
 // baudrate generator from clock (it counts down to 0 generating a baud pulse)
 always @ (posedge clk, posedge rst)
-if (rst) rxd_bdr <= N_BIT-1;
+if (rst)          rxd_bdr <= N_BIT-1;
 else begin
-  if (rxd_start)  rxd_bdr <= (N_BIT-1)>>1;
+  if (rxd_start)  rxd_bdr <= ((N_BIT-1)>>1)-1;
   else            rxd_bdr <= ~|rxd_bdr ? N_BIT-1 : rxd_bdr - rxd_run;
 end
 
@@ -136,7 +139,7 @@ else      rxd_ena <= (rxd_bdr == 'd1);
 always @ (posedge clk, posedge rst)
 if (rst)             rxd_cnt <= 0;
 else begin
-  if (avalon_trn_w)  rxd_cnt <= UTL;
+  if (rxd_start)     rxd_cnt <= UTL;
   else if (rxd_ena)  rxd_cnt <= rxd_cnt - 1;
 end
 
@@ -144,7 +147,7 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)             rxd_run <= 1'b0;
 else begin
-  if (avalon_trn_w)  rxd_run <= 1'b1;
+  if (rxd_start)     rxd_run <= 1'b1;
   else if (rxd_ena)  rxd_run <= rxd_cnt != 4'd0;
 end
 
@@ -178,7 +181,5 @@ else begin
   if (avalon_trn_r)      status_err <= 1'b0;
   else if (rxd_end)      status_err <= status_irq;
 end
-
-assign avalon_readdata = {status_irq, status_err, {ADW-BYTESIZE-3{1'b0}}, parity, data};
 
 endmodule
