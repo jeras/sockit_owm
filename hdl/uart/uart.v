@@ -153,7 +153,8 @@ end
 
 // data shift register
 always @ (posedge clk)
-  if (rxd_ena)       rxd_dat <= {uart_rxd, rxd_dat[BYTESIZE-1:1]};
+  if ((PARITY!="NONE") ? ~(txd_cnt==STOPSIZE) & rxd_ena : rxd_ena)
+    rxd_dat <= {uart_rxd, rxd_dat[BYTESIZE-1:1]};
 
 // parity register
 always @ (posedge clk)

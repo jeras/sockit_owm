@@ -1,9 +1,9 @@
-[timestart] 268000000
+[timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-29.346968 1187481000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-31.966061 18166376000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] uart_tb.
-@201
+@200
 -System signals
 @28
 uart_tb.clk
@@ -62,6 +62,8 @@ uart_tb.uart_i.rxd_cnt[3:0]
 uart_tb.uart_i.rxd_dat[7:0]
 @28
 uart_tb.uart_i.rxd_prt
+@29
+uart_tb.uart_i.rxd_end
 @22
 uart_tb.uart_i.data[7:0]
 @28
