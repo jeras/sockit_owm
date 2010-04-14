@@ -176,27 +176,27 @@ function [6:0] seg7 (input [3:0] bin);
     4'h7    : seg7 = 7'h07;
     4'h8    : seg7 = 7'h7F;
     4'h9    : seg7 = 7'h6F;
-    4'ha    : seg7 = 7'h6F;
-    4'hb    : seg7 = 7'h6F;
-    4'hc    : seg7 = 7'h6F;
-    4'hd    : seg7 = 7'h6F;
-    4'he    : seg7 = 7'h6F;
-    4'hf    : seg7 = 7'h6F;
+    4'ha    : seg7 = 7'b1110111;
+    4'hb    : seg7 = 7'b1111100;
+    4'hc    : seg7 = 7'b0111001;
+    4'hd    : seg7 = 7'b1011110;
+    4'he    : seg7 = 7'b1111001;
+    4'hf    : seg7 = 7'b1110001;
     default : seg7 = 7'h00;
   endcase
 endfunction
 
 // display multiplexer
-assign display = SW[9] ? avalon_write : avalon_read;
+assign display = SW[9] ? avalon_writedata : avalon_readdata;
 
 // red LED display
-assign LEDR = {1'b0, display, 1'b1};
+assign LEDR = {2'b00, display};
 
 // active low 7 segment outputs
-assign HEX0 = ~seg7(display[3:0]);
-assign HEX1 = ~seg7(display[7:4]);
-assign HEX2 = ~7'h00;
-assign HEX3 = ~7'h00;
+assign HEX0 = ~seg7(avalon_writedata[3:0]);
+assign HEX1 = ~seg7(avalon_writedata[7:4]);
+assign HEX2 = ~seg7(avalon_readdata[3:0]);
+assign HEX3 = ~seg7(avalon_readdata[7:4]);
 
 // active hight green LED status outputs
 assign LEDG[2:0] = {status_error, status_interrupt, b_read, b_write, b_reset};
