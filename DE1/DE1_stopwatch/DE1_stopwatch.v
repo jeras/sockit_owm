@@ -149,7 +149,8 @@ stopwatch #(
   .avalon_read       (1'b0),
   .avalon_writedata  (32'd0),
   .avalon_readdata   (),
-  .avalon_interrupt  ()
+  .avalon_interrupt  (),
+  .avalon_error      ()
 );
 
 // binary to 7 segment conversion
