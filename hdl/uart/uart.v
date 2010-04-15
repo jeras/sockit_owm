@@ -47,6 +47,8 @@ reg          [3:0] txd_cnt, rxd_cnt;  // transfer length counter
 reg [BYTESIZE-1:0] txd_dat, rxd_dat;  // data shift register
 reg                txd_prt, rxd_prt;  // parity register
 
+wire               rxd_start, rxd_end;
+ 
 reg [BYTESIZE-1:0] data;
 reg                parity;
 

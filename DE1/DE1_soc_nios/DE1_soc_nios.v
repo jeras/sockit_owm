@@ -94,6 +94,7 @@ wire clk;
 wire b_rst;
 wire b_run;
 wire b_clr;
+wire b_tmp;
 
 // status LED signals
 wire s_run;
@@ -122,6 +123,7 @@ assign clk = CLOCK_24[0];
 debouncer #(.CN (FRQ/ 50)) debouncer_rst (.clk (clk), .d_i (~KEY[0]), .d_o (b_rst));
 debouncer #(.CN (FRQ/100)) debouncer_run (.clk (clk), .d_i (~KEY[1]), .d_o (b_run));
 debouncer #(.CN (FRQ/100)) debouncer_clr (.clk (clk), .d_i (~KEY[2]), .d_o (b_clr));
+debouncer #(.CN (FRQ/100)) debouncer_tmp (.clk (clk), .d_i (~KEY[3]), .d_o (b_tmp));
 
 // stopwatch RTL instance
 stopwatch #(
@@ -185,6 +187,6 @@ assign HEX2 = ~seg7(t_min_0);
 assign HEX3 = ~seg7(t_min_1);
 
 // active hight green LED status outputs
-assign LEDG[2:0] = {s_hld, s_run, b_rst};
+assign LEDG[2:0] = {s_tmp, s_hld, s_run, b_rst};
 
 endmodule
