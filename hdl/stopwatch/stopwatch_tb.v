@@ -6,8 +6,13 @@ module stopwatch_tb;
 localparam real FRQ = 5000;              // 5000Hz // option for faster simulation
 localparam real CP = 1_000_000_000/FRQ;  // clock period
 
-localparam  SPN = FRQ;                    // a     second in clock periods number
-localparam MSPN = SPN/1000;               // a milisecond in clock periods number
+localparam  SPN = FRQ;                   // a     second in clock periods number
+localparam MSPN = SPN/1000;              // a milisecond in clock periods number
+
+// Avalon parameters
+localparam AAW = 1;      // address width
+localparam ADW = 32;     // data width
+localparam ABW = ADW/8;  // byte enable width
 
 // list of local signals
 reg        clk;       // clock
@@ -15,6 +20,7 @@ reg        rst;      // reset (asynchronous)
 // buttons (should be debuunced)
 reg        b_run;     // run/stop    button
 reg        b_clr;     // clear/split button
+reg        b_tmp;     // timepoint   button
 // bcd time outputs
 wire [3:0] t_mil_0;   //     miliseconds
 wire [3:0] t_mil_1;   // ten miliseconds
@@ -26,6 +32,12 @@ wire [3:0] t_min_1;   // ten minutes
 // screen status and hold status indicators
 wire       s_run;     // run status
 wire       s_hld;     // hold status
+// Avalon interface
+reg            avalon_write;
+reg            avalon_read;
+reg  [ADW-1:0] avalon_writedata;
+wire [ADW-1:0] avalon_readdata;
+wire           avalon_interrupt;
 
 // request for a dumpfile
 initial begin
@@ -40,14 +52,22 @@ always #(CP/2) clk = ~clk;
 // test signal generation
 initial begin
   $display ("DEBUG: SPN=%d, MSPN=%d", SPN, MSPN);
+
   // buttons are initially not active
   b_run = 1'b0;
   b_clr = 1'b0;
+  b_tmp = 1'b0;
+
+  // set Avalon bus into an idle status
+  avalon_write = 1'b0;
+  avalon_read  = 1'b0;
+
   // reset sequence
   rst = 1'b1;
   repeat (2) @(posedge clk);
   rst <= 1'b0;
   repeat (10) @(posedge clk);
+
   // start stopwatch and run it for some time 31s
   b_run <= 1'b1;
   repeat (10) @(posedge clk);
@@ -73,6 +93,37 @@ initial begin
   repeat (10) @(posedge clk);
   b_clr <= 1'b0;
   repeat (SPN*(5)-10) @(posedge clk);
+
+  // restart the stopwatch and run for 5s
+  b_run <= 1'b1;
+  repeat (10) @(posedge clk);
+  b_run <= 1'b0;
+  repeat (SPN*(5)-10) @(posedge clk);
+  // push the timepoint button
+  b_tmp <= 1'b1;
+  repeat (10) @(posedge clk);
+  b_tmp <= 1'b0;
+  repeat (10) @(posedge clk);
+  // perform an Avalon read (to get timepoint time)
+  avalon_read <= 1'b1;
+  @(posedge clk);
+  avalon_read <= 1'b0;
+  repeat (10) @(posedge clk);
+  // perform an Avalon read (to get counter time)
+  avalon_read <= 1'b1;
+  @(posedge clk);
+  avalon_read <= 1'b0;
+  repeat (10) @(posedge clk);
+  // stop, clear stopwatch and wait for 5s
+  b_run <= 1'b1;
+  repeat (10) @(posedge clk);
+  b_run <= 1'b0;
+  repeat (10) @(posedge clk);
+  b_clr <= 1'b1;
+  repeat (10) @(posedge clk);
+  b_clr <= 1'b0;
+  repeat (SPN*(5)-30) @(posedge clk);
+
   // restart the stopwatch and run to 13:13
   b_run <= 1'b1;
   repeat (10) @(posedge clk);
@@ -92,6 +143,7 @@ stopwatch #(
   // buttons
   .b_run    (b_run),
   .b_clr    (b_clr),
+  .b_tmp    (b_tmp),
   // bcd time outputs
   .t_mil_0  (t_mil_0),
   .t_mil_1  (t_mil_1),
@@ -102,7 +154,13 @@ stopwatch #(
   .t_min_1  (t_min_1),
   // screen status and hold status indicators
   .s_run    (s_run),
-  .s_hld    (s_hld)
+  .s_hld    (s_hld),
+  // Avalon CPU interface
+  .avalon_write      (avalon_write),
+  .avalon_read       (avalon_read),
+  .avalon_writedata  (avalon_writedata),
+  .avalon_readdata   (avalon_readdata),
+  .avalon_interrupt  (avalon_interrupt)
 );
 
 endmodule

@@ -143,7 +143,13 @@ stopwatch #(
   .t_min_1  (t_min_1),
   // screen status and hold status indicators
   .s_run    (s_run),
-  .s_hld    (s_hld)
+  .s_hld    (s_hld),
+  // Avalon CPU interface
+  .avalon_write      (1'b0),
+  .avalon_read       (1'b0),
+  .avalon_writedata  (32'd0),
+  .avalon_readdata   (),
+  .avalon_interrupt  ()
 );
 
 // binary to 7 segment conversion
