@@ -135,7 +135,7 @@ end else begin
   // if stopwatch is running increment the counters
   if (s_run) begin
     if (pulse) begin
-      if (     1'b1) cnt_mil_0 <= wrp_mil_0 ? 4'd0 : cnt_mil_0 + 4'd1;
+                     cnt_mil_0 <= wrp_mil_0 ? 4'd0 : cnt_mil_0 + 4'd1;
       if (wrp_mil_0) cnt_mil_1 <= wrp_mil_1 ? 4'd0 : cnt_mil_1 + 4'd1;
       if (wrp_mil_1) cnt_mil_2 <= wrp_mil_2 ? 4'd0 : cnt_mil_2 + 4'd1;
       if (wrp_mil_2) cnt_sec_0 <= wrp_sec_0 ? 4'd0 : cnt_sec_0 + 4'd1;
@@ -188,6 +188,14 @@ else begin
   else if (avalon_read) avalon_interrupt <= 1'b0;
 end
 
+// error status
+always @ (posedge clk, posedge rst)
+if (rst)                      avalon_error <= 1'b0;
+else begin
+  if (avalon_read)            avalon_error <= 1'b0;
+  else if (avalon_interrupt)  avalon_error <= avalon_interrupt;
+end
+
 // timepoint value registers
 always @ (posedge clk)
 if (s_run & b_clr) begin
@@ -201,10 +209,10 @@ if (s_run & b_clr) begin
 end
 
 // avalon read data (if there is timepoint data read it, else read counters)
-assign avalon_readdata[ADW-1]   =  avalon_interrupt;
-assign avalon_readdata[ADW-2:0] = (avalon_interrupt)
-  ? {3'd0, tmp_min_1, tmp_min_0, tmp_sec_1, tmp_sec_0, tmp_mil_2, tmp_mil_1, tmp_mil_0}
-  : {3'd0, cnt_min_1, cnt_min_0, cnt_sec_1, cnt_sec_0, cnt_mil_2, cnt_mil_1, cnt_mil_0};
+assign avalon_readdata[ADW-1:ADW-4] = {avalon_interrupt, avalon_error, s_hld, s_run};
+assign avalon_readdata[ADW-5:    0] = (avalon_interrupt)
+  ? {tmp_min_1, tmp_min_0, tmp_sec_1, tmp_sec_0, tmp_mil_2, tmp_mil_1, tmp_mil_0}
+  : {cnt_min_1, cnt_min_0, cnt_sec_1, cnt_sec_0, cnt_mil_2, cnt_mil_1, cnt_mil_0};
 
 
 endmodule
