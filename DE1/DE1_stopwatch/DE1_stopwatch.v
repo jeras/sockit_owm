@@ -87,6 +87,9 @@ inout  [35:0] GPIO_1        // GPIO Connection 1
 
 localparam FRQ = 24000000;  // 24MHz
 
+// system clock
+wire clk;
+
 // debounced button signals
 wire b_rst;
 wire b_run;
@@ -96,11 +99,12 @@ wire b_clr;
 wire s_run;
 wire s_hld;
 
-// active high 7 segment signals requiering negation
-wire [6:0] HEX0_t;
-wire [6:0] HEX1_t;
-wire [6:0] HEX2_t;
-wire [6:0] HEX3_t;
+// time in BCD format
+wire [3:0] t_mil_2;
+wire [3:0] t_sec_0;
+wire [3:0] t_sec_1;
+wire [3:0] t_min_0;
+wire [3:0] t_min_1;
 
 // All inout port turn to tri-state
 assign SD_DAT      = 1'bz;
@@ -111,36 +115,68 @@ assign AUD_BCLK    = 1'bz;
 assign GPIO_0      = 36'hzzzzzzzzz;
 assign GPIO_1      = 36'hzzzzzzzzz;
 
+// set system clock to 24MHz
+assign clk = CLOCK_24[0];
+
 // debouncing of command buttons (buttons are active low)
-debouncer #(.CN (FRQ/ 50)) debouncer_rst (.clk (CLOCK_24[0]), .d_i (~KEY[0]), .d_o (b_rst));
-debouncer #(.CN (FRQ/100)) debouncer_run (.clk (CLOCK_24[0]), .d_i (~KEY[1]), .d_o (b_run));
-debouncer #(.CN (FRQ/100)) debouncer_clr (.clk (CLOCK_24[0]), .d_i (~KEY[2]), .d_o (b_clr));
+debouncer #(.CN (FRQ/ 50)) debouncer_rst (.clk (clk), .d_i (~KEY[0]), .d_o (b_rst));
+debouncer #(.CN (FRQ/100)) debouncer_run (.clk (clk), .d_i (~KEY[1]), .d_o (b_run));
+debouncer #(.CN (FRQ/100)) debouncer_clr (.clk (clk), .d_i (~KEY[2]), .d_o (b_clr));
 
 // stopwatch RTL instance
 stopwatch #(
-  .SPN     (FRQ)
+  .MSPN     (FRQ/1000)
 ) stopwatch_i (
   // system signals
-  .clk     (CLOCK_24[0]),
-  .rst     (b_rst),
+  .clk      (clk),
+  .rst      (b_rst),
   // buttons (should be debuunced outside this module)
-  .b_run   (b_run),
-  .b_clr   (b_clr),
+  .b_run    (b_run),
+  .b_clr    (b_clr),
   // time outputs
-  .sec_0   (HEX0_t),
-  .sec_1   (HEX1_t),
-  .min_0   (HEX2_t),
-  .min_1   (HEX3_t),
+  .t_mil_0  (),
+  .t_mil_1  (),
+  .t_mil_2  (t_mil_2),
+  .t_sec_0  (t_sec_0),
+  .t_sec_1  (t_sec_1),
+  .t_min_0  (t_min_0),
+  .t_min_1  (t_min_1),
   // screen status and hold status indicators
-  .s_run   (s_run),
-  .s_hld   (s_hld)
+  .s_run    (s_run),
+  .s_hld    (s_hld)
 );
 
-// active low 7 segment outputs
-assign HEX0 = ~HEX0_t;
-assign HEX1 = ~HEX1_t;
-assign HEX2 = ~HEX2_t;
-assign HEX3 = ~HEX3_t;
+// binary to 7 segment conversion
+function [6:0] seg7 (input [3:0] bin);
+  case (bin)
+    4'h0    : seg7 = 7'h3F;
+    4'h1    : seg7 = 7'h06;
+    4'h2    : seg7 = 7'h5B;
+    4'h3    : seg7 = 7'h4F;
+    4'h4    : seg7 = 7'h66;
+    4'h5    : seg7 = 7'h6D;
+    4'h6    : seg7 = 7'h7D;
+    4'h7    : seg7 = 7'h07;
+    4'h8    : seg7 = 7'h7F;
+    4'h9    : seg7 = 7'h6F;
+    4'ha    : seg7 = 7'b1110111;
+    4'hb    : seg7 = 7'b1111100;
+    4'hc    : seg7 = 7'b0111001;
+    4'hd    : seg7 = 7'b1011110;
+    4'he    : seg7 = 7'b1111001;
+    4'hf    : seg7 = 7'b1110001;
+    default : seg7 = 7'h00;
+  endcase
+endfunction
+
+// tenths of a second
+assign LEDR = 10'd1 << t_mil_2;
+
+// (seconds and minutes (active low 7 segment outputs)
+assign HEX0 = ~seg7(t_sec_0);
+assign HEX1 = ~seg7(t_sec_1);
+assign HEX2 = ~seg7(t_min_0);
+assign HEX3 = ~seg7(t_min_1);
 
 // active hight green LED status outputs
 assign LEDG[2:0] = {s_hld, s_run, b_rst};
