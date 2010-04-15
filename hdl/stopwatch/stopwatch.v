@@ -30,7 +30,8 @@ module stopwatch #(
   input             avalon_read,
   input   [ADW-1:0] avalon_writedata,
   output  [ADW-1:0] avalon_readdata,
-  output reg        avalon_interrupt
+  output reg        avalon_interrupt,
+  output reg        avalon_error
 );
 
 //////////////////////////////////////////////////////////////////////////////
