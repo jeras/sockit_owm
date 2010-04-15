@@ -15,7 +15,7 @@ reg        rst;      // reset (asynchronous)
 // buttons (should be debuunced)
 reg        b_run;     // run/stop    button
 reg        b_clr;     // clear/split button
-// 7 segment time outputs
+// bcd time outputs
 wire [3:0] t_mil_0;   //     miliseconds
 wire [3:0] t_mil_1;   // ten miliseconds
 wire [3:0] t_mil_2;   // 100 miliseconds

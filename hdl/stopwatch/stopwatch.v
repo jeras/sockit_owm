@@ -9,7 +9,7 @@ module stopwatch #(
   // buttons (should be debuunced outside this module)
   input  wire       b_run,      // run/stop    button
   input  wire       b_clr,      // clear/split button
-  // time outputs
+  // bcd time outputs
   output wire [3:0] t_mil_0,    //     miliseconds
   output wire [3:0] t_mil_1,    // ten miliseconds
   output wire [3:0] t_mil_2,    // 100 miliseconds
