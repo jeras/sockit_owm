@@ -477,9 +477,10 @@ set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 
 # file list
 set_global_assignment -name VERILOG_FILE DE1_uart.v
 set_global_assignment -name VERILOG_FILE ../../hdl/debouncer/debouncer.v
 set_global_assignment -name VERILOG_FILE ../../hdl/uart/uart.v
+
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
