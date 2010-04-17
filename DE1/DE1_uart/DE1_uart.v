@@ -159,8 +159,8 @@ uart #(
   .status_irq          (status_interrupt),
   .status_err          (status_error),
   // UART
-  .uart_rxd            (uart_RxD),
-  .uart_txd            (uart_TxD)
+  .uart_rxd            (UART_RXD),
+  .uart_txd            (UART_TXD)
 );
 
 // binary to 7 segment conversion
