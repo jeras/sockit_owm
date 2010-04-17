@@ -25,17 +25,14 @@ localparam real T_BIT = 1_000_000_000/BAUDRATE;  // T=1.0s/baudrate
 reg            clk;  // clock
 reg            rst;  // reset (asynchronous)
 // Avalon MM interface
-reg            avalon_read;         //
-reg            avalon_write;        //
-reg  [AAW-1:0] avalon_address;      //
-reg  [ABW-1:0] avalon_byteenable;   //
-reg  [ADW-1:0] avalon_writedata;    //
-wire [ADW-1:0] avalon_readdata;     //
-wire           avalon_waitrequest;  //
-
-// UART status
-wire           status_irq;
-wire           status_err;
+reg            avalon_read;
+reg            avalon_write;
+reg  [AAW-1:0] avalon_address;
+reg  [ABW-1:0] avalon_byteenable;
+reg  [ADW-1:0] avalon_writedata;
+wire [ADW-1:0] avalon_readdata;
+wire           avalon_waitrequest;
+wire           avalon_interrupt;
 
 // Avalon MM local signals
 wire           avalon_transfer;
@@ -99,7 +96,7 @@ initial begin
 
   // send (loop) receive an UART byte, wait for interrupt and read data
   avalon_cycle (1, 0, 4'hf, "T", data);
-  @ (posedge clk); while (~status_irq) @ (posedge clk);
+  @ (posedge clk); while (~avalon_interrupt) @ (posedge clk);
   avalon_cycle (0, 0, 4'hf, 'hx, data);
   $display ("DEBUG: Received character \'%s\' expected \'T\'", data[BYTESIZE-1:0]);
 
@@ -197,9 +194,7 @@ uart #(
   .avalon_writedata    (avalon_writedata),
   .avalon_readdata     (avalon_readdata),
   .avalon_waitrequest  (avalon_waitrequest),
-  // receiver status
-  .status_irq          (status_irq),
-  .status_err          (status_err),
+  .avalon_interrupt    (avalon_interrupt),
   // UART
   .uart_rxd            (uart_RxD),
   .uart_txd            (uart_TxD)

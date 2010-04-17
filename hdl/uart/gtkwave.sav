@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-31.966061 18166376000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-31.756651 18166376000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] uart_tb.
 @200
 -System signals
@@ -34,8 +34,11 @@ uart_tb.uart_TxD
 @28
 uart_tb.uart_i.avalon_trn_w
 uart_tb.uart_i.avalon_trn_r
-uart_tb.uart_i.status_irq
+uart_tb.uart_i.status_rdy
 uart_tb.uart_i.status_err
+uart_tb.uart_i.status_prt
+@22
+uart_tb.uart_i.status_dat[7:0]
 @200
 -RTL txd
 @24
@@ -62,12 +65,7 @@ uart_tb.uart_i.rxd_cnt[3:0]
 uart_tb.uart_i.rxd_dat[7:0]
 @28
 uart_tb.uart_i.rxd_prt
-@29
 uart_tb.uart_i.rxd_end
-@22
-uart_tb.uart_i.data[7:0]
-@28
-uart_tb.uart_i.parity
 @200
 -testbench local signals
 @22

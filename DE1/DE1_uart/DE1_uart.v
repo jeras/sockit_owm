@@ -102,14 +102,10 @@ reg  b_write_d;
 reg  b_read_d;
 
 // avalon signals
-wire       avalon_write;
-wire       avalon_read;
-wire [7:0] avalon_writedata;
-wire [7:0] avalon_readdata;
-
-// receiver status
-wire       status_interrupt;
-wire       status_error;
+wire        avalon_write;
+wire        avalon_read;
+wire [31:0] avalon_writedata;
+wire [31:0] avalon_readdata;
 
 // display multiplexer
 wire [7:0] display;
@@ -140,7 +136,7 @@ else      {b_write_d, b_read_d} <= {b_write, b_read};
 // Avalon interface
 assign avalon_write     = b_write & ~b_write_d;
 assign avalon_read      = b_read  & ~b_read_d;
-assign avalon_writedata = SW[7:0];
+assign avalon_writedata = {24'h000000, SW[7:0]};
 
 // stopwatch RTL instance
 uart #(
@@ -155,9 +151,7 @@ uart #(
   .avalon_writedata    (avalon_writedata),
   .avalon_readdata     (avalon_readdata),
   .avalon_waitrequest  (),
-  // receiver status
-  .status_irq          (status_interrupt),
-  .status_err          (status_error),
+  .avalon_interrupt    (),
   // UART
   .uart_rxd            (UART_RXD),
   .uart_txd            (UART_TXD)
@@ -187,10 +181,10 @@ function [6:0] seg7 (input [3:0] bin);
 endfunction
 
 // display multiplexer
-assign display = SW[9] ? avalon_writedata : avalon_readdata;
+assign display = SW[9] ? avalon_writedata[7:0] : avalon_readdata[7:0];
 
 // red LED display
-assign LEDR = {2'b00, display};
+assign LEDR = {SW[9], 1'b0, display};
 
 // active low 7 segment outputs
 assign HEX0 = ~seg7(avalon_writedata[3:0]);
@@ -199,6 +193,7 @@ assign HEX2 = ~seg7(avalon_readdata[3:0]);
 assign HEX3 = ~seg7(avalon_readdata[7:4]);
 
 // active hight green LED status outputs
-assign LEDG[2:0] = {status_error, status_interrupt, b_read, b_write, b_reset};
+assign LEDG[7:5] = avalon_readdata[31:29];  // interrupt, error, parity error
+assign LEDG[2:0] = {b_read, b_write, b_reset}; // buttons
 
 endmodule
