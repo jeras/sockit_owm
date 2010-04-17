@@ -5,7 +5,7 @@
 
 # +-----------------------------------
 # | 
-# | FPGA_HDL "stopwatch" v1.0
+# | stopwatch "stopwatch" v1.0
 # | Iztok Jeras 2010.04.15.14:20:33
 # | stopwatch with a CPU interface
 # | 
@@ -23,10 +23,10 @@ package require -exact sopc 9.1
 # +-----------------------------------
 
 # +-----------------------------------
-# | module FPGA_HDL
+# | module stopwatch
 # | 
 set_module_property DESCRIPTION "stopwatch with a CPU interface"
-set_module_property NAME FPGA_HDL
+set_module_property NAME stopwatch
 set_module_property VERSION 1.0
 set_module_property INTERNAL false
 set_module_property GROUP ""
