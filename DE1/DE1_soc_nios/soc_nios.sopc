@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<system name="DE1_soc_nios">
+<system name="soc_nios">
  <parameter name="bonusData"><![CDATA[bonusData 
 {
-   element DE1_soc_nios
+   element soc_nios
    {
    }
    element jtag_uart.avalon_jtag_slave
