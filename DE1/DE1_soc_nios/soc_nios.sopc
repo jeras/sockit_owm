@@ -2,9 +2,6 @@
 <system name="soc_nios">
  <parameter name="bonusData"><![CDATA[bonusData 
 {
-   element soc_nios
-   {
-   }
    element jtag_uart.avalon_jtag_slave
    {
       datum baseAddress
@@ -92,6 +89,9 @@
          type = "long";
       }
    }
+   element soc_nios
+   {
+   }
    element stopwatch_i
    {
       datum _sortIndex
@@ -115,8 +115,8 @@
  <parameter name="hardcopyCompatible" value="false" />
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="projectName" value="DE1_soc_nios.qpf" />
- <parameter name="systemHash" value="6901336655" />
- <parameter name="timeStamp" value="1271514228142" />
+ <parameter name="systemHash" value="8891285651" />
+ <parameter name="timeStamp" value="1271577038943" />
  <module name="clk_0" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />

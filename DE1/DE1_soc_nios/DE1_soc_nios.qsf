@@ -489,4 +489,4 @@ set_global_assignment -name VERILOG_FILE ../../hdl/uart/uart.v
 set_global_assignment -name SOPC_FILE soc_nios.sopc
 set_global_assignment -name TCL_SCRIPT_FILE ../../hdl/stopwatch/stopwatch_hw.tcl
 set_global_assignment -name TCL_SCRIPT_FILE ../../hdl/uart/uart_hw.tcl
-set_global_assignment -name QIP_FILE DE1_soc_nios.qip
+set_global_assignment -name QIP_FILE soc_nios.qip
