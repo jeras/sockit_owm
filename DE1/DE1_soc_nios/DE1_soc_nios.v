@@ -125,33 +125,27 @@ debouncer #(.CN (FRQ/100)) debouncer_run (.clk (clk), .d_i (~KEY[1]), .d_o (b_ru
 debouncer #(.CN (FRQ/100)) debouncer_clr (.clk (clk), .d_i (~KEY[2]), .d_o (b_clr));
 debouncer #(.CN (FRQ/100)) debouncer_tmp (.clk (clk), .d_i (~KEY[3]), .d_o (b_tmp));
 
-// stopwatch RTL instance
-stopwatch #(
-  .MSPN     (FRQ/1000)
-) stopwatch_i (
-  // system signals
-  .clk      (clk),
-  .rst      (b_rst),
-  // buttons (should be debuunced outside this module)
-  .b_run    (b_run),
-  .b_clr    (b_clr),
-  // time outputs
-  .t_mil_0  (),
-  .t_mil_1  (),
-  .t_mil_2  (t_mil_2),
-  .t_sec_0  (t_sec_0),
-  .t_sec_1  (t_sec_1),
-  .t_min_0  (t_min_0),
-  .t_min_1  (t_min_1),
-  // screen status and hold status indicators
-  .s_run    (s_run),
-  .s_hld    (s_hld),
-  // Avalon CPU interface
-  .avalon_write      (1'b0),
-  .avalon_read       (1'b0),
-  .avalon_writedata  (32'd0),
-  .avalon_readdata   (),
-  .avalon_interrupt  ()
+// soc_nios RTL instance
+soc_nios soc_nios_i (
+  // global signals
+  .clk_0                         (clk),
+  .reset_n                       (~b_rst),
+  // the_stopwatch_i
+  .b_run_to_the_stopwatch_i      (b_run),
+  .b_clr_to_the_stopwatch_i      (b_clr),
+  .b_tmp_to_the_stopwatch_i      (b_tmp),
+  .s_hld_from_the_stopwatch_i    (s_hld),
+  .s_run_from_the_stopwatch_i    (s_run),
+  .t_mil_0_from_the_stopwatch_i  (),
+  .t_mil_1_from_the_stopwatch_i  (),
+  .t_mil_2_from_the_stopwatch_i  (t_mil_2),
+  .t_min_0_from_the_stopwatch_i  (t_sec_0),
+  .t_min_1_from_the_stopwatch_i  (t_sec_1),
+  .t_sec_0_from_the_stopwatch_i  (t_min_0),
+  .t_sec_1_from_the_stopwatch_i  (t_min_1),
+  // the_uart_i
+  .uart_rxd_to_the_uart_i        (UART_RXD),
+  .uart_txd_from_the_uart_i      (UART_TXD)
 );
 
 // binary to 7 segment conversion
@@ -187,6 +181,6 @@ assign HEX2 = ~seg7(t_min_0);
 assign HEX3 = ~seg7(t_min_1);
 
 // active hight green LED status outputs
-assign LEDG[2:0] = {s_tmp, s_hld, s_run, b_rst};
+assign LEDG[2:0] = {s_hld, s_run, b_rst};
 
 endmodule
