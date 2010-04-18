@@ -38,7 +38,6 @@ reg            avalon_read;
 reg  [ADW-1:0] avalon_writedata;
 wire [ADW-1:0] avalon_readdata;
 wire           avalon_interrupt;
-wire           avalon_error;
 
 // request for a dumpfile
 initial begin
@@ -161,8 +160,7 @@ stopwatch #(
   .avalon_read       (avalon_read),
   .avalon_writedata  (avalon_writedata),
   .avalon_readdata   (avalon_readdata),
-  .avalon_interrupt  (avalon_interrupt),
-  .avalon_error      (avalon_error)
+  .avalon_interrupt  (avalon_interrupt)
 );
 
 endmodule

@@ -30,16 +30,49 @@ module stopwatch #(
   input             avalon_read,
   input   [ADW-1:0] avalon_writedata,
   output  [ADW-1:0] avalon_readdata,
-  output reg        avalon_interrupt,
-  output reg        avalon_error
+  output reg        avalon_interrupt
 );
+
+//////////////////////////////////////////////////////////////////////////////
+// local signals
+//////////////////////////////////////////////////////////////////////////////
+
+// clock divider
+reg [MSPL-1:0] clk_cnt;
+reg            pulse;
+
+// delayed button signals and detecting posedge pulse
+reg  b_run_d;
+reg  b_clr_d;
+reg  b_tmp_d;
+wire b_run_pdg;
+wire b_clr_pdg;
+wire b_tmp_pdg;
+
+// time counters and hold values
+reg [3:0] cnt_mil_0, hld_mil_0, tmp_mil_0;  //     miliseconds
+reg [3:0] cnt_mil_1, hld_mil_1, tmp_mil_1;  // ten miliseconds
+reg [3:0] cnt_mil_2, hld_mil_2, tmp_mil_2;  // 100 miliseconds
+reg [3:0] cnt_sec_0, hld_sec_0, tmp_sec_0;  //     seconds
+reg [3:0] cnt_sec_1, hld_sec_1, tmp_sec_1;  // ten seconds
+reg [3:0] cnt_min_0, hld_min_0, tmp_min_0;  //     minutes
+reg [3:0] cnt_min_1, hld_min_1, tmp_min_1;  // ten minutes
+
+// bcd counter wrapping
+wire wrp_mil_0;
+wire wrp_mil_1;
+wire wrp_mil_2;
+wire wrp_sec_0;
+wire wrp_sec_1;
+wire wrp_min_0;
+wire wrp_min_1;
+
+// Avalon status
+reg avalon_error;
 
 //////////////////////////////////////////////////////////////////////////////
 // clock divider, generates a single clock period pulse every second
 //////////////////////////////////////////////////////////////////////////////
-
-reg [MSPL-1:0] clk_cnt;
-reg            pulse;
 
 always @ (posedge clk, posedge rst)
 if (rst)       clk_cnt <= 'd0;
@@ -55,14 +88,6 @@ else      pulse   <= (clk_cnt == MSPN-1);
 //////////////////////////////////////////////////////////////////////////////
 // stopwatch status
 //////////////////////////////////////////////////////////////////////////////
-
-// delayed button signals and detecting posedge pulse
-reg  b_run_d;
-reg  b_clr_d;
-reg  b_tmp_d;
-wire b_run_pdg;
-wire b_clr_pdg;
-wire b_tmp_pdg;
 
 // delaying the button status by one clock period
 always @ (posedge clk, posedge rst)
@@ -94,24 +119,6 @@ end
 //////////////////////////////////////////////////////////////////////////////
 // stopwatch
 //////////////////////////////////////////////////////////////////////////////
-
-// time counters and hold values
-reg [3:0] cnt_mil_0, hld_mil_0, tmp_mil_0;  //     miliseconds
-reg [3:0] cnt_mil_1, hld_mil_1, tmp_mil_1;  // ten miliseconds
-reg [3:0] cnt_mil_2, hld_mil_2, tmp_mil_2;  // 100 miliseconds
-reg [3:0] cnt_sec_0, hld_sec_0, tmp_sec_0;  //     seconds
-reg [3:0] cnt_sec_1, hld_sec_1, tmp_sec_1;  // ten seconds
-reg [3:0] cnt_min_0, hld_min_0, tmp_min_0;  //     minutes
-reg [3:0] cnt_min_1, hld_min_1, tmp_min_1;  // ten minutes
-
-// bcd counter wrapping
-wire wrp_mil_0;
-wire wrp_mil_1;
-wire wrp_mil_2;
-wire wrp_sec_0;
-wire wrp_sec_1;
-wire wrp_min_0;
-wire wrp_min_1;
 
 // wrapping from the digit max value back to 0
 assign wrp_mil_0 =      1'b1 & (cnt_mil_0 == 4'd9);
