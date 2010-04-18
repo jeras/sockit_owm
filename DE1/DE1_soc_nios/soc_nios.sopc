@@ -10,19 +10,19 @@
          type = "long";
       }
    }
-   element stopwatch_i.avalon_slave
-   {
-      datum baseAddress
-      {
-         value = "266248";
-         type = "long";
-      }
-   }
    element uart_i.avalon_slave
    {
       datum baseAddress
       {
          value = "266252";
+         type = "long";
+      }
+   }
+   element stopwatch_i.avalon_slave
+   {
+      datum baseAddress
+      {
+         value = "266248";
          type = "long";
       }
    }
@@ -115,8 +115,8 @@
  <parameter name="hardcopyCompatible" value="false" />
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="projectName" value="DE1_soc_nios.qpf" />
- <parameter name="systemHash" value="8891285651" />
- <parameter name="timeStamp" value="1271577038943" />
+ <parameter name="systemHash" value="10222958728" />
+ <parameter name="timeStamp" value="1271589893956" />
  <module name="clk_0" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -205,14 +205,14 @@
    enabled="1">
   <parameter name="allowMultipleConnections" value="false" />
   <parameter name="hubInstanceID" value="0" />
-  <parameter name="readBufferDepth" value="64" />
+  <parameter name="readBufferDepth" value="16" />
   <parameter name="readIRQThreshold" value="8" />
   <parameter name="simInputCharacterStream" value="" />
   <parameter name="simInteractiveOptions">INTERACTIVE_ASCII_OUTPUT</parameter>
-  <parameter name="useRegistersForReadBuffer" value="false" />
-  <parameter name="useRegistersForWriteBuffer" value="false" />
+  <parameter name="useRegistersForReadBuffer" value="true" />
+  <parameter name="useRegistersForWriteBuffer" value="true" />
   <parameter name="useRelativePathForSimFile" value="false" />
-  <parameter name="writeBufferDepth" value="64" />
+  <parameter name="writeBufferDepth" value="16" />
   <parameter name="writeIRQThreshold" value="8" />
  </module>
  <module
@@ -221,19 +221,19 @@
    version="9.1"
    enabled="1">
   <parameter name="allowInSystemMemoryContentEditor" value="false" />
-  <parameter name="blockType" value="AUTO" />
+  <parameter name="blockType" value="M4K" />
   <parameter name="dataWidth" value="32" />
   <parameter name="dualPort" value="false" />
   <parameter name="initMemContent" value="true" />
   <parameter name="initializationFileName" value="onchip_memory" />
   <parameter name="instanceID" value="NONE" />
-  <parameter name="memorySize" value="131072" />
+  <parameter name="memorySize" value="23552" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
   <parameter name="simAllowMRAMContentsFile" value="false" />
   <parameter name="slave1Latency" value="1" />
   <parameter name="slave2Latency" value="1" />
   <parameter name="useNonDefaultInitFile" value="false" />
-  <parameter name="useShallowMemBlocks" value="false" />
+  <parameter name="useShallowMemBlocks" value="true" />
   <parameter name="writable" value="true" />
  </module>
  <module name="stopwatch_i" kind="stopwatch" version="1.0" enabled="1">
