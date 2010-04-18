@@ -139,10 +139,10 @@ soc_nios soc_nios_i (
   .t_mil_0_from_the_stopwatch_i  (),
   .t_mil_1_from_the_stopwatch_i  (),
   .t_mil_2_from_the_stopwatch_i  (t_mil_2),
-  .t_min_0_from_the_stopwatch_i  (t_sec_0),
-  .t_min_1_from_the_stopwatch_i  (t_sec_1),
-  .t_sec_0_from_the_stopwatch_i  (t_min_0),
-  .t_sec_1_from_the_stopwatch_i  (t_min_1),
+  .t_sec_0_from_the_stopwatch_i  (t_sec_0),
+  .t_sec_1_from_the_stopwatch_i  (t_sec_1),
+  .t_min_0_from_the_stopwatch_i  (t_min_0),
+  .t_min_1_from_the_stopwatch_i  (t_min_1),
   // the_uart_i
   .uart_rxd_to_the_uart_i        (UART_RXD),
   .uart_txd_from_the_uart_i      (UART_TXD)
