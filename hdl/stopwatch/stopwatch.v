@@ -165,7 +165,7 @@ end
 
 // hold (split) value registers
 always @ (posedge clk)
-if (s_run & b_clr) begin
+if (s_run & b_clr_pdg) begin
   hld_mil_0 <= cnt_mil_0;
   hld_mil_1 <= cnt_mil_1;
   hld_mil_2 <= cnt_mil_2;
@@ -206,7 +206,7 @@ end
 
 // timepoint value registers
 always @ (posedge clk)
-if (s_run & b_clr) begin
+if (b_tmp_pdg) begin
   tmp_mil_0 <= cnt_mil_0;
   tmp_mil_1 <= cnt_mil_1;
   tmp_mil_2 <= cnt_mil_2;
