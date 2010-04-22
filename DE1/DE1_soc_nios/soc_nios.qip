@@ -1,0 +1,10 @@
+set_global_assignment -name SDC_FILE cpu.sdc
+set_global_assignment -name TCL_FILE /home/izi/Workplace/fpga-hdl/hdl/uart/uart_hw.tcl
+set_global_assignment -name VERILOG_FILE /home/izi/Workplace/fpga-hdl/hdl/uart/uart.v
+set_global_assignment -name TCL_FILE /home/izi/Workplace/fpga-hdl/hdl/stopwatch/stopwatch_hw.tcl
+set_global_assignment -name VERILOG_FILE /home/izi/Workplace/fpga-hdl/hdl/stopwatch/stopwatch.v
+set_global_assignment -name VERILOG_FILE stopwatch_i.v
+set_global_assignment -name VERILOG_FILE uart_i.v
+set_global_assignment -name SOURCE_FILE cpu.ocp
+set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID 0022FB59BE740000012810CA5E43 
+ 
