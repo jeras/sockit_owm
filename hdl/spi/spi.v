@@ -57,18 +57,13 @@ module spi_zbus #(
   input  wire           clk,
   input  wire           rst,
   // zbus input interface
-  input  wire           zi_req,  // transfer request
-  input  wire           zi_wen,  // write enable (0-read or 1-wite)
-  input  wire  [AW-1:0] a_address,  // address
-  input  wire  [SW-1:0] zi_sel,  // byte select
-  input  wire  [DW-1:0] zi_dat,  // data
-  output wire           zi_ack,  // transfer acknowledge
-  // zbus output interface
-  output wire           zo_req,  // transfer request
-  output wire  [DW-1:0] zo_dat,  // data
-  input  wire           zo_ack,  // transfer acknowledge
-  // additional processor interface signals
-  output wire           irq,
+  input  wire           a_write,
+  input  wire           a_read,
+  input  wire  [AW-1:0] a_address,
+  input  wire  [DW-1:0] a_writedata,
+  output wire  [DW-1:0] a_readdata,
+  output wire           a_waitrequest,
+  output wire           a_interrupt,
   // SPI signals (at a higher level should be connected to tristate IO pads)
   // serial clock
   input  wire           sclk_i,  // input (clock loopback)
@@ -108,41 +103,12 @@ reg  cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha;
 // spi shift transfer control registers
 reg  [PAR_sh_cw-1:0] cnt_bit;  // counter of shifted bits
 reg  [PAR_tu_cw-1:0] ctl_cnt;  // counter of transfered data units (bytes by defoult)
-wire ctl_run;                  // transfer running status
+wire                 ctl_run;  // transfer running status
 
-
-//////////////////////////////////////////////////////////////////////////////
-// generalized bus signals                                                  //
-//////////////////////////////////////////////////////////////////////////////
-
-wire          zi_trn;      // bus transfer
-
-// register select signals
-wire          zi_sel_div;  // clock divider factor
-wire          zi_sel_ss;   // slave select (active high)
-wire          zi_sel_cfg;  // configuration register
-wire          zi_sel_ctl;  // control register
-wire          zi_sel_dat;  // data register
-
-// input and output data signals
-wire    [7:0] zi_dat_div, zo_dat_div;
-wire    [7:0] zi_dat_ss,  zo_dat_ss;
-wire    [7:0] zi_dat_cfg, zo_dat_cfg;
-wire    [7:0] zi_dat_ctl, zo_dat_ctl;
-wire [DW-1:0] zi_dat_dat, zo_dat_dat;
 
 //////////////////////////////////////////////////////////////////////////////
 // bus access implementation (generalisation of wishbone bus signals)       //
 //////////////////////////////////////////////////////////////////////////////
-
-// bus transfer
-assign zi_trn = zi_req & zi_ack;
-
-// request acknowledge
-assign zi_ack = zi_req & (~zo_req | zo_ack);
-
-// zbus output request
-assign zo_req = zi_req & ~zi_wen;
 
 // address decoder
 assign zi_sel_div = (a_address[2:2] == 0) & zi_sel [3];
@@ -158,8 +124,10 @@ assign {zi_dat_div, zi_dat_ss, zi_dat_cfg, zi_dat_ctl} = zi_dat;
 assign zi_dat_dat = zi_dat;
 
 // output data multiplexer
-assign zo_dat = (a_address[2]   == 0) ? {zo_dat_div, zo_dat_ss, zo_dat_cfg, zo_dat_ctl} :
-                                      zo_dat_dat                                     ;
+assign a_readdata = (a_address[3:2] == 2'd0) ? reg_div :
+                    (a_address[3:2] == 2'd1) ? {reg_ss, 2'b00, cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha}
+                    (a_address[3:2] == 2'd2) ? ctl_cnt :
+                    (a_address[3:2] == 2'd2) ? zo_dat_dat                                     ;
 
 //////////////////////////////////////////////////////////////////////////////
 // clock divider                                                            //
@@ -169,11 +137,8 @@ assign zo_dat = (a_address[2]   == 0) ? {zo_dat_div, zo_dat_ss, zo_dat_cfg, zo_d
 always @(posedge clk, posedge rst)
 if (rst)
   reg_div <= PAR_cd_ft;
-else if (zi_trn & zi_wen & zi_sel_div)
-  reg_div <= zi_dat_div;
-
-// bus read value of the clock divider factor register
-assign zo_dat_div = reg_div;
+else if (a_write & (a_address == 0) & ~a_waitrequest)
+  reg_div <= a_writedata;
 
 // divider bypass bit
 assign div_byp = reg_div[7];
@@ -205,13 +170,9 @@ assign div_ena = div_byp ? 1 : ~|div_cnt & (div_clk ^ cfg_cpol);
 always @(posedge clk, posedge rst)
 if (rst)
   reg_ss <= 'b0;
-else if (zi_trn & zi_wen & zi_sel_ss)
-  reg_ss <= zi_dat_ss;
+else if (a_write & (a_address == 1) & ~a_waitrequest)
+  reg_ss <= a_writedata [DW-1:8];
 
-// bus read value of the slave select register
-assign zo_dat_ss = reg_ss;
-
-// slave select active low output pins
 assign spi_ss_n = ~reg_ss;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -226,17 +187,14 @@ if (rst) begin
   cfg_dir  <= CFG_dir;
   cfg_cpol <= CFG_cpol;
   cfg_cpha <= CFG_cpha;
-end else if (zi_trn & zi_wen & zi_sel_cfg) begin
-  cfg_bit  <= zi_dat_cfg [5     ];
-  cfg_3wr  <= zi_dat_cfg [ 4    ];
-  cfg_oen  <= zi_dat_cfg [  3   ];
-  cfg_dir  <= zi_dat_cfg [   2  ];
-  cfg_cpol <= zi_dat_cfg [    1 ];
-  cfg_cpha <= zi_dat_cfg [     0];
+end else if (a_write & (a_address == 1) & ~a_waitrequest) begin
+  cfg_bit  <= a_writedata [5     ];
+  cfg_3wr  <= a_writedata [ 4    ];
+  cfg_oen  <= a_writedata [  3   ];
+  cfg_dir  <= a_writedata [   2  ];
+  cfg_cpol <= a_writedata [    1 ];
+  cfg_cpha <= a_writedata [     0];
 end
-
-// bus read value of the configuration register
-assign zo_dat_cfg = {2'b00, cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha};
 
 //////////////////////////////////////////////////////////////////////////////
 // control registers (transfer counter and serial output enable)            //
@@ -255,8 +213,8 @@ if (rst)
   ctl_cnt <= 0;
 else begin
   // write from the CPU bus has priority
-  if (zi_trn & zi_wen & zi_sel_ctl)
-    ctl_cnt <= zi_dat_ctl [PAR_tc_rw-1:0];
+  if (a_write & (a_address == 2) & ~a_waitrequest)
+    ctl_cnt <= a_writedata;
   // decrement at the end of each transfer unit (byte by default)
   else if (&cnt_bit [PAR_tu_cw-1:0] & div_ena)
     ctl_cnt <= ctl_cnt - 1;
@@ -264,9 +222,6 @@ end
 
 // spi transfer run status
 assign ctl_run = |ctl_cnt;
-
-// bus read value of the control register (output enable, transfer counter)
-assign zo_dat_ctl = {{8-1-PAR_tu_cw{1'b0}}, ctl_cnt};
 
 //////////////////////////////////////////////////////////////////////////////
 // spi shift register                                                       //

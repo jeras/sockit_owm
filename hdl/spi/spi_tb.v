@@ -32,9 +32,6 @@ localparam AW = 32;
 localparam SW = DW/8;
 localparam SSW = 8;
 
-localparam FNO = "tmp/interface-o.fifo";
-localparam FNI = "tmp/interface-i.fifo";
-
 // system signals
 reg clk, rst;
 
@@ -65,14 +62,13 @@ wire           mosi_e;
 // testbench                                                                //
 //////////////////////////////////////////////////////////////////////////////
 
-always
-  #5 clk <= ~clk;
+initial    clk <= 1'b1;
+always  #5 clk <= ~clk;
 
 initial begin
   // request for a dumpfile
-  $dumpfile("test.lx2");
+  $dumpfile("test.wav");
   $dumpvars(0, spi_tb);
-  clk = 1'b1;
   rst = 1'b1;
   repeat (4) @ (posedge clk);
   #1;
@@ -80,26 +76,16 @@ initial begin
 end
 
 //////////////////////////////////////////////////////////////////////////////
-// zbus master instance                                                     //
+// avalon tasks                                                             //
 //////////////////////////////////////////////////////////////////////////////
 
-interface #(
-  .NO   (1+1+1+SW+AW+DW),  // 1+1+1+4+32+32 = 71 bit = 9 Byte
-  .NI   (1+1+        DW),  // 1+1+       32 = 34 bit = 5 Byte
-  .FNO  (FNO),
-  .FNI  (FNI)
-) zbus (
-  .clk  (clk),
-  .rst  (rst),
-  .d_o  ({zsm_ack, zms_req, zms_wen, zms_sel[SW-1:0], zms_adr[AW-1:0], zms_dat[DW-1:0]}),  
-  .d_i  ({zms_ack, zsm_req,                                            zsm_dat[DW-1:0]})
-);
+
 
 //////////////////////////////////////////////////////////////////////////////
 // spi controller instance                                                  //
 //////////////////////////////////////////////////////////////////////////////
 
-spi_zbus #(
+spi #(
   // system bus parameters
   .DW   (32),        // data bus width
   .SW   (DW/8),      // select signal width or bus width in bytes
@@ -122,34 +108,29 @@ spi_zbus #(
   .PAR_cd_ri  ( 1),  // clock divider register inplement (otherwise the default clock division factor is used)
   .PAR_cd_rw  ( 8),  // clock divider register width
   .PAR_cd_ft  ( 0)   // default clock division factor
-) spi_zbus (
+) spi (
   // system signals (used by the CPU bus interface)
-  .clk     (clk),
-  .rst     (rst),
-  // zbus input interface
-  .zi_req  (zms_req),     // transfer request
-  .zi_wen  (zms_wen),     // write enable (0-read or 1-wite)
-  .zi_adr  (zms_adr),     // address
-  .zi_sel  (zms_sel),     // byte select
-  .zi_dat  (zms_dat),     // data
-  .zi_ack  (zms_ack),     // transfer acknowledge
-  // zbus output interface
-  .zo_req  (zsm_req),     // transfer request
-  .zo_dat  (zsm_dat),     // data
-  .zo_ack  (zsm_ack),     // transfer acknowledge
-  // additional processor interface signals
-  .irq     (),
+  .clk            (clk),
+  .rst            (rst),
+  // avalon interface
+  .a_write        (a_write      ),
+  .a_read         (a_read       ),
+  .a_address      (a_address    ),
+  .a_writedata    (a_writedata  ),
+  .a_readdata     (a_readdata   ),
+  .a_waitrequest  (a_waitrequest),
+  .a_interrupt    (a_interrupt  ),
   // SPI signals (should be connected to tristate IO pads)
   // serial clock
-  .sclk_i  (sclk),
-  .sclk_o  (sclk),
-  .sclk_e  (sclk_oe),
+  .sclk_i         (sclk),
+  .sclk_o         (sclk),
+  .sclk_e         (sclk_oe),
   // serial input output SIO[3:0] or {HOLD_n, WP_n, MISO, MOSI/3wire-bidir}
-  .sio_i   ({hold_n_i, wp_n_i, miso_i, mosi_i}),
-  .sio_o   ({hold_n_o, wp_n_o, miso_o, mosi_o}),
-  .sio_e   ({hold_n_e, wp_n_e, miso_e, mosi_e}),
+  .sio_i          ({hold_n_i, wp_n_i, miso_i, mosi_i}),
+  .sio_o          ({hold_n_o, wp_n_o, miso_o, mosi_o}),
+  .sio_e          ({hold_n_e, wp_n_e, miso_e, mosi_e}),
   // active low slave select signal
-  .ss_n    (ss_n)
+  .ss_n           (ss_n)
 );
 
 //////////////////////////////////////////////////////////////////////////////
