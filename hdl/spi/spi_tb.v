@@ -84,9 +84,12 @@ initial begin
   avalon_write <= 1'b0;
   avalon_read  <= 1'b0;
   repeat (4) @ (posedge clk);
+  // write clock divider
   avalon_cycle (1, 4'h0, 4'hf, 32'h0000_0003, data);
+  // write data register
   avalon_cycle (1, 4'hc, 4'hf, 32'h0123_4567, data);
-  avalon_cycle (1, 4'h8, 4'hf, 32'h0000_0004, data);
+  // write control register (enable a chip and start a 4 byte cycle)
+  avalon_cycle (1, 4'h8, 4'hf, 32'h00001_0004, data);
   repeat (500) @ (posedge clk);
   $finish();
 end
