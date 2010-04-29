@@ -25,7 +25,7 @@
 // this file contains the system bus interface and static registers         //
 //////////////////////////////////////////////////////////////////////////////
 
-module spi_zbus #(
+module spi #(
   // system bus parameters
   parameter DW = 32,         // data bus width
   parameter SW = DW/8,       // select signal width or bus width in bytes
@@ -110,24 +110,11 @@ wire                 ctl_run;  // transfer running status
 // bus access implementation (generalisation of wishbone bus signals)       //
 //////////////////////////////////////////////////////////////////////////////
 
-// address decoder
-assign zi_sel_div = (a_address[2:2] == 0) & zi_sel [3];
-assign zi_sel_ss  = (a_address[2:2] == 0) & zi_sel [2];
-assign zi_sel_cfg = (a_address[2:2] == 0) & zi_sel [1];
-assign zi_sel_ctl = (a_address[2:2] == 0) & zi_sel [0];
-
-assign zi_sel_dat = (a_address[2] == 1);
-
-// input data asignment
-assign {zi_dat_div, zi_dat_ss, zi_dat_cfg, zi_dat_ctl} = zi_dat;
-
-assign zi_dat_dat = zi_dat;
-
 // output data multiplexer
 assign a_readdata = (a_address[3:2] == 2'd0) ? reg_div :
-                    (a_address[3:2] == 2'd1) ? {reg_ss, 2'b00, cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha}
+                    (a_address[3:2] == 2'd1) ? {reg_ss, 2'b00, cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha} :
                     (a_address[3:2] == 2'd2) ? ctl_cnt :
-                    (a_address[3:2] == 2'd2) ? zo_dat_dat                                     ;
+                                               reg_s;
 
 //////////////////////////////////////////////////////////////////////////////
 // clock divider                                                            //
@@ -229,15 +216,12 @@ assign ctl_run = |ctl_cnt;
 
 // shift register implementation
 always @(posedge clk)
-if (zi_trn & zi_wen & zi_sel_dat) begin
-  reg_s <= zi_dat_dat;  // TODO
+if (a_write & (a_address == 3) & ~a_waitrequest) begin
+  reg_s <= a_writedata; // TODO add fifo code
 end else if (ctl_run & div_ena) begin
   if (cfg_dir)  reg_s <= {reg_s [PAR_sh_rw-2:0], ser_i};
   else          reg_s <= {ser_i, reg_s [PAR_sh_rw-1:1]};
 end
-
-// bus read value of the data ragister
-assign zo_dat_dat = reg_s;
 
 // the serial output from the shift register depends on the direction of shifting
 assign ser_o  = (cfg_dir) ? reg_s [PAR_sh_rw-1] : reg_s [0];

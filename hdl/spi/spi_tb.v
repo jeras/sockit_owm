@@ -27,26 +27,24 @@ module spi_tb ();
 // local parameters and signals                                             //
 //////////////////////////////////////////////////////////////////////////////
 
-localparam DW = 32;
-localparam AW = 32;
-localparam SW = DW/8;
+localparam ADW = 32;
+localparam AAW = 32;
+localparam ABW = ADW/8;
 localparam SSW = 8;
 
 // system signals
 reg clk, rst;
 
-// zbus input interface
-wire          zms_req;     // transfer request
-wire          zms_ack;     // transfer acknowledge
-// translated zbus input interface bus
-wire [DW-1:0] zms_dat;     // data
-wire [AW-1:0] zms_adr;     // address
-wire [SW-1:0] zms_sel;     // byte select
-wire          zms_wen;     // write enable (0-read or 1-wite)
-// zbus output interface
-wire          zsm_req;     // transfer request
-wire          zsm_ack;     // transfer acknowledge
-wire [DW-1:0] zsm_dat;     // data
+// Avalon MM interfacie
+reg            avalon_write;
+reg            avalon_read;
+reg  [AAW-1:0] avalon_address;
+reg  [ABW-1:0] avalon_byteenable;
+reg  [ADW-1:0] avalon_writedata;
+wire [ADW-1:0] avalon_readdata;
+wire           avalon_waitrequest;
+
+wire           avalon_transfer;
 
 // SPI signals
 wire [SSW-1:0] ss_n;
@@ -62,16 +60,20 @@ wire           mosi_e;
 // testbench                                                                //
 //////////////////////////////////////////////////////////////////////////////
 
+// request for a dumpfile
+initial begin
+  $dumpfile("test.wav");
+  $dumpvars(0, spi_tb);
+end
+
+// clock generation
 initial    clk <= 1'b1;
 always  #5 clk <= ~clk;
 
+// reset generation
 initial begin
-  // request for a dumpfile
-  $dumpfile("test.wav");
-  $dumpvars(0, spi_tb);
   rst = 1'b1;
-  repeat (4) @ (posedge clk);
-  #1;
+  repeat (4) @ (posedge clk); #1;
   rst = 1'b0;
 end
 
@@ -79,7 +81,34 @@ end
 // avalon tasks                                                             //
 //////////////////////////////////////////////////////////////////////////////
 
+// avalon cycle transfer cycle end status
+assign avalon_transfer = (avalon_read | avalon_write) & ~avalon_waitrequest;
 
+task avalon_cycle (
+  input            r_w,  // 0-read or 1-write cycle
+  input  [AAW-1:0] adr,
+  input  [ABW-1:0] ben,
+  input  [ADW-1:0] wdt,
+  output [ADW-1:0] rdt
+);
+begin
+  $display ("Avalon MM cycle start: T=%10tns, %s address=%08x byteenable=%04b writedata=%08x", $time/1000.0, r_w?"write":"read ", adr, ben, wdt);
+  // start an Avalon cycle
+  avalon_read       <= ~r_w;
+  avalon_write      <=  r_w;
+  avalon_address    <=  adr;
+  avalon_byteenable <=  ben;
+  avalon_writedata  <=  wdt;
+  // wait for waitrequest to be retracted
+  @ (posedge clk); while (~avalon_transfer) @ (posedge clk);
+  // end Avalon cycle
+  avalon_read       <= 1'b0;
+  avalon_write      <= 1'b0;
+  // read data
+  rdt = avalon_readdata;
+  $display ("Avalon MM cycle end  : T=%10tns, readdata=%08x", $time/1000.0, rdt);
+end
+endtask
 
 //////////////////////////////////////////////////////////////////////////////
 // spi controller instance                                                  //
@@ -87,9 +116,9 @@ end
 
 spi #(
   // system bus parameters
-  .DW   (32),        // data bus width
-  .SW   (DW/8),      // select signal width or bus width in bytes
-  .AW   (32),        // address bus width
+  .DW   (ADW),       // data bus width
+  .SW   (ABW),       // select signal width or bus width in bytes
+  .AW   (AAW),        // address bus width
   // SPI slave select paramaters
   .SSW  (8),         // slave select register width
   // SPI interface configuration parameters
@@ -113,13 +142,13 @@ spi #(
   .clk            (clk),
   .rst            (rst),
   // avalon interface
-  .a_write        (a_write      ),
-  .a_read         (a_read       ),
-  .a_address      (a_address    ),
-  .a_writedata    (a_writedata  ),
-  .a_readdata     (a_readdata   ),
-  .a_waitrequest  (a_waitrequest),
-  .a_interrupt    (a_interrupt  ),
+  .a_write        (avalon_write      ),
+  .a_read         (avalon_read       ),
+  .a_address      (avalon_address    ),
+  .a_writedata    (avalon_writedata  ),
+  .a_readdata     (avalon_readdata   ),
+  .a_waitrequest  (avalon_waitrequest),
+  .a_interrupt    (avalon_interrupt  ),
   // SPI signals (should be connected to tristate IO pads)
   // serial clock
   .sclk_i         (sclk),
