@@ -1,0 +1,89 @@
+[timestart] 0
+[size] 1680 976
+[pos] -1 -1
+*-3.978660 40 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] spi_tb.
+@28
+spi_tb.spi.clk
+spi_tb.spi.rst
+@800200
+-Avalon MM
+@28
+spi_tb.spi.a_write
+spi_tb.spi.a_read
+@22
+spi_tb.spi.a_address[31:0]
+spi_tb.spi.a_writedata[31:0]
+spi_tb.spi.a_readdata[31:0]
+@28
+spi_tb.spi.a_waitrequest
+spi_tb.spi.a_interrupt
+@1000200
+-Avalon MM
+@800200
+-clock divider
+@22
+spi_tb.spi.reg_div[7:0]
+@28
+spi_tb.spi.div_byp
+@22
+spi_tb.spi.div_cnt[7:0]
+@28
+spi_tb.spi.div_clk
+spi_tb.spi.div_ena
+@1000200
+-clock divider
+@800200
+-SPI slave select
+@22
+spi_tb.spi.reg_ss[7:0]
+spi_tb.spi.ss_n[7:0]
+@1000200
+-SPI slave select
+@800200
+-configuration
+@28
+spi_tb.spi.cfg_3wr
+spi_tb.spi.cfg_bit
+spi_tb.spi.cfg_cpha
+spi_tb.spi.cfg_cpol
+spi_tb.spi.cfg_dir
+spi_tb.spi.cfg_oen
+@1000200
+-configuration
+@800200
+-control
+@22
+spi_tb.spi.cnt_bit[4:0]
+@28
+spi_tb.spi.ctl_cnt[2:0]
+spi_tb.spi.ctl_run
+@1000200
+-control
+@800200
+-shift register
+@28
+spi_tb.spi.reg_i
+@22
+spi_tb.spi.reg_s[31:0]
+@28
+spi_tb.spi.reg_o
+spi_tb.spi.ser_i
+spi_tb.spi.ser_o
+spi_tb.spi.clk_l
+@1000200
+-shift register
+@800201
+-SPI IO
+@29
+spi_tb.spi.sclk_i
+spi_tb.spi.sclk_e
+spi_tb.spi.sclk_o
+@23
+spi_tb.spi.sio_i[3:0]
+spi_tb.spi.sio_o[3:0]
+spi_tb.spi.sio_e[3:0]
+@1000201
+-SPI IO
+[pattern_trace] 1
+[pattern_trace] 0

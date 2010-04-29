@@ -112,9 +112,12 @@ wire                 ctl_run;  // transfer running status
 
 // output data multiplexer
 assign a_readdata = (a_address[3:2] == 2'd0) ? reg_div :
-                    (a_address[3:2] == 2'd1) ? {reg_ss, 2'b00, cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha} :
-                    (a_address[3:2] == 2'd2) ? ctl_cnt :
+                    (a_address[3:2] == 2'd1) ? {cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha} :
+                    (a_address[3:2] == 2'd2) ? {reg_ss, ctl_cnt}:
                                                reg_s;
+
+assign a_waitrequest = 1'b0;
+assign a_interrupt   = 1'b0;
 
 //////////////////////////////////////////////////////////////////////////////
 // clock divider                                                            //
@@ -124,7 +127,7 @@ assign a_readdata = (a_address[3:2] == 2'd0) ? reg_div :
 always @(posedge clk, posedge rst)
 if (rst)
   reg_div <= PAR_cd_ft;
-else if (a_write & (a_address == 0) & ~a_waitrequest)
+else if (a_write & (a_address[3:2] == 0) & ~a_waitrequest)
   reg_div <= a_writedata;
 
 // divider bypass bit
@@ -151,18 +154,6 @@ else if (~|div_cnt)
 assign div_ena = div_byp ? 1 : ~|div_cnt & (div_clk ^ cfg_cpol);
 
 //////////////////////////////////////////////////////////////////////////////
-// spi slave select                                                         //
-//////////////////////////////////////////////////////////////////////////////
-
-always @(posedge clk, posedge rst)
-if (rst)
-  reg_ss <= 'b0;
-else if (a_write & (a_address == 1) & ~a_waitrequest)
-  reg_ss <= a_writedata [DW-1:8];
-
-assign spi_ss_n = ~reg_ss;
-
-//////////////////////////////////////////////////////////////////////////////
 // configuration registers                                                  //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -174,7 +165,7 @@ if (rst) begin
   cfg_dir  <= CFG_dir;
   cfg_cpol <= CFG_cpol;
   cfg_cpha <= CFG_cpha;
-end else if (a_write & (a_address == 1) & ~a_waitrequest) begin
+end else if (a_write & (a_address[3:2] == 1) & ~a_waitrequest) begin
   cfg_bit  <= a_writedata [5     ];
   cfg_3wr  <= a_writedata [ 4    ];
   cfg_oen  <= a_writedata [  3   ];
@@ -200,7 +191,7 @@ if (rst)
   ctl_cnt <= 0;
 else begin
   // write from the CPU bus has priority
-  if (a_write & (a_address == 2) & ~a_waitrequest)
+  if (a_write & (a_address[3:2] == 2) & ~a_waitrequest)
     ctl_cnt <= a_writedata;
   // decrement at the end of each transfer unit (byte by default)
   else if (&cnt_bit [PAR_tu_cw-1:0] & div_ena)
@@ -211,12 +202,24 @@ end
 assign ctl_run = |ctl_cnt;
 
 //////////////////////////////////////////////////////////////////////////////
+// spi slave select                                                         //
+//////////////////////////////////////////////////////////////////////////////
+
+always @(posedge clk, posedge rst)
+if (rst)
+  reg_ss <= 'b0;
+else if (a_write & (a_address[3:2] == 2) & ~a_waitrequest)
+  reg_ss <= a_writedata [DW-1:8];
+
+assign ss_n = ~reg_ss;
+
+//////////////////////////////////////////////////////////////////////////////
 // spi shift register                                                       //
 //////////////////////////////////////////////////////////////////////////////
 
 // shift register implementation
 always @(posedge clk)
-if (a_write & (a_address == 3) & ~a_waitrequest) begin
+if (a_write & (a_address[3:2] == 3) & ~a_waitrequest) begin
   reg_s <= a_writedata; // TODO add fifo code
 end else if (ctl_run & div_ena) begin
   if (cfg_dir)  reg_s <= {reg_s [PAR_sh_rw-2:0], ser_i};
@@ -250,5 +253,6 @@ assign sio_e[0] = cfg_oen;
 assign sclk_e     = 1'b1;
 assign sio_o[3:1] = 3'b11x;
 assign sio_e[3:1] = 3'b110;
+
 
 endmodule

@@ -46,6 +46,8 @@ wire           avalon_waitrequest;
 
 wire           avalon_transfer;
 
+reg  [ADW-1:0] data;
+
 // SPI signals
 wire [SSW-1:0] ss_n;
 wire           sclk;
@@ -62,7 +64,7 @@ wire           mosi_e;
 
 // request for a dumpfile
 initial begin
-  $dumpfile("test.wav");
+  $dumpfile("spi.vcd");
   $dumpvars(0, spi_tb);
 end
 
@@ -73,8 +75,20 @@ always  #5 clk <= ~clk;
 // reset generation
 initial begin
   rst = 1'b1;
-  repeat (4) @ (posedge clk); #1;
+  repeat (2) @ (posedge clk); #1;
   rst = 1'b0;
+end
+
+// avalon cycles
+initial begin
+  avalon_write <= 1'b0;
+  avalon_read  <= 1'b0;
+  repeat (4) @ (posedge clk);
+  avalon_cycle (1, 4'h0, 4'hf, 32'h0000_0003, data);
+  avalon_cycle (1, 4'hc, 4'hf, 32'h0123_4567, data);
+  avalon_cycle (1, 4'h8, 4'hf, 32'h0000_0004, data);
+  repeat (500) @ (posedge clk);
+  $finish();
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -186,7 +200,18 @@ assign hold_n   = hold_n_e ? hold_n_o : 1'bz;
 // loopback for debug purposes
 assign miso = ~ss_n[0] ? mosi : 1'bz;
 
-`define Test_s25fl129p00
+//`define Test_s25fl129p00
+`define Test_spi_slave_model
+
+`ifdef Test_spi_slave_model
+// SPI slave model
+spi_slave_model Flash (
+  .ss_n    (ss_n[0]),
+  .sclk    (sclk),
+  .mosi    (mosi),
+  .miso    (miso)
+);
+`endif
 
 `ifdef Test_s25fl129p00
 // Spansion serial Flash
