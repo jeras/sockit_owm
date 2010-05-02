@@ -17,7 +17,7 @@ else      bit  <= mosi;
 
 always @ (posedge sclk, posedge ss_n)
 if (ss_n) byte <= 7'hxx;
-else      byte <= {byte[6:1], bit};
+else      byte <= {byte[6:0], bit};
 
 assign miso = byte[7];
 
