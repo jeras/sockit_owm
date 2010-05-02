@@ -26,10 +26,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 module spi #(
-  // system bus parameters
-  parameter DW = 32,         // data bus width
-  parameter SW = DW/8,       // select signal width or bus width in bytes
-  parameter AW = 32,         // address bus width
   // SPI slave select paramaters
   parameter SSW = 8,         // slave select register width
   // SPI interface configuration parameters
@@ -39,19 +35,11 @@ module spi #(
   parameter CFG_dir   =  1,  // shift direction (0 - LSB first, 1 - MSB first)
   parameter CFG_cpol  =  0,  // clock polarity
   parameter CFG_cpha  =  0,  // clock phase
-  // SPI shift register parameters
-  parameter PAR_sh_rw = 32,  // shift register width (default width is eqal to wishbone bus width)
-  parameter PAR_sh_cw =  5,  // shift counter width (logarithm of shift register width)
-  // SPI transfer type parameters
-  parameter PAR_tu_rw =  8,  // shift transfer unit register width (default granularity is byte)
-  parameter PAR_tu_cw =  3,  // shift transfer unit counter width (counts the bits of a transfer unit)
-  // SPI transfer control counter register width (defoult up to 4 byte transfers)
-  parameter PAR_tc_rw = PAR_sh_cw - PAR_tu_cw,
   // SPI clock divider parameters
   parameter PAR_cd_en =  1,  // clock divider enable (0 - use full system clock, 1 - use divider)
   parameter PAR_cd_ri =  1,  // clock divider register inplement (otherwise the default clock division factor is used)
-  parameter PAR_cd_rw =  8,  // clock divider register width
-  parameter PAR_cd_ft =  0   // default clock division factor
+  parameter DRW =  8,  // clock divider register width
+  parameter DR0 =  0   // default clock division factor
 )(
   // system signals (used by the CPU bus interface)
   input  wire           clk,
@@ -59,9 +47,9 @@ module spi #(
   // zbus input interface
   input  wire           a_write,
   input  wire           a_read,
-  input  wire  [AW-1:0] a_address,
-  input  wire  [DW-1:0] a_writedata,
-  output wire  [DW-1:0] a_readdata,
+  input  wire     [3:0] a_address,
+  input  wire    [31:0] a_writedata,
+  output wire    [31:0] a_readdata,
   output wire           a_waitrequest,
   output wire           a_interrupt,
   // SPI signals (at a higher level should be connected to tristate IO pads)
@@ -82,13 +70,13 @@ module spi #(
 //////////////////////////////////////////////////////////////////////////////
 
 // clock divider signals
-reg  [PAR_cd_rw-1:0] div_cnt;  // clock divider counter
-reg  [PAR_cd_rw-1:0] reg_div;  // register holding the requested clock division ratio
+reg  [DRW-1:0] div_cnt;  // clock divider counter
+reg  [DRW-1:0] reg_div;  // register holding the requested clock division ratio
 wire div_byp;
 reg  div_clk;                  // register storing the SCLK clock value (additional division by two)
 
 // spi shifter signals
-reg  [PAR_sh_rw-1:0] reg_s;    // spi data shift register
+reg  [32-1:0] reg_s;           // spi data shift register
 reg  reg_i, reg_o;             // spi input-sampling to output-change phase shift registers
 wire ser_i, ser_o;             // shifter serial input and output multiplexed signals
 wire spi_mi;                   //
@@ -101,9 +89,10 @@ reg  [SSW-1:0] reg_ss;         // active high slave select register
 reg  cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha;
 
 // spi shift transfer control registers
-reg  [PAR_sh_cw-1:0] cnt_bit;  // counter of shifted bits
-reg  [PAR_tu_cw-1:0] ctl_cnt;  // counter of transfered data units (bytes by defoult)
-wire                 ctl_run;  // transfer running status
+reg    [2:0] cnt_bit;  // counter of shifted bits
+reg          ctl_ss;   // slave select enable register
+reg    [7:0] ctl_cnb;  // counter of transfered data units (bytes by defoult)
+wire         ctl_run;  // transfer running status
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -111,9 +100,9 @@ wire                 ctl_run;  // transfer running status
 //////////////////////////////////////////////////////////////////////////////
 
 // output data multiplexer
-assign a_readdata = (a_address[3:2] == 2'd0) ? reg_div :
+assign a_readdata = (a_address[3:2] == 2'd0) ? {{16-SSW{1'b0}}, reg_ss, {16-DRW{1'b0}}, reg_div} :
                     (a_address[3:2] == 2'd1) ? {cfg_bit, cfg_3wr, cfg_oen, cfg_dir, cfg_cpol, cfg_cpha} :
-                    (a_address[3:2] == 2'd2) ? {reg_ss, ctl_cnt}:
+                    (a_address[3:2] == 2'd2) ? {24'h000000, ctl_cnb}:
                                                reg_s;
 
 assign a_waitrequest = 1'b0;
@@ -126,9 +115,9 @@ assign a_interrupt   = 1'b0;
 // clock division factor number register
 always @(posedge clk, posedge rst)
 if (rst)
-  reg_div <= PAR_cd_ft;
+  reg_div <= DR0;
 else if (a_write & (a_address[3:2] == 0) & ~a_waitrequest)
-  reg_div <= a_writedata;
+  reg_div <= a_writedata[DRW-1:0];
 
 // divider bypass bit
 assign div_byp = reg_div[7];
@@ -185,21 +174,31 @@ if (rst)
 else if (ctl_run & div_ena)
   cnt_bit <= cnt_bit + 1;
 
-// transfer control counter
+// chip select enable
 always @(posedge clk, posedge rst)
 if (rst)
-  ctl_cnt <= 0;
+  ctl_ss <= 0;
 else begin
   // write from the CPU bus has priority
   if (a_write & (a_address[3:2] == 2) & ~a_waitrequest)
-    ctl_cnt <= a_writedata;
+    ctl_ss <= a_writedata[31];
+end
+
+// transfer length counter
+always @(posedge clk, posedge rst)
+if (rst)
+  ctl_cnb <= 0;
+else begin
+  // write from the CPU bus has priority
+  if (a_write & (a_address[3:2] == 2) & ~a_waitrequest)
+    ctl_cnb <= a_writedata[7:0];
   // decrement at the end of each transfer unit (byte by default)
-  else if (&cnt_bit [PAR_tu_cw-1:0] & div_ena)
-    ctl_cnt <= ctl_cnt - 1;
+  else if (&cnt_bit & div_ena)
+    ctl_cnb <= ctl_cnb - 1;
 end
 
 // spi transfer run status
-assign ctl_run = |ctl_cnt;
+assign ctl_run = |ctl_cnb;
 
 //////////////////////////////////////////////////////////////////////////////
 // spi slave select                                                         //
@@ -208,10 +207,10 @@ assign ctl_run = |ctl_cnt;
 always @(posedge clk, posedge rst)
 if (rst)
   reg_ss <= 'b0;
-else if (a_write & (a_address[3:2] == 2) & ~a_waitrequest)
-  reg_ss <= a_writedata [DW-1:8];
+else if (a_write & (a_address[3:2] == 0) & ~a_waitrequest)
+  reg_ss <= a_writedata [32-SSW-1:16];
 
-assign ss_n = ~reg_ss;
+assign ss_n = ctl_ss ? ~reg_ss : ~{SSW{1'b0}};
 
 //////////////////////////////////////////////////////////////////////////////
 // spi shift register                                                       //
@@ -222,12 +221,12 @@ always @(posedge clk)
 if (a_write & (a_address[3:2] == 3) & ~a_waitrequest) begin
   reg_s <= a_writedata; // TODO add fifo code
 end else if (ctl_run & div_ena) begin
-  if (cfg_dir)  reg_s <= {reg_s [PAR_sh_rw-2:0], ser_i};
-  else          reg_s <= {ser_i, reg_s [PAR_sh_rw-1:1]};
+  if (cfg_dir)  reg_s <= {reg_s [30:0], ser_i};
+  else          reg_s <= {ser_i, reg_s [31:1]};
 end
 
 // the serial output from the shift register depends on the direction of shifting
-assign ser_o  = (cfg_dir) ? reg_s [PAR_sh_rw-1] : reg_s [0];
+assign ser_o  = (cfg_dir) ? reg_s [31] : reg_s [0];
 
 always @(posedge clk_l)
 if ( cfg_cpha)  reg_o <= ser_o;

@@ -84,12 +84,14 @@ initial begin
   avalon_write <= 1'b0;
   avalon_read  <= 1'b0;
   repeat (4) @ (posedge clk);
-  // write clock divider
-  avalon_cycle (1, 4'h0, 4'hf, 32'h0000_0003, data);
+  // write slave select and clock divider
+  avalon_cycle (1, 4'h0, 4'hf, 32'h0001_0003, data);
+  // write configuration
+  avalon_cycle (1, 4'h4, 4'hf, 32'h0000_000c, data);
   // write data register
   avalon_cycle (1, 4'hc, 4'hf, 32'h0123_4567, data);
   // write control register (enable a chip and start a 4 byte cycle)
-  avalon_cycle (1, 4'h8, 4'hf, 32'h00001_0004, data);
+  avalon_cycle (1, 4'h8, 4'hf, 32'h8000_0004, data);
   repeat (500) @ (posedge clk);
   $finish();
 end
@@ -132,10 +134,6 @@ endtask
 //////////////////////////////////////////////////////////////////////////////
 
 spi #(
-  // system bus parameters
-  .DW   (ADW),       // data bus width
-  .SW   (ABW),       // select signal width or bus width in bytes
-  .AW   (AAW),        // address bus width
   // SPI slave select paramaters
   .SSW  (8),         // slave select register width
   // SPI interface configuration parameters
@@ -143,17 +141,11 @@ spi #(
   .CFG_cpol   ( 0),  // clock polarity
   .CFG_cpha   ( 0),  // clock phase
   .CFG_3wr    ( 0),  // duplex type (0 - SPI full duplex, 1 - 3WIRE half duplex (MOSI is shared))
-  // SPI shift register parameters
-  .PAR_sh_rw  (32),  // shift register width (default width is eqal to wishbone bus width)
-  .PAR_sh_cw  ( 5),  // shift counter width (logarithm of shift register width)
-  // SPI transfer type parameters
-  .PAR_tu_rw  ( 8),  // shift transfer unit register width (default granularity is byte)
-  .PAR_tu_cw  ( 3),  // shift transfer unit counter width (counts the bits of a transfer unit)
   // SPI clock divider parameters
   .PAR_cd_en  ( 1),  // clock divider enable (0 - use full system clock, 1 - use divider)
   .PAR_cd_ri  ( 1),  // clock divider register inplement (otherwise the default clock division factor is used)
-  .PAR_cd_rw  ( 8),  // clock divider register width
-  .PAR_cd_ft  ( 0)   // default clock division factor
+  .DRW        ( 8),  // clock divider register width
+  .DR0        ( 0)   // default clock division factor
 ) spi (
   // system signals (used by the CPU bus interface)
   .clk            (clk),
@@ -201,7 +193,7 @@ assign hold_n   = hold_n_e ? hold_n_o : 1'bz;
 //////////////////////////////////////////////////////////////////////////////
 
 // loopback for debug purposes
-assign miso = ~ss_n[0] ? mosi : 1'bz;
+//assign miso = ~ss_n[0] ? mosi : 1'bz;
 
 //`define Test_s25fl129p00
 `define Test_spi_slave_model
