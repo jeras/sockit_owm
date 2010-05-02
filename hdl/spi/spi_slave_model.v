@@ -11,11 +11,11 @@ module spi_slave_model #(
 reg       bit;
 reg [7:0] byte;
 
-always @ (posedge sclk, posedge ss_n)
+always @ (posedge  sclk, posedge ss_n)
 if (ss_n) bit  <= 1'bx;
 else      bit  <= mosi;
 
-always @ (posedge sclk, posedge ss_n)
+always @ (posedge ~sclk, posedge ss_n)
 if (ss_n) byte <= 7'hxx;
 else      byte <= {byte[6:0], bit};
 
