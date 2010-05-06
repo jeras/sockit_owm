@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module uart_tb;
+module onewire_tb;
 
 // system clock parameters
 //localparam real FRQ = 24_000_000;  // 24MHz // realistic option
@@ -44,8 +44,8 @@ wire           uart_TxD;
 
 // request for a dumpfile
 initial begin
-  $dumpfile("uart.vcd");
-  $dumpvars(0, uart_tb);
+  $dumpfile("onewire.vcd");
+  $dumpvars(0, onewire_tb);
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -175,7 +175,7 @@ end
 // RTL instance
 //////////////////////////////////////////////////////////////////////////////
 
-uart #(
+onewire #(
   // UART parameters
   .BYTESIZE (BYTESIZE),
   .PARITY   (PARITY),
@@ -184,7 +184,7 @@ uart #(
   // Avalon parameters
   .AAW   (AAW),
   .ADW   (ADW)
-) uart_i (
+) onewire_m (
   // system
   .clk  (clk),
   .rst  (rst),

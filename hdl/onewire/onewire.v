@@ -1,4 +1,4 @@
-module uart #(
+module onewire #(
   // UART parameters
   parameter BYTESIZE = 8,              // transfer size in bits
   parameter PARITY   = "NONE",         // parity type "EVEN", "ODD", "NONE"
@@ -52,6 +52,10 @@ reg                status_rdy;  // receive data ready
 reg                status_err;  // receive data error
 reg                status_prt;  // receive data parity error
 reg [BYTESIZE-1:0] status_dat;  // receive data register
+
+// one wire master control signals
+reg          [4:0] run, reset, write_data, read_ready, read;
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Avalon logic
