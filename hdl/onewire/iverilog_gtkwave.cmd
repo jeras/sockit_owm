@@ -1,13 +1,13 @@
-REM cmd script for running the uart example
+REM cmd script for running the onewire example
 
 :: cleanup first
-erase uart.out
-erase uart.vcd
+erase onewire.out
+erase onewire.vcd
 
 :: compile the verilog sources (testbench and RTL)
-iverilog -o uart.out uart_tb.v uart.v
+iverilog -o onewire.out onewire_tb.v onewire.v
 :: run the simulation
-vvp uart.out
+vvp onewire.out
 
 :: open the waveform and detach it
-gtkwave uart.vcd gtkwave.sav &
+gtkwave onewire.vcd gtkwave.sav &
