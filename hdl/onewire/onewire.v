@@ -107,11 +107,9 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)             o_srx <= 1'b0;
 else begin
-  if (avalon_trn_w)  o_srx <= 1'b1;
-  else if (pls) begin
-    if ( (~o_rst &  o_dtx) & (cnt == 'd9) )
-                     o_srx <= 1'b0;
-  end
+  if (pls & (cnt == 'd9) & (~o_rst &  o_dtx))
+                                o_srx <= 1'b1;
+  else if (avalon_trn_w)        o_srx <= 1'b0;
 end
 
 // receive data

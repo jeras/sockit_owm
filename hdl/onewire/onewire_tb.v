@@ -61,10 +61,18 @@ initial begin
   // Avalon MM interface is idle
   avalon_read  = 1'b0;
   avalon_write = 1'b0;
-  repeat (4) @(posedge clk);
 
-  // perform Avalon MM fundamental writes
-  avalon_cycle (1, 0, 4'hf, 32'b000010, data);
+  // long delay to skip presence pulse
+  repeat (1000) @(posedge clk);
+
+  // generate a reset pulse
+  avalon_cycle (1, 0, 4'hf, 32'b00_000010, data);
+  // wait for the reset to finish
+  data = 32'd0;
+  while (!(data & 32'h10))
+  avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
+  // write a sequence
+  avalon_cycle (1, 0, 4'hf, 32'b00_000000, data);
 
   // wait a few cycles and finish
   repeat (1000) @(posedge clk);

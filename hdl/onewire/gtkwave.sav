@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-23.150639 16810000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.411278 16892000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] onewire_tb.
 @200
 -System signals
@@ -45,7 +45,19 @@ onewire_tb.onewire_master.o_rst
 onewire_tb.onewire_master.o_od
 @1000200
 -1-wire master
+@800201
+-1-wire slave
+@821
+onewire_tb.onewire_slave.state[23:0]
+onewire_tb.onewire_slave.cycle[23:0]
+@23
+onewire_tb.onewire_slave.drx[7:0]
+onewire_tb.onewire_slave.dtx[7:0]
+onewire_tb.onewire_slave.cnt[31:0]
 @29
+onewire_tb.onewire_slave.od
 onewire_tb.onewire_slave.pull
+@1000201
+-1-wire slave
 [pattern_trace] 1
 [pattern_trace] 0
