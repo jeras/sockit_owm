@@ -5,7 +5,7 @@ rm onewire.out
 rm onewire.vcd
 
 # compile the verilog sources (testbench and RTL)
-iverilog -o onewire.out onewire_tb.v onewire.v
+iverilog -o onewire.out onewire_tb.v onewire.v onewire_slave_model.v
 
 # run the simulation
 vvp onewire.out

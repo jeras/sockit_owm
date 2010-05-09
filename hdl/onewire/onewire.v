@@ -1,14 +1,9 @@
 module onewire #(
   // UART parameters
-  parameter BYTESIZE = 8,              // transfer size in bits
-  parameter PARITY   = "NONE",         // parity type "EVEN", "ODD", "NONE"
-  parameter STOPSIZE = 1,              // number of stop bits
   parameter N_BIT    = 2,              // clock cycles per bit
   parameter N_LOG    = $clog2(N_BIT),  // size of boudrate generator counter
   // Avalon parameters
-  parameter AAW = 1,     // address width
   parameter ADW = 32,    // data width
-  parameter ABW = ADW/8  // byte enable width
 )(
   // system signals
   input                clk,  // clock
@@ -20,42 +15,21 @@ module onewire #(
   output     [ADW-1:0] avalon_readdata,
   output               avalon_waitrequest,
   output               avalon_interrupt,
-  // UART
-  input                uart_rxd,  // receive
-  output reg           uart_txd   // transmit
+  // onewire
+  inout                onewire,
 );
-
-// UART transfer length
-localparam UTL = BYTESIZE + (PARITY!="NONE") + STOPSIZE;
-
-// parity option
-localparam PRT = (PARITY!="EVEN");
 
 // Avalon signals
 wire avalon_trn_w;
 wire avalon_trn_r;
 
-// baudrate signals
-reg    [N_LOG-1:0] txd_bdr, rxd_bdr;
-reg                txd_ena, rxd_ena;
-
-// UART signals
-reg                txd_run, rxd_run;  // transfer run status
-reg          [3:0] txd_cnt, rxd_cnt;  // transfer length counter
-reg [BYTESIZE-1:0] txd_dat, rxd_dat;  // data shift register
-reg                txd_prt, rxd_prt;  // parity register
-
-wire               rxd_start, rxd_end;
- 
-// receiver status
-reg                status_rdy;  // receive data ready
-reg                status_err;  // receive data error
-reg                status_prt;  // receive data parity error
-reg [BYTESIZE-1:0] status_dat;  // receive data register
-
-// one wire master control signals
-reg          [4:0] run, reset, write_data, read_ready, read;
-
+// onewire signals
+reg o_od;   // overdrive
+reg o_rst;  // reset
+reg o_dtx;  // data bit transmit
+reg o_drx;  // data bit receive
+reg o_stx;  // status transmit
+reg o_srx;  // status receive
 
 //////////////////////////////////////////////////////////////////////////////
 // Avalon logic
@@ -67,65 +41,74 @@ assign avalon_trn_w = avalon_write & ~avalon_waitrequest;
 assign avalon_trn_r = avalon_read  & ~avalon_waitrequest;
 
 // Avalon read data
-generate if (PARITY!="NONE") begin
-assign avalon_readdata = {status_rdy, status_err, status_prt, {ADW-BYTESIZE-3{1'b0}}, status_dat};
-end else begin
-assign avalon_readdata = {status_rdy, status_err, {ADW-BYTESIZE-2{1'b0}}, status_dat};
-end endgenerate
+assign avalon_readdata = {26'd0, o_srx, o_stx, o_drx, o_dtx, o_rst, o_od};
+
 // Avalon interrupt
-assign avalon_interrupt = status_rdy | status_err;
+assign avalon_interrupt = o_srx | o_stx;
 
 //////////////////////////////////////////////////////////////////////////////
 // UART transmitter
 //////////////////////////////////////////////////////////////////////////////
 
-// baudrate generator from clock (it counts down to 0 generating a baud pulse)
+// overdrive
 always @ (posedge clk, posedge rst)
-if (rst) txd_bdr <= N_BIT-1;
-else     txd_bdr <= ~|txd_bdr ? N_BIT-1 : txd_bdr - txd_run;
+if (rst)                        o_od  <= 1'b0;     
+else if (avalon_trn_w)          o_od  <= avalon_writedata[0]; 
 
-// enable signal for shifting logic
+// reset
 always @ (posedge clk, posedge rst)
-if (rst)  txd_ena <= 1'b0;
-else      txd_ena <= (txd_bdr == 'd1);
-
-// bit counter
-always @ (posedge clk, posedge rst)
-if (rst)             txd_cnt <= 0;
+if (rst)                        o_rst <= 1'b0;
 else begin
-  if (avalon_trn_w)  txd_cnt <= UTL;
-  else if (txd_ena)  txd_cnt <= txd_cnt - 1;
+  if (avalon_trn_w)             o_rst <= avalon_writedata[0];
+  else if ((cnt == 'd1) & pls)  o_rst <= 1'b0;
 end
 
-// shift status
+// transmit data
 always @ (posedge clk, posedge rst)
-if (rst)             txd_run <= 1'b0;
+if (rst)                        o_dtx <= 1'b0;
 else begin
-  if (avalon_trn_w)  txd_run <= 1'b1;
-  else if (txd_ena)  txd_run <= txd_cnt != 4'd0;
+  if (avalon_trn_w)             o_dtx <= avalon_writedata[0];
+  else if ((cnt == 'd1) & pls)  o_dtx <= 1'b0;
 end
 
-// data shift register
-always @ (posedge clk)
-  if (avalon_trn_w)  txd_dat <= avalon_writedata[BYTESIZE-1:0];
-  else if (txd_ena)  txd_dat <= {1'b1, txd_dat[BYTESIZE-1:1]};
-
-generate if (PARITY!="NONE") begin
-
-// parity register
-always @ (posedge clk)
-  if (avalon_trn_w)  txd_prt <= PRT;
-  else if (txd_ena)  txd_prt <= txd_prt ^ txd_dat[0];
-
-// output register
+// avalon run status
 always @ (posedge clk, posedge rst)
-if (rst)             uart_txd <= 1'b1;
+if (rst)                        o_run <= 1'b0;
 else begin
-  if (avalon_trn_w)  uart_txd <= 1'b0;
-  else if (txd_ena)  uart_txd <= (txd_cnt==STOPSIZE+1) ? txd_prt : txd_dat[0];
+  if (avalon_trn_w)             o_run <= 1'b1;
+  else if ((cnt == 'd0) & pls)  o_run <= 1'b0;
 end
 
-end else begin
+// clock divider
+always @ (posedge clk, posedge rst)
+if (rst)                        o_div <= 0;
+else                            o_div <= ;
+
+// 
+
+// state counter
+always @ (posedge clk, posedge rst)
+if (rst)             cnt <= 0;
+else begin
+  if (avalon_trn_w)  cnt <=  11;
+  else if (cyc)      cnt <= cnt - 1;
+end
+
+// transmit status
+always @ (posedge clk, posedge rst)
+if (rst)             stx <= 1'b0;
+else begin
+  if (avalon_trn_w)  stx <= 1'b1;
+  else if (txd_ena)  stx <= (cnt == 'd0);
+end
+
+// receive status
+always @ (posedge clk, posedge rst)
+if (rst)             srx <= 1'b0;
+else begin
+  if (avalon_trn_w)  srx <= 1'b1;
+  else if (txd_ena)  srx <= (cnt == 'd0);
+end
 
 // output register
 always @ (posedge clk, posedge rst)
@@ -133,89 +116,6 @@ if (rst)             uart_txd <= 1'b1;
 else begin
   if (avalon_trn_w)  uart_txd <= 1'b0;
   else if (txd_ena)  uart_txd <= txd_dat[0];
-end
-
-end endgenerate
-
-//////////////////////////////////////////////////////////////////////////////
-// UART receiver
-//////////////////////////////////////////////////////////////////////////////
-
-reg uart_rxd_dly;
-
-// delay uart_rxd and detect a start negative edge
-always @ (posedge clk)
-uart_rxd_dly <= uart_rxd;
-
-assign rxd_start = uart_rxd_dly & ~uart_rxd & ~rxd_run;
-
-// baudrate generator from clock (it counts down to 0 generating a baud pulse)
-always @ (posedge clk, posedge rst)
-if (rst)          rxd_bdr <= N_BIT-1;
-else begin
-  if (rxd_start)  rxd_bdr <= ((N_BIT-1)>>1)-1;
-  else            rxd_bdr <= ~|rxd_bdr ? N_BIT-1 : rxd_bdr - rxd_run;
-end
-
-// enable signal for shifting logic
-always @ (posedge clk, posedge rst)
-if (rst)  rxd_ena <= 1'b0;
-else      rxd_ena <= (rxd_bdr == 'd1);
-
-// bit counter
-always @ (posedge clk, posedge rst)
-if (rst)             rxd_cnt <= 0;
-else begin
-  if (rxd_start)     rxd_cnt <= UTL;
-  else if (rxd_ena)  rxd_cnt <= rxd_cnt - 1;
-end
-
-// shift status
-always @ (posedge clk, posedge rst)
-if (rst)             rxd_run <= 1'b0;
-else begin
-  if (rxd_start)     rxd_run <= 1'b1;
-  else if (rxd_ena)  rxd_run <= rxd_cnt != 4'd0;
-end
-
-assign rxd_end = ~|rxd_cnt & rxd_ena;
-
-// data shift register
-always @ (posedge clk)
-  if ((PARITY!="NONE") ? ~(txd_cnt==STOPSIZE) & rxd_ena : rxd_ena)
-    rxd_dat <= {uart_rxd, rxd_dat[BYTESIZE-1:1]};
-
-// avalon read data and parity error
-always @ (posedge clk)
-  if (rxd_end)  status_dat <= rxd_dat;
-
-generate if (PARITY!="NONE") begin
-
-// parity register
-always @ (posedge clk)
-  if (rxd_start)     rxd_prt <= PRT;
-  else if (rxd_ena)  rxd_prt <= rxd_prt ^ uart_rxd;
-
-// avalon read data and parity error
-always @ (posedge clk)
-  if (rxd_end)  status_prt <= rxd_prt;
-
-end endgenerate
-
-// fifo interrupt status
-always @ (posedge clk, posedge rst)
-if (rst)                 status_rdy <= 1'b0;
-else begin
-  if (rxd_end)           status_rdy <= 1'b1;
-  else if (avalon_trn_r) status_rdy <= 1'b0;
-end
-
-// fifo overflow error
-always @ (posedge clk, posedge rst)
-if (rst)                 status_err <= 1'b0;
-else begin
-  if (avalon_trn_r)      status_err <= 1'b0;
-  else if (rxd_end)      status_err <= status_rdy;
 end
 
 endmodule
