@@ -1,77 +1,51 @@
 [timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-31.756651 18166376000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
-[treeopen] uart_tb.
+*-23.150639 16810000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] onewire_tb.
 @200
 -System signals
 @28
-uart_tb.clk
-uart_tb.rst
+onewire_tb.clk
+onewire_tb.rst
 @800200
 -Avalon MM bus
 @28
-uart_tb.avalon_write
-uart_tb.avalon_read
-uart_tb.avalon_address
+onewire_tb.avalon_write
+onewire_tb.avalon_read
+onewire_tb.avalon_address
 @22
-uart_tb.avalon_byteenable[3:0]
-uart_tb.avalon_writedata[31:0]
-uart_tb.avalon_readdata[31:0]
+onewire_tb.avalon_byteenable[3:0]
+onewire_tb.avalon_writedata[31:0]
+onewire_tb.avalon_readdata[31:0]
 @28
-uart_tb.avalon_waitrequest
+onewire_tb.avalon_waitrequest
+onewire_tb.avalon_transfer
+@22
+onewire_tb.data[31:0]
 @1000200
 -Avalon MM bus
+@28
+onewire_tb.onewire
 @800200
--UART bus
+-1-wire master
 @28
-uart_tb.uart_RxD
-uart_tb.uart_TxD
+onewire_tb.onewire_master.div[2:0]
+onewire_tb.onewire_master.pls
+onewire_tb.onewire_master.run
+@24
+onewire_tb.onewire_master.cnt[6:0]
+@28
+onewire_tb.onewire_master.pul
+onewire_tb.onewire_master.o_srx
+onewire_tb.onewire_master.o_stx
+onewire_tb.onewire_master.o_drx
+onewire_tb.onewire_master.o_dtx
+onewire_tb.onewire_master.o_rst
+onewire_tb.onewire_master.o_od
 @1000200
--UART bus
-@200
--RTL Avalon
-@28
-uart_tb.uart_i.avalon_trn_w
-uart_tb.uart_i.avalon_trn_r
-uart_tb.uart_i.status_rdy
-uart_tb.uart_i.status_err
-uart_tb.uart_i.status_prt
-@22
-uart_tb.uart_i.status_dat[7:0]
-@200
--RTL txd
-@24
-uart_tb.uart_i.txd_bdr[2:0]
-@28
-uart_tb.uart_i.txd_ena
-uart_tb.uart_i.txd_run
-@22
-uart_tb.uart_i.txd_cnt[3:0]
-uart_tb.uart_i.txd_dat[7:0]
-@28
-uart_tb.uart_i.txd_prt
-@200
--RTL rxd
-@28
-uart_tb.uart_i.rxd_start
-@24
-uart_tb.uart_i.rxd_bdr[2:0]
-@28
-uart_tb.uart_i.rxd_ena
-uart_tb.uart_i.rxd_run
-@22
-uart_tb.uart_i.rxd_cnt[3:0]
-uart_tb.uart_i.rxd_dat[7:0]
-@28
-uart_tb.uart_i.rxd_prt
-uart_tb.uart_i.rxd_end
-@200
--testbench local signals
-@22
-uart_tb.uart_cnt[31:0]
-uart_tb.uart_dat[7:0]
-@28
-uart_tb.uart_sample
+-1-wire master
+@29
+onewire_tb.onewire_slave.pull
 [pattern_trace] 1
 [pattern_trace] 0

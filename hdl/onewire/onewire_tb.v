@@ -3,23 +3,14 @@
 module onewire_tb;
 
 // system clock parameters
-//localparam real FRQ = 24_000_000;  // 24MHz // realistic option
-localparam real FRQ =  48000;  //  48kHz // option for faster simulation
-localparam real CP = 1000000000/FRQ;  // clock period
+localparam real FRQ = 24_000_000;     // 24MHz // realistic option
+localparam real CP  = 1000000000/FRQ;  // clock period
+localparam      DVN = FRQ/6000;        // 
 
 // Avalon MM parameters
 localparam AAW = 1;      // address width
 localparam ADW = 32;     // data width
 localparam ABW = ADW/8;  // byte enable width
-
-// UART parameters
-localparam      BYTESIZE = 8;                    // oprions are ..., 7, 8, ...
-//localparam      PARITY   = "NONE";               // options are "NONE", "EVEN", "ODD"
-localparam      PARITY   = "ODD";               // options are "NONE", "EVEN", "ODD"
-localparam      STOPSIZE = 1;                    // options are 1,2,...
-localparam real BAUDRATE = 9600;                 // realistic baudrate value
-localparam      N_BIT =           FRQ/BAUDRATE;  // T=f/baudrate
-localparam real T_BIT = 1_000_000_000/BAUDRATE;  // T=1.0s/baudrate
 
 // system_signals
 reg            clk;  // clock
@@ -38,9 +29,8 @@ wire           avalon_interrupt;
 wire           avalon_transfer;
 reg  [ADW-1:0] data;
 
-// UART
-wire           uart_RxD;
-wire           uart_TxD;
+// onewire
+wire           onewire;
 
 // request for a dumpfile
 initial begin
@@ -74,34 +64,10 @@ initial begin
   repeat (4) @(posedge clk);
 
   // perform Avalon MM fundamental writes
-  avalon_cycle (1, 0, 4'hf, "H", data);
-  avalon_cycle (1, 0, 4'hf, "e", data);
-  avalon_cycle (1, 0, 4'hf, "l", data);
-  avalon_cycle (1, 0, 4'hf, "l", data);
-  avalon_cycle (1, 0, 4'hf, "o", data);
-  avalon_cycle (1, 0, 4'hf, ",", data);
-  repeat (20*N_BIT) @(posedge clk);
-  avalon_cycle (1, 0, 4'hf, " ", data);
-  repeat (1) @(posedge clk);
-  avalon_cycle (1, 0, 4'hf, "W", data);
-  avalon_cycle (1, 0, 4'hf, "o", data);
-  avalon_cycle (1, 0, 4'hf, "r", data);
-  avalon_cycle (1, 0, 4'hf, "l", data);
-  avalon_cycle (1, 0, 4'hf, "d", data);
-  avalon_cycle (1, 0, 4'hf, "!", data);
-  repeat (20*N_BIT) @(posedge clk);
-
-  // read from Avalon to clear interrupt and fifo error
-  avalon_cycle (0, 0, 4'hf, 'hx, data);
-
-  // send (loop) receive an UART byte, wait for interrupt and read data
-  avalon_cycle (1, 0, 4'hf, "T", data);
-  @ (posedge clk); while (~avalon_interrupt) @ (posedge clk);
-  avalon_cycle (0, 0, 4'hf, 'hx, data);
-  $display ("DEBUG: Received character \'%s\' expected \'T\'", data[BYTESIZE-1:0]);
+  avalon_cycle (1, 0, 4'hf, 32'b000010, data);
 
   // wait a few cycles and finish
-  repeat (4) @(posedge clk);
+  repeat (1000) @(posedge clk);
   $finish(); 
 end
 
@@ -139,52 +105,12 @@ endtask
 assign avalon_transfer = (avalon_read | avalon_write) & ~avalon_waitrequest;
 
 //////////////////////////////////////////////////////////////////////////////
-// UART monitor (receiver)
-//////////////////////////////////////////////////////////////////////////////
-
-event     uart_sample;  // a semple event should be placed in the middle of each bit
-integer   uart_cnt;     // bit counter
-reg [7:0] uart_dat;     // byte of data
-
-initial begin
-  wait (~rst);
-  while (1) begin
-    @ (negedge uart_TxD) begin
-      // wait half of bit time
-      #(T_BIT/2);
-      // check the start bit
-      if (uart_TxD != 1'b0)  $display ("UART: start bit error."); #T_BIT;
-      // sample in the middle of each bit
-      for (uart_cnt=0; uart_cnt<BYTESIZE; uart_cnt=uart_cnt+1) begin
-        -> uart_sample;  uart_dat [uart_cnt] = uart_TxD;  #T_BIT;
-      end
-      // check parity
-      case (PARITY)
-        "ODD"  : begin  if (uart_TxD != ~^uart_dat)  $display ("UART: parity error."); #T_BIT;  end
-        "EVEN" : begin  if (uart_TxD !=  ^uart_dat)  $display ("UART: parity error."); #T_BIT;  end
-        "NONE" : begin                                                                          end
-      endcase
-      // check the stop bit and display the transferred character
-      if (uart_TxD != 1'b1)  $display ("UART: stop bit error.");
-      else                   $display ("UART: transferred character \"%s\".", uart_dat);
-    end
-  end
-end
-
-//////////////////////////////////////////////////////////////////////////////
 // RTL instance
 //////////////////////////////////////////////////////////////////////////////
 
 onewire #(
-  // UART parameters
-  .BYTESIZE (BYTESIZE),
-  .PARITY   (PARITY),
-  .STOPSIZE (STOPSIZE),
-  .N_BIT    (N_BIT),
-  // Avalon parameters
-  .AAW   (AAW),
-  .ADW   (ADW)
-) onewire_m (
+  .DVN    (5)
+) onewire_master (
   // system
   .clk  (clk),
   .rst  (rst),
@@ -196,12 +122,19 @@ onewire #(
   .avalon_waitrequest  (avalon_waitrequest),
   .avalon_interrupt    (avalon_interrupt),
   // UART
-  .uart_rxd            (uart_RxD),
-  .uart_txd            (uart_TxD)
+  .onewire             (onewire)
 );
 
-// UART loopback
-assign uart_RxD = uart_TxD;
+// onewire pullup
+pullup onewire_pullup (onewire);
 
+//////////////////////////////////////////////////////////////////////////////
+// Verilog onewire slave model
+//////////////////////////////////////////////////////////////////////////////
+
+onewire_slave_model #(
+) onewire_slave (
+  .onewire  (onewire)
+);
 
 endmodule
