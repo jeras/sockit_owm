@@ -3,9 +3,9 @@
 module onewire_tb;
 
 // system clock parameters
-localparam real FRQ = 24_000_000;     // 24MHz // realistic option
+localparam real FRQ = 24_000_000;      // 24MHz // realistic option
 localparam real CP  = 1000000000/FRQ;  // clock period
-localparam      DVN = FRQ/6000;        // 
+localparam      DVN = 6000/CP;         // divider number
 
 // Avalon MM parameters
 localparam AAW = 1;      // address width
@@ -63,21 +63,30 @@ initial begin
   avalon_write = 1'b0;
 
   // long delay to skip presence pulse
-  repeat (1000) @(posedge clk);
+  #500_000;
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00_000010, data);
-  // wait for the reset to finish
-  data = 32'd0;
-  while (!(data & 32'h10))
-  avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
+  avalon_pulling (8, 0);
+  // long delay to skip presence pulse
+  #500_000;
   // write a sequence
   avalon_cycle (1, 0, 4'hf, 32'b00_000000, data);
-
+  avalon_pulling (8, 0);
   // wait a few cycles and finish
-  repeat (1000) @(posedge clk);
+  repeat (10) @(posedge clk);
   $finish(); 
 end
+
+// wait for the onewire cycle completion
+task avalon_pulling (input integer d, n);
+begin
+  data = 32'd0;
+  while (!(data & 32'h10)) begin
+    repeat (d) @ (posedge clk);
+    avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
+  end
+end endtask
 
 //////////////////////////////////////////////////////////////////////////////
 // Avalon transfer cycle generation task
@@ -117,7 +126,7 @@ assign avalon_transfer = (avalon_read | avalon_write) & ~avalon_waitrequest;
 //////////////////////////////////////////////////////////////////////////////
 
 onewire #(
-  .DVN    (5)
+  .DVN    (DVN)
 ) onewire_master (
   // system
   .clk  (clk),
