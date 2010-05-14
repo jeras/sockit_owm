@@ -5,7 +5,7 @@ module onewire_tb;
 // system clock parameters
 localparam real FRQ = 24_000_000;      // 24MHz // realistic option
 localparam real CP  = 1000000000/FRQ;  // clock period
-localparam      DVN = 6000/CP;         // divider number
+localparam      DVN = 7500/CP;         // divider number
 
 // Avalon MM parameters
 localparam AAW = 1;      // address width
@@ -63,13 +63,11 @@ initial begin
   avalon_write = 1'b0;
 
   // long delay to skip presence pulse
-  #500_000;
+  #1000_000;
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00_000010, data);
   avalon_pulling (8, 0);
-  // long delay to skip presence pulse
-  #500_000;
   // write a sequence
   avalon_cycle (1, 0, 4'hf, 32'b00_000000, data);
   avalon_pulling (8, 0);

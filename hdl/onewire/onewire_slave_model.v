@@ -5,8 +5,8 @@ module onewire_slave_model #(
   parameter FAMILY_CODE   =  8'h01,
   parameter SERIAL_NUMBER = 48'hba98_7654_3210,
   parameter CRC_CODE      =  8'hff,
-  // internal oscilator period (time resistor capacitor)
-  parameter TRC = 6
+  // time slot (min=15, typ=30, max=60)
+  parameter TS = 30
 )(
   inout wire onewire
 );
@@ -46,31 +46,28 @@ assign onewire = pull ? 1'b0 : 1'bz;
 // events inside a cycle
 //////////////////////////////////////////////////////////////////////////////
 
-integer osc;
-
-// RC oscilator based delay counter
-initial forever begin
-  @ (negedge onewire);
+always @ (negedge onewire) begin
   fork
-    // RC oscilator timer
-    begin : oscilator
-      forever begin
-        osc = #TRC osc+1;
-        -> clock;
+    begin : slot_data
+      #((od?TS/10:TS)*1)  -> sample;
+    end
+    begin : slot_reset
+      #((od?TS/10:TS)*8)  -> reset;
+    end
+    begin : slot_reset_all
+      #((od?TS/10:TS)*8*8) begin
+      od = 1'b0;
+      -> reset;
       end
     end
-    // stop counting on wire posedge
-    begin
-      @ (posedge onewire);
-      disable oscilator;
-      osc = 0;
+    begin : slot_end
+      @ (posedge onewire) begin
+        disable slot_data;
+        disable slot_reset;
+        disable slot_reset_all;
+      end
     end
   join
-end
-
-always @ (clock) begin
-  if (osc ==   8-1)  -> sample;
-  if (osc == 8*8-1)  -> reset;
 end
 
 // // bit transfer
@@ -83,18 +80,18 @@ end
 //   fork
 //     // transmit
 //     begin : trn_tx
-//       #(TRC*1);
+//       #(TS*1);
 //       pull <= 1'b0;
 //     end
 //     // receive
 //     begin : trn_rx
-//       #(TRC*1);
+//       #(TS*1);
 //       drx = {onewire, drx[7:1]};
 //       -> sample;
 //     end
 //     // reset
 //     begin : trn_rst
-//       #(TRC*16)
+//       #(TS*16)
 //       state <= "RST";
 //       cnt   <= 0;
 //     end
@@ -130,10 +127,10 @@ always @ (reset) begin
   od    <= 1'b0;
   if (~onewire) @ (posedge onewire);
   // issue presence pulse
-  #(TRC);
+  #((od?TS/10:TS)*1);
   state <= "PRS";
   pull  <= 1'b1;
-  #(TRC*8*4);
+  #((od?TS/10:TS)*4);
   pull  <= 1'b0;
   state <= "IDL";
 end

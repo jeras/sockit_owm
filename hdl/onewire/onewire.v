@@ -91,7 +91,7 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)                        cnt <= 0;
 else begin
-  if (avalon_trn_w)             cnt <= avalon_writedata[1] ? 80 : 11;
+  if (avalon_trn_w)             cnt <= avalon_writedata[1] ? 127 : 8;
   else if (pls)                 cnt <= cnt - 1;
 end
 
@@ -107,14 +107,18 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)             o_srx <= 1'b0;
 else begin
-  if (pls & (cnt == 'd9) & (~o_rst &  o_dtx))
-                                o_srx <= 1'b1;
-  else if (avalon_trn_w)        o_srx <= 1'b0;
+  if (pls) begin
+    if      (o_rst & (cnt == 'd32))  o_srx <= 1'b1;
+    else if (o_dtx & (cnt == 'd07))  o_srx <= 1'b1;
+  end else if (avalon_trn_w)         o_srx <= 1'b0;
 end
 
 // receive data
 always @ (posedge clk)
-if (pls & (cnt == 'd9))  o_drx <= 1'b0;
+if (pls) begin
+  if      (o_rst & (cnt == 'd32))  o_srx <= onewire;
+  else if (o_dtx & (cnt == 'd07))  o_srx <= onewire;
+end
 
 // output register
 always @ (posedge clk, posedge rst)
@@ -122,9 +126,9 @@ if (rst)             pul <= 1'b0;
 else begin
   if (avalon_trn_w)  pul <= 1'b1;
   else if (pls) begin
-    if ( (~o_rst &  o_dtx) & (cnt == 'd10)
-       | ( o_rst | ~o_dtx) & (cnt == 'd01) )
-                     pul <= 1'b0;
+    if      (o_rst & (cnt == 'd64)) pul <= 1'b0;
+    else if (o_dtx & (cnt == 'd07)) pul <= 1'b0;
+    else if (        (cnt == 'd01)) pul <= 1'b0;
   end
 end
 

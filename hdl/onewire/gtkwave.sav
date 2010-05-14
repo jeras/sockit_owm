@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 694
 [pos] -1 -1
-*-27.688793 519921000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.768421 2022571000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] onewire_tb.
 [treeopen] onewire_tb.onewire_slave.
 @200
@@ -26,7 +26,7 @@ onewire_tb.avalon_transfer
 onewire_tb.data[31:0]
 @1000200
 -Avalon MM bus
-@28
+@29
 onewire_tb.onewire
 @800200
 -1-wire master
@@ -56,10 +56,6 @@ onewire_tb.onewire_slave.cnt[31:0]
 @28
 onewire_tb.onewire_slave.od
 onewire_tb.onewire_slave.pull
-@22
-onewire_tb.onewire_slave.osc[31:0]
-@28
-onewire_tb.onewire_slave.clock
 onewire_tb.onewire_slave.sample
 onewire_tb.onewire_slave.reset
 @1000200
