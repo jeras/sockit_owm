@@ -74,6 +74,18 @@ initial begin
   // write '1'
   avalon_cycle (1, 0, 4'hf, 32'b00000100, data);
   avalon_pulling (8, 0);
+
+  // switch to overdrive mode
+
+  // generate a reset pulse
+  avalon_cycle (1, 0, 4'hf, 32'b00000011, data);
+  avalon_pulling (8, 0);
+  // write '0'
+  avalon_cycle (1, 0, 4'hf, 32'b00000001, data);
+  avalon_pulling (8, 0);
+  // write '1'
+  avalon_cycle (1, 0, 4'hf, 32'b00000101, data);
+  avalon_pulling (8, 0);
   // wait a few cycles and finish
   repeat (10) @(posedge clk);
   $finish(); 
