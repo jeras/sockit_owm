@@ -3,7 +3,7 @@
 module onewire_tb;
 
 // system clock parameters
-localparam real FRQ = 24_000_000;      // 24MHz // realistic option
+localparam real FRQ =  4_000_000;      // 24MHz // realistic option
 localparam real CP  = 1000000000/FRQ;  // clock period
 localparam      DVN = 7500/CP;         // divider number
 
@@ -66,10 +66,13 @@ initial begin
   #1000_000;
 
   // generate a reset pulse
-  avalon_cycle (1, 0, 4'hf, 32'b00_000010, data);
+  avalon_cycle (1, 0, 4'hf, 32'b00000010, data);
   avalon_pulling (8, 0);
-  // write a sequence
-  avalon_cycle (1, 0, 4'hf, 32'b00_000000, data);
+  // write '0'
+  avalon_cycle (1, 0, 4'hf, 32'b00000000, data);
+  avalon_pulling (8, 0);
+  // write '1'
+  avalon_cycle (1, 0, 4'hf, 32'b00000100, data);
   avalon_pulling (8, 0);
   // wait a few cycles and finish
   repeat (10) @(posedge clk);
