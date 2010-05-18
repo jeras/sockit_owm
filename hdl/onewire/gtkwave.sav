@@ -28,7 +28,7 @@ onewire_tb.data[31:0]
 @1000200
 -Avalon MM bus
 @28
-onewire_tb.onewire
+onewire_tb.owr
 @800200
 -1-wire master
 @28
@@ -41,14 +41,15 @@ onewire_tb.onewire_master.div[4:0]
 @28
 onewire_tb.onewire_master.pls
 onewire_tb.onewire_master.run
-@25
+@24
 onewire_tb.onewire_master.cnt[6:0]
 @28
 onewire_tb.onewire_master.owr_ovd
 onewire_tb.onewire_master.owr_rst
 onewire_tb.onewire_master.owr_dtx
 onewire_tb.onewire_master.owr_drx
-onewire_tb.onewire_master.owr_pul
+onewire_tb.onewire_master.owr_oe
+onewire_tb.onewire_master.owr_i
 @1000200
 -1-wire master
 @800200

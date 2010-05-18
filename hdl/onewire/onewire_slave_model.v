@@ -1,3 +1,26 @@
+//////////////////////////////////////////////////////////////////////////////                                                                                          
+//                                                                          //
+//  1-wire (owr) slave model                                                //
+//                                                                          //
+//  Copyright (C) 2008  Iztok Jeras                                         //
+//                                                                          //
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+//  This RTL is free hardware: you can redistribute it and/or modify        //
+//  it under the terms of the GNU Lesser General Public License             //
+//  as published by the Free Software Foundation, either                    //
+//  version 3 of the License, or (at your option) any later version.        //
+//                                                                          //
+//  This RTL is distributed in the hope that it will be useful,             //
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//  GNU General Public License for more details.                            //
+//                                                                          //
+//  You should have received a copy of the GNU General Public License       //
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                          //
+//////////////////////////////////////////////////////////////////////////////
+ 
 `timescale 1us / 1ns
 
 module onewire_slave_model #(
@@ -8,7 +31,7 @@ module onewire_slave_model #(
   // time slot (min=15, typ=30, max=60)
   parameter TS = 30
 )(
-  inout wire onewire
+  inout wire owr
 );
 
 // commands
@@ -40,13 +63,13 @@ event reset;
 // IO
 //////////////////////////////////////////////////////////////////////////////
 
-assign onewire = pull ? 1'b0 : 1'bz;
+assign owr = pull ? 1'b0 : 1'bz;
 
 //////////////////////////////////////////////////////////////////////////////
 // events inside a cycle
 //////////////////////////////////////////////////////////////////////////////
 
-always @ (negedge onewire) begin
+always @ (negedge owr) begin
   fork
     begin : slot_data
       #((od?TS/10:TS)*1)  -> sample;
@@ -61,7 +84,7 @@ always @ (negedge onewire) begin
       end
     end
     begin : slot_end
-      @ (posedge onewire) begin
+      @ (posedge owr) begin
         disable slot_data;
         disable slot_reset;
         disable slot_reset_all;
@@ -71,7 +94,7 @@ always @ (negedge onewire) begin
 end
 
 // // bit transfer
-// always @ (negedge onewire) begin
+// always @ (negedge owr) begin
 // //task trn (); begin
 //   -> transfer;
 //   cycle <=  dtx[0] ? "OPN" : "PUL";
@@ -86,7 +109,7 @@ end
 //     // receive
 //     begin : trn_rx
 //       #(TS*1);
-//       drx = {onewire, drx[7:1]};
+//       drx = {owr, drx[7:1]};
 //       -> sample;
 //     end
 //     // reset
@@ -95,9 +118,9 @@ end
 //       state <= "RST";
 //       cnt   <= 0;
 //     end
-//     // wait for onewire posedge
+//     // wait for owr posedge
 //     begin : trn_pdg
-//       @ (posedge onewire)
+//       @ (posedge owr)
 //       disable trn_rst;
 //     end
 //   join
@@ -125,7 +148,7 @@ always @ (reset) begin
   // power-up chip state
   state <= "RST";
   od    <= 1'b0;
-  if (~onewire) @ (posedge onewire);
+  if (~owr) @ (posedge owr);
   // issue presence pulse
   #((od?TS/10:TS)*1);
   state <= "PRS";
@@ -136,14 +159,14 @@ always @ (reset) begin
 end
 
 // // reset
-// always @ (negedge onewire)
+// always @ (negedge owr)
 // if (state == "RST") begin
 //   trn (); 
 //   state <= "IDL";
 // end
 
 // // bit transfer
-// always @ (negedge onewire)
+// always @ (negedge owr)
 // case (state)
 //   "IDL": begin
 //     state <= "CMD";

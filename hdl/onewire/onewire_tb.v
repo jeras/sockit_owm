@@ -1,3 +1,27 @@
+//////////////////////////////////////////////////////////////////////////////                                                                                          
+//                                                                          //
+//  Minimalistic 1-wire (onewire) master with Avalon MM bus interface       //
+//  testbench                                                               //
+//                                                                          //
+//  Copyright (C) 2008  Iztok Jeras                                         //
+//                                                                          //
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+//  This RTL is free hardware: you can redistribute it and/or modify        //
+//  it under the terms of the GNU Lesser General Public License             //
+//  as published by the Free Software Foundation, either                    //
+//  version 3 of the License, or (at your option) any later version.        //
+//                                                                          //
+//  This RTL is distributed in the hope that it will be useful,             //
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//  GNU General Public License for more details.                            //
+//                                                                          //
+//  You should have received a copy of the GNU General Public License       //
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                          //
+//////////////////////////////////////////////////////////////////////////////
+
 `timescale 1ns / 1ps
 
 module onewire_tb;
@@ -5,7 +29,7 @@ module onewire_tb;
 // system clock parameters
 localparam real FRQ =  4_000_000;      // 24MHz // realistic option
 localparam real CP  = 1000000000/FRQ;  // clock period
-localparam      DVN = 7500/CP;         // divider number
+localparam      CDR = 7500/CP;         // divider number
 
 // Avalon MM parameters
 localparam AAW = 1;      // address width
@@ -30,7 +54,9 @@ wire           avalon_transfer;
 reg  [ADW-1:0] data;
 
 // onewire
-wire           onewire;
+wire           owr;     // bidirectional
+wire           owr_i;   // input into master
+wire           owr_oe;  // output enable from master
 
 // request for a dumpfile
 initial begin
@@ -134,12 +160,14 @@ endtask
 // avalon cycle transfer cycle end status
 assign avalon_transfer = (avalon_read | avalon_write) & ~avalon_waitrequest;
 
+assign avalon_waitrequest = 1'b0;
+
 //////////////////////////////////////////////////////////////////////////////
 // RTL instance
 //////////////////////////////////////////////////////////////////////////////
 
 onewire #(
-  .DVN    (DVN)
+  .CDR    (CDR)
 ) onewire_master (
   // system
   .clk  (clk),
@@ -149,14 +177,16 @@ onewire #(
   .avalon_write        (avalon_write),
   .avalon_writedata    (avalon_writedata),
   .avalon_readdata     (avalon_readdata),
-  .avalon_waitrequest  (avalon_waitrequest),
   .avalon_interrupt    (avalon_interrupt),
-  // UART
-  .onewire             (onewire)
+  // onewire
+  .owr_oe              (owr_oe),
+  .owr_i               (owr_i)
 );
 
-// onewire pullup
-pullup onewire_pullup (onewire);
+// onewire
+pullup onewire_pullup (owr);
+assign owr   = owr_oe ? 1'b0 : 1'bz;
+assign owr_i = owr;
 
 //////////////////////////////////////////////////////////////////////////////
 // Verilog onewire slave model
@@ -164,7 +194,7 @@ pullup onewire_pullup (onewire);
 
 onewire_slave_model #(
 ) onewire_slave (
-  .onewire  (onewire)
+  .owr  (owr)
 );
 
 endmodule
