@@ -172,7 +172,7 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)                              owr_oe <= 1'b0;
 else begin
-  if (avalon_write)                   owr_oe <= 1'b1;
+  if (avalon_write)                   owr_oe <= ~&avalon_writedata[2:1];
   else if (pls) begin
     if      (owr_rst & (cnt == 'd64)) owr_oe <= 1'b0;
     else if (owr_dtx & (cnt == 'd08)) owr_oe <= 1'b0;
