@@ -93,6 +93,10 @@ wire [3:0] btn;
 // 7 segment display negated signals
 wire [31:0] seg7;
 
+// 1-wire
+wire onewire_oe;
+wire onewire_i;
+
 // All inout port turn to tri-state
 assign SD_DAT      = 1'bz;
 //assign I2C_SDAT    = 1'bz;
@@ -112,7 +116,7 @@ debouncer #(.CN (FRQ/100)) debouncer_i [3:0] (.clk (clk), .d_i (~KEY), .d_o (btn
 // soc_nios RTL instance
 soc soc_i (
   // 1) global signals:
-  .clk_0                           (clk),
+  .clk                             (clk),
   .reset_n                         (~rst),
   // the_epcs_flash
   .ds_MISO_from_the_epcs_flash     (),
@@ -122,16 +126,16 @@ soc soc_i (
   .out_port_from_the_pio_ledg      (LEDG),
   // the_pio_ledr
   .out_port_from_the_pio_ledr      (LEDR),
-  // the_sdram_0
-  .zs_cke_from_the_sdram_0         (DRAM_CKE),
-  .zs_cs_n_from_the_sdram_0        (DRAM_CS_N),
-  .zs_we_n_from_the_sdram_0        (DRAM_WE_N),
-  .zs_cas_n_from_the_sdram_0       (DRAM_CAS_N),
-  .zs_ras_n_from_the_sdram_0       (DRAM_RAS_N),
-  .zs_ba_from_the_sdram_0          (DRAM_BA),
-  .zs_addr_from_the_sdram_0        (DRAM_ADDR),
-  .zs_dq_to_and_from_the_sdram_0   (DRAM_DQ),
-  .zs_dqm_from_the_sdram_0         (DRAM_DQM),
+  // the_sdram
+  .zs_cke_from_the_sdram           (DRAM_CKE),
+  .zs_cs_n_from_the_sdram          (DRAM_CS_N),
+  .zs_we_n_from_the_sdram          (DRAM_WE_N),
+  .zs_cas_n_from_the_sdram         (DRAM_CAS_N),
+  .zs_ras_n_from_the_sdram         (DRAM_RAS_N),
+  .zs_ba_from_the_sdram            (DRAM_BA),
+  .zs_addr_from_the_sdram          (DRAM_ADDR),
+  .zs_dq_to_and_from_the_sdram     (DRAM_DQ),
+  .zs_dqm_from_the_sdram           (DRAM_DQM),
   // the_tri_state_bridge_flash_avalon_slave
   .select_n_to_the_cfi_flash       (FL_CE_N),
   .write_n_to_the_cfi_flash        (FL_WE_N),
@@ -140,10 +144,15 @@ soc soc_i (
   .data_to_and_from_the_cfi_flash  (FL_DQ),
   // the_uart
   .rxd_to_the_uart                 (UART_TXD),
-  .txd_from_the_uart               (UART_RXD)
+  .txd_from_the_uart               (UART_RXD),
   // onewire
-//  .onewire_to_and_from_the_onewire_0  (I2C_SDAT)
+  .owr_oe_from_the_onewire_i       (onewire_oe),
+  .owr_i_to_the_onewire_i          (onewire_i)
 );
+
+// 1-wire
+assign I2C_DAT = onewire_oe ? 1'b0 : 1'bz;
+assign onewire_i = I2C_DAT;
 
 // SDRAM Interface
 assign DRAM_CLK = ~clk;  // SDRAM Clock

@@ -10,6 +10,14 @@
          type = "long";
       }
    }
+   element onewire_i.avalon_slave
+   {
+      datum baseAddress
+      {
+         value = "0";
+         type = "long";
+      }
+   }
    element cfi_flash
    {
       datum _sortIndex
@@ -28,7 +36,7 @@
          type = "boolean";
       }
    }
-   element clk_0
+   element clk
    {
       datum _sortIndex
       {
@@ -47,6 +55,11 @@
       {
          value = "{}";
          type = "String";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
       }
    }
    element epcs_flash.epcs_control_port
@@ -68,6 +81,11 @@
       {
          value = "{output_language=VERILOG, output_directory=/home/izi/Workplace/fpga-hdl/DE1/DE1_soc_nios2}";
          type = "String";
+      }
+      datum sopceditor_expanded
+      {
+         value = "0";
+         type = "boolean";
       }
    }
    element cpu_0.jtag_debug_module
@@ -114,6 +132,14 @@
          type = "boolean";
       }
    }
+   element onewire_i
+   {
+      datum _sortIndex
+      {
+         value = "12";
+         type = "int";
+      }
+   }
    element pio_7seg
    {
       datum _sortIndex
@@ -123,7 +149,7 @@
       }
       datum megawizard_uipreferences
       {
-         value = "{}";
+         value = "{output_language=VERILOG, output_directory=/home/izi/Workplace/fpga-hdl/DE1/DE1_soc_nios2}";
          type = "String";
       }
       datum sopceditor_expanded
@@ -168,38 +194,6 @@
          type = "boolean";
       }
    }
-   element onchip_ram.s1
-   {
-      datum baseAddress
-      {
-         value = "25182208";
-         type = "long";
-      }
-   }
-   element pio_ledg.s1
-   {
-      datum baseAddress
-      {
-         value = "25206832";
-         type = "long";
-      }
-   }
-   element cfi_flash.s1
-   {
-      datum baseAddress
-      {
-         value = "20971520";
-         type = "long";
-      }
-   }
-   element sdram_0.s1
-   {
-      datum baseAddress
-      {
-         value = "8388608";
-         type = "long";
-      }
-   }
    element pio_ledr.s1
    {
       datum baseAddress
@@ -216,6 +210,30 @@
          type = "long";
       }
    }
+   element cfi_flash.s1
+   {
+      datum baseAddress
+      {
+         value = "20971520";
+         type = "long";
+      }
+   }
+   element sdram.s1
+   {
+      datum baseAddress
+      {
+         value = "8388608";
+         type = "long";
+      }
+   }
+   element pio_ledg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206832";
+         type = "long";
+      }
+   }
    element uart.s1
    {
       datum baseAddress
@@ -224,7 +242,15 @@
          type = "long";
       }
    }
-   element sdram_0
+   element onchip_ram.s1
+   {
+      datum baseAddress
+      {
+         value = "25182208";
+         type = "long";
+      }
+   }
+   element sdram
    {
       datum _sortIndex
       {
@@ -242,6 +268,9 @@
          type = "boolean";
       }
    }
+   element soc
+   {
+   }
    element tri_state_bridge_flash
    {
       datum _sortIndex
@@ -253,6 +282,11 @@
       {
          value = "{}";
          type = "String";
+      }
+      datum sopceditor_expanded
+      {
+         value = "0";
+         type = "boolean";
       }
    }
    element uart
@@ -279,10 +313,10 @@
  <parameter name="generateLegacySim" value="false" />
  <parameter name="hardcopyCompatible" value="false" />
  <parameter name="hdlLanguage" value="VERILOG" />
- <parameter name="projectName" value="DE1_soc_nios2" />
- <parameter name="systemHash" value="10065596416" />
- <parameter name="timeStamp" value="1274534986100" />
- <module name="clk_0" kind="clock_source" version="9.1" enabled="1">
+ <parameter name="projectName" value="DE1_soc_nios2.qpf" />
+ <parameter name="systemHash" value="30441673857" />
+ <parameter name="timeStamp" value="1275593462932" />
+ <module name="clk" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
  </module>
@@ -417,7 +451,7 @@
   <parameter name="writable" value="true" />
  </module>
  <module
-   name="sdram_0"
+   name="sdram"
    kind="altera_avalon_new_sdram_controller"
    version="9.1"
    enabled="1">
@@ -511,7 +545,15 @@
    enabled="1">
   <parameter name="registerIncomingSignals" value="true" />
  </module>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="cpu_0.clk" />
+ <module
+   name="onewire_i"
+   kind="sockit_avalon_onewire"
+   version="1.1"
+   enabled="1">
+  <parameter name="CDR" value="10" />
+  <parameter name="ADW" value="32" />
+ </module>
+ <connection kind="clock" version="9.1" start="clk.clk" end="cpu_0.clk" />
  <connection
    kind="avalon"
    version="6.1"
@@ -528,7 +570,7 @@
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x01809000" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="jtag_uart.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="jtag_uart.clk" />
  <connection
    kind="avalon"
    version="6.1"
@@ -544,7 +586,7 @@
    end="jtag_uart.irq">
   <parameter name="irqNumber" value="1" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="uart.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="uart.clk" />
  <connection kind="avalon" version="6.1" start="cpu_0.data_master" end="uart.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0180a000" />
@@ -552,7 +594,7 @@
  <connection kind="interrupt" version="9.1" start="cpu_0.d_irq" end="uart.irq">
   <parameter name="irqNumber" value="2" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="onchip_ram.clk1" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="onchip_ram.clk1" />
  <connection
    kind="avalon"
    version="6.1"
@@ -569,24 +611,20 @@
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x01804000" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="sdram_0.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="sdram.clk" />
  <connection
    kind="avalon"
    version="6.1"
    start="cpu_0.instruction_master"
-   end="sdram_0.s1">
+   end="sdram.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00800000" />
  </connection>
- <connection
-   kind="avalon"
-   version="6.1"
-   start="cpu_0.data_master"
-   end="sdram_0.s1">
+ <connection kind="avalon" version="6.1" start="cpu_0.data_master" end="sdram.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00800000" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="pio_7seg.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="pio_7seg.clk" />
  <connection
    kind="avalon"
    version="6.1"
@@ -595,7 +633,7 @@
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0180a020" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="pio_ledg.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="pio_ledg.clk" />
  <connection
    kind="avalon"
    version="6.1"
@@ -604,7 +642,7 @@
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0180a030" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="pio_ledr.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="pio_ledr.clk" />
  <connection
    kind="avalon"
    version="6.1"
@@ -613,7 +651,7 @@
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0180a040" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="epcs_flash.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="epcs_flash.clk" />
  <connection
    kind="avalon"
    version="6.1"
@@ -637,11 +675,11 @@
    end="epcs_flash.irq">
   <parameter name="irqNumber" value="0" />
  </connection>
- <connection kind="clock" version="9.1" start="clk_0.clk" end="cfi_flash.clk" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="cfi_flash.clk" />
  <connection
    kind="clock"
    version="9.1"
-   start="clk_0.clk"
+   start="clk.clk"
    end="tri_state_bridge_flash.clk" />
  <connection
    kind="avalon"
@@ -666,5 +704,25 @@
    end="cfi_flash.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x01400000" />
+ </connection>
+ <connection
+   kind="clock"
+   version="9.1"
+   start="clk.clk"
+   end="onewire_i.clock_reset" />
+ <connection
+   kind="avalon"
+   version="6.1"
+   start="cpu_0.data_master"
+   end="onewire_i.avalon_slave">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x0000" />
+ </connection>
+ <connection
+   kind="interrupt"
+   version="9.1"
+   start="cpu_0.d_irq"
+   end="onewire_i.interrupt_sender">
+  <parameter name="irqNumber" value="3" />
  </connection>
 </system>
