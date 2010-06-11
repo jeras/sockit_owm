@@ -194,38 +194,6 @@
          type = "boolean";
       }
    }
-   element pio_ledr.s1
-   {
-      datum baseAddress
-      {
-         value = "25206848";
-         type = "long";
-      }
-   }
-   element pio_7seg.s1
-   {
-      datum baseAddress
-      {
-         value = "25206816";
-         type = "long";
-      }
-   }
-   element cfi_flash.s1
-   {
-      datum baseAddress
-      {
-         value = "20971520";
-         type = "long";
-      }
-   }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "8388608";
-         type = "long";
-      }
-   }
    element pio_ledg.s1
    {
       datum baseAddress
@@ -242,11 +210,43 @@
          type = "long";
       }
    }
+   element cfi_flash.s1
+   {
+      datum baseAddress
+      {
+         value = "20971520";
+         type = "long";
+      }
+   }
+   element pio_ledr.s1
+   {
+      datum baseAddress
+      {
+         value = "25206848";
+         type = "long";
+      }
+   }
    element onchip_ram.s1
    {
       datum baseAddress
       {
          value = "25182208";
+         type = "long";
+      }
+   }
+   element sdram.s1
+   {
+      datum baseAddress
+      {
+         value = "8388608";
+         type = "long";
+      }
+   }
+   element pio_7seg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206816";
          type = "long";
       }
    }
@@ -314,8 +314,8 @@
  <parameter name="hardcopyCompatible" value="false" />
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
- <parameter name="systemHash" value="30441673857" />
- <parameter name="timeStamp" value="1275593462932" />
+ <parameter name="systemHash" value="32431622853" />
+ <parameter name="timeStamp" value="1276014970480" />
  <module name="clk" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />

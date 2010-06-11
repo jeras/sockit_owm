@@ -62,8 +62,8 @@ output        TDO,          // FPGA -> CPLD (data out)
 inout         I2C_SDAT,     // I2C Data
 output        I2C_SCLK,     // I2C Clock
 // PS2
-input         PS2_DAT,      // PS2 Data
-input         PS2_CLK,      // PS2 Clock
+inout         PS2_DAT,      // PS2 Data
+inout         PS2_CLK,      // PS2 Clock
 // VGA
 output        VGA_HS,       // VGA H_SYNC
 output        VGA_VS,       // VGA V_SYNC
@@ -151,8 +151,8 @@ soc soc_i (
 );
 
 // 1-wire
-assign I2C_DAT = onewire_oe ? 1'b0 : 1'bz;
-assign onewire_i = I2C_DAT;
+assign PS2_DAT = onewire_oe ? 1'b0 : 1'bz;
+assign onewire_i = PS2_DAT;
 
 // SDRAM Interface
 assign DRAM_CLK = ~clk;  // SDRAM Clock
