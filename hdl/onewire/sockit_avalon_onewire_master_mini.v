@@ -2,7 +2,7 @@
 //                                                                          //
 //  Minimalistic 1-wire (onewire) master with Avalon MM bus interface       //
 //                                                                          //
-//  Copyright (C) 2008  Iztok Jeras                                         //
+//  Copyright (C) 2010  Iztok Jeras                                         //
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
 //                                                                          //

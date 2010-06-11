@@ -1,137 +1,55 @@
-/******************************************************************************
-*                                                                             *
-* License Agreement                                                           *
-*                                                                             *
-* Copyright (c) 2008 Altera Corporation, San Jose, California, USA.           *
-* All rights reserved.                                                        *
-*                                                                             *
-* Permission is hereby granted, free of charge, to any person obtaining a     *
-* copy of this software and associated documentation files (the "Software"),  *
-* to deal in the Software without restriction, including without limitation   *
-* the rights to use, copy, modify, merge, publish, distribute, sublicense,    *
-* and/or sell copies of the Software, and to permit persons to whom the       *
-* Software is furnished to do so, subject to the following conditions:        *
-*                                                                             *
-* The above copyright notice and this permission notice shall be included in  *
-* all copies or substantial portions of the Software.                         *
-*                                                                             *
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  *
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,    *
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE *
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER      *
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING     *
-* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER         *
-* DEALINGS IN THE SOFTWARE.                                                   *
-*                                                                             *
-* This agreement shall be governed in all respects by the laws of the State   *
-* of California and by the laws of the United States of America.              *
-*                                                                             *
-******************************************************************************/
+//////////////////////////////////////////////////////////////////////////////                                                                                          
+//                                                                          //
+//  Minimalistic 1-wire (onewire) master with Avalon MM bus interface       //
+//                                                                          //
+//  Copyright (C) 2010  Iztok Jeras                                         //
+//                                                                          //
+//////////////////////////////////////////////////////////////////////////////
+//                                                                          //
+//  This RTL is free hardware: you can redistribute it and/or modify        //
+//  it under the terms of the GNU Lesser General Public License             //
+//  as published by the Free Software Foundation, either                    //
+//  version 3 of the License, or (at your option) any later version.        //
+//                                                                          //
+//  This RTL is distributed in the hope that it will be useful,             //
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//  GNU General Public License for more details.                            //
+//                                                                          //
+//  You should have received a copy of the GNU General Public License       //
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                          //
+//////////////////////////////////////////////////////////////////////////////
 
-#ifndef __MY_UART_REGS_H__
-#define __MY_UART_REGS_H__
+
+#ifndef __SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REGS_H__
+#define __SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REGS_H__
 
 #include <io.h>
 
-#define MY_UART_RXDATA_REG                 0
-#define IOADDR_MY_UART_RXDATA(base)        \
-        __IO_CALC_ADDRESS_NATIVE(base, MY_UART_RXDATA_REG)
-#define IORD_MY_UART_RXDATA(base)          \
-        IORD(base, MY_UART_RXDATA_REG) 
-#define IOWR_MY_UART_RXDATA(base, data)    \
-        IOWR(base, MY_UART_RXDATA_REG, data)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG                 0
+#define IOADDR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base)        \
+        __IO_CALC_ADDRESS_NATIVE(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG)
+#define IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base)          \
+        IORD(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG) 
+#define IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base, data)    \
+        IOWR(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG, data)
 
-#define MY_UART_TXDATA_REG                 1
-#define IOADDR_MY_UART_TXDATA(base)        \
-        __IO_CALC_ADDRESS_NATIVE(base, MY_UART_TXDATA_REG)
-#define IORD_MY_UART_TXDATA(base)          \
-        IORD(base, MY_UART_TXDATA_REG)
-#define IOWR_MY_UART_TXDATA(base, data)    \
-        IOWR(base, MY_UART_TXDATA_REG, data)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_OVD_MSK             (0x01)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_OVD_OFST            (0)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_MSK             (0x02)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_OFST            (1)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_MSK             (0x04)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_OFST            (2)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_MSK             (0x08)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_OFST            (3)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK             (0x10)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_OFST            (4)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SRX_MSK             (0x20)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SRX_OFST            (5)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_ETX_MSK             (0x40)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_ETX_OFST            (6)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_ERX_MSK             (0x80)
+#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_ERX_OFST            (7)
 
-#define MY_UART_STATUS_REG                 2
-#define IOADDR_MY_UART_STATUS(base)        \
-        __IO_CALC_ADDRESS_NATIVE(base, MY_UART_STATUS_REG)
-#define IORD_MY_UART_STATUS(base)          \
-        IORD(base, MY_UART_STATUS_REG) 
-#define IOWR_MY_UART_STATUS(base, data)    \
-        IOWR(base, MY_UART_STATUS_REG, data)
-
-#define MY_UART_STATUS_PE_MSK              (0x1)
-#define MY_UART_STATUS_PE_OFST             (0)
-#define MY_UART_STATUS_FE_MSK              (0x2)
-#define MY_UART_STATUS_FE_OFST             (1)
-#define MY_UART_STATUS_BRK_MSK             (0x4)
-#define MY_UART_STATUS_BRK_OFST            (2)
-#define MY_UART_STATUS_ROE_MSK             (0x8)
-#define MY_UART_STATUS_ROE_OFST            (3)
-#define MY_UART_STATUS_TOE_MSK             (0x10)
-#define MY_UART_STATUS_TOE_OFST            (4)
-#define MY_UART_STATUS_TMT_MSK             (0x20)
-#define MY_UART_STATUS_TMT_OFST            (5)
-#define MY_UART_STATUS_TRDY_MSK            (0x40)
-#define MY_UART_STATUS_TRDY_OFST           (6)
-#define MY_UART_STATUS_RRDY_MSK            (0x80)
-#define MY_UART_STATUS_RRDY_OFST           (7)
-#define MY_UART_STATUS_E_MSK               (0x100)
-#define MY_UART_STATUS_E_OFST              (8)
-#define MY_UART_STATUS_DCTS_MSK            (0x400)
-#define MY_UART_STATUS_DCTS_OFST           (10)
-#define MY_UART_STATUS_CTS_MSK             (0x800)
-#define MY_UART_STATUS_CTS_OFST            (11)
-#define MY_UART_STATUS_EOP_MSK             (0x1000)
-#define MY_UART_STATUS_EOP_OFST            (12)
-
-#define MY_UART_CONTROL_REG                3
-#define IOADDR_MY_UART_CONTROL(base)       \
-        __IO_CALC_ADDRESS_NATIVE(base, MY_UART_CONTROL_REG)
-#define IORD_MY_UART_CONTROL(base)         \
-        IORD(base, MY_UART_CONTROL_REG)
-#define IOWR_MY_UART_CONTROL(base, data)   \
-        IOWR(base, MY_UART_CONTROL_REG, data)
-
-#define MY_UART_CONTROL_PE_MSK             (0x1)
-#define MY_UART_CONTROL_PE_OFST            (0)
-#define MY_UART_CONTROL_FE_MSK             (0x2)
-#define MY_UART_CONTROL_FE_OFST            (1)
-#define MY_UART_CONTROL_BRK_MSK            (0x4)
-#define MY_UART_CONTROL_BRK_OFST           (2)
-#define MY_UART_CONTROL_ROE_MSK            (0x8)
-#define MY_UART_CONTROL_ROE_OFST           (3)
-#define MY_UART_CONTROL_TOE_MSK            (0x10)
-#define MY_UART_CONTROL_TOE_OFST           (4)
-#define MY_UART_CONTROL_TMT_MSK            (0x20)
-#define MY_UART_CONTROL_TMT_OFST           (5)
-#define MY_UART_CONTROL_TRDY_MSK           (0x40)
-#define MY_UART_CONTROL_TRDY_OFST          (6)
-#define MY_UART_CONTROL_RRDY_MSK           (0x80)
-#define MY_UART_CONTROL_RRDY_OFST          (7)
-#define MY_UART_CONTROL_E_MSK              (0x100)
-#define MY_UART_CONTROL_E_OFST             (8)
-#define MY_UART_CONTROL_DCTS_MSK           (0x400)
-#define MY_UART_CONTROL_DCTS_OFST          (10)
-#define MY_UART_CONTROL_RTS_MSK            (0x800)
-#define MY_UART_CONTROL_RTS_OFST           (11)
-#define MY_UART_CONTROL_EOP_MSK            (0x1000)
-#define MY_UART_CONTROL_EOP_OFST           (12)
-
-#define MY_UART_DIVISOR_REG                4
-#define IOADDR_MY_UART_DIVISOR(base)       \
-        __IO_CALC_ADDRESS_NATIVE(base, MY_UART_DIVISOR_REG)
-#define IORD_MY_UART_DIVISOR(base)         \
-        IORD(base, MY_UART_DIVISOR_REG) 
-#define IOWR_MY_UART_DIVISOR(base, data)   \
-        IOWR(base, MY_UART_DIVISOR_REG, data)
-
-#define MY_UART_EOP_REG                    5
-#define IOADDR_MY_UART_EOP(base)           \
-        __IO_CALC_ADDRESS_NATIVE(base, MY_UART_EOP_REG)
-#define IORD_MY_UART_EOP(base)             \
-        IORD(base, MY_UART_EOP_REG)
-#define IOWR_MY_UART_EOP(base, data)       \
-        IOWR(base, MY_UART_EOP_REG, data)
-
-#define MY_UART_EOP_MSK                    (0xFF)
-#define MY_UART_EOP_OFST                   (0)
-
-#endif /* __MY_UART_REGS_H__ */
+#endif /* __SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REGS_H__ */
