@@ -52,8 +52,8 @@ add_file sockit_avalon_onewire_master_mini.v {SYNTHESIS SIMULATION}
 # | 
 add_parameter CDR INTEGER 10
 set_parameter_property CDR DEFAULT_VALUE 10
-set_parameter_property CDR DISPLAY_NAME clock divider
-set_parameter_property CDR UNITS clock periods
+set_parameter_property CDR DISPLAY_NAME CDR
+set_parameter_property CDR UNITS None
 set_parameter_property CDR ALLOWED_RANGES 0:2147483647
 set_parameter_property CDR DISPLAY_HINT ""
 set_parameter_property CDR AFFECTS_GENERATION false
@@ -62,7 +62,7 @@ add_parameter ADW INTEGER 32
 set_parameter_property ADW DEFAULT_VALUE 32
 set_parameter_property ADW DISPLAY_NAME ADW
 set_parameter_property ADW ENABLED false
-set_parameter_property ADW UNITS bits
+set_parameter_property ADW UNITS Bits
 set_parameter_property ADW ALLOWED_RANGES 0:32
 set_parameter_property ADW DISPLAY_HINT ""
 set_parameter_property ADW AFFECTS_GENERATION false
