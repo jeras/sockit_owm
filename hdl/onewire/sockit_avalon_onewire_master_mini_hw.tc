@@ -33,7 +33,7 @@ set_module_property GROUP "Interface Protocols/Serial"
 set_module_property AUTHOR "Iztok Jeras"
 set_module_property DISPLAY_NAME "onewire (1-wire)"
 set_module_property TOP_LEVEL_HDL_FILE sockit_avalon_onewire_master_mini.v
-set_module_property TOP_LEVEL_HDL_MODULE ockit_avalon_newire_master_mini
+set_module_property TOP_LEVEL_HDL_MODULE sockit_avalon_onewire_master_mini
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 set_module_property ANALYZE_HDL TRUE
