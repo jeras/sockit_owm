@@ -10,7 +10,7 @@
          type = "long";
       }
    }
-   element onewire_i.avalon_slave
+   element onewire.avalon_slave
    {
       datum baseAddress
       {
@@ -132,7 +132,7 @@
          type = "boolean";
       }
    }
-   element onewire_i
+   element onewire
    {
       datum _sortIndex
       {
@@ -194,22 +194,6 @@
          type = "boolean";
       }
    }
-   element pio_ledg.s1
-   {
-      datum baseAddress
-      {
-         value = "25206832";
-         type = "long";
-      }
-   }
-   element uart.s1
-   {
-      datum baseAddress
-      {
-         value = "25206784";
-         type = "long";
-      }
-   }
    element cfi_flash.s1
    {
       datum baseAddress
@@ -226,11 +210,27 @@
          type = "long";
       }
    }
+   element pio_7seg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206816";
+         type = "long";
+      }
+   }
    element onchip_ram.s1
    {
       datum baseAddress
       {
          value = "25182208";
+         type = "long";
+      }
+   }
+   element pio_ledg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206832";
          type = "long";
       }
    }
@@ -242,11 +242,11 @@
          type = "long";
       }
    }
-   element pio_7seg.s1
+   element uart.s1
    {
       datum baseAddress
       {
-         value = "25206816";
+         value = "25206784";
          type = "long";
       }
    }
@@ -314,8 +314,8 @@
  <parameter name="hardcopyCompatible" value="false" />
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
- <parameter name="systemHash" value="32431622853" />
- <parameter name="timeStamp" value="1276014970480" />
+ <parameter name="systemHash" value="30874682000" />
+ <parameter name="timeStamp" value="1276358276492" />
  <module name="clk" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -546,11 +546,11 @@
   <parameter name="registerIncomingSignals" value="true" />
  </module>
  <module
-   name="onewire_i"
-   kind="sockit_avalon_onewire"
+   name="onewire"
+   kind="sockit_avalon_onewire_master_mini"
    version="1.1"
    enabled="1">
-  <parameter name="CDR" value="10" />
+  <parameter name="CDR" value="60" />
   <parameter name="ADW" value="32" />
  </module>
  <connection kind="clock" version="9.1" start="clk.clk" end="cpu_0.clk" />
@@ -705,16 +705,12 @@
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x01400000" />
  </connection>
- <connection
-   kind="clock"
-   version="9.1"
-   start="clk.clk"
-   end="onewire_i.clock_reset" />
+ <connection kind="clock" version="9.1" start="clk.clk" end="onewire.clock_reset" />
  <connection
    kind="avalon"
    version="6.1"
    start="cpu_0.data_master"
-   end="onewire_i.avalon_slave">
+   end="onewire.avalon_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
  </connection>
@@ -722,7 +718,7 @@
    kind="interrupt"
    version="9.1"
    start="cpu_0.d_irq"
-   end="onewire_i.interrupt_sender">
+   end="onewire.interrupt_sender">
   <parameter name="irqNumber" value="3" />
  </connection>
 </system>
