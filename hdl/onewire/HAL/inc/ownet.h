@@ -179,7 +179,7 @@
 #define TRUE           1
 
 #ifndef MAX_PORTNUM
-   #define MAX_PORTNUM    16
+   #define MAX_PORTNUM    1
 #endif
 
 // mode bit flags

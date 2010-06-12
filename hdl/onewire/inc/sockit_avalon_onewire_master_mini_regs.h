@@ -6,12 +6,12 @@
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
 //                                                                          //
-//  This RTL is free hardware: you can redistribute it and/or modify        //
+//  This program is free software: you can redistribute it and/or modify    //
 //  it under the terms of the GNU Lesser General Public License             //
 //  as published by the Free Software Foundation, either                    //
 //  version 3 of the License, or (at your option) any later version.        //
 //                                                                          //
-//  This RTL is distributed in the hope that it will be useful,             //
+//  This program is distributed in the hope that it will be useful,         //
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of          //
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
 //  GNU General Public License for more details.                            //
@@ -28,12 +28,9 @@
 #include <io.h>
 
 #define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG                 0
-#define IOADDR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base)        \
-        __IO_CALC_ADDRESS_NATIVE(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG)
-#define IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base)          \
-        IORD(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG) 
-#define IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base, data)    \
-        IOWR(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG, data)
+#define IOADDR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base)        __IO_CALC_ADDRESS_NATIVE(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG)
+#define IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base)          IORD(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG) 
+#define IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base, data)    IOWR(base, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_REG, data)
 
 #define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_OVD_MSK             (0x01)
 #define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_OVD_OFST            (0)

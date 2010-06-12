@@ -61,8 +61,13 @@ long msGettick(void);
 //
 SMALLINT owTouchReset(int portnum)
 {
-   // add platform specific code here
-   return 0;
+   SMALLINT reg;
+   // write RST
+   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_MSK);
+   // wait for STX (end of transfer cycle)
+   while ((reg = IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE)) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK);
+   // return DRX (presence datect)
+   return (reg & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_MSK) >> SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_OFST;
 }
 
 //--------------------------------------------------------------------------
@@ -80,8 +85,13 @@ SMALLINT owTouchReset(int portnum)
 //
 SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
 {
-   // add platform specific code here
-   return 0;
+   SMALLINT reg;
+   // write RST
+   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE, (sendbit & 0x1) << SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_OFST);
+   // wait for STX (end of transfer cycle)
+   while ((reg = IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE)) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK);
+   // return DRX (presence datect)
+   return (reg >> SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_OFST) & 0x1;
 }
 
 //--------------------------------------------------------------------------
@@ -98,8 +108,14 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
 //
 SMALLINT owTouchByte(int portnum, SMALLINT sendbyte)
 {
-   // add platform specific code here
-   return 0;
+   int i;
+   SMALLINT dat = 0;
+   for (i=0; i<8; i++)
+   {
+      dat |= owTouchBit(portnum,sendbyte & 0x1) << i;
+      sendbyte >>= 1;
+   }
+   return dat;
 }
 
 //--------------------------------------------------------------------------
@@ -192,7 +208,10 @@ SMALLINT owProgramPulse(int portnum)
 //
 void msDelay(int len)
 {
-   // add platform specific code here
+   // write RST and DTX
+   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_MSK | SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_MSK);
+   // wait for STX (end of transfer cycle)
+   while (IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK);
 }
 
 //--------------------------------------------------------------------------
