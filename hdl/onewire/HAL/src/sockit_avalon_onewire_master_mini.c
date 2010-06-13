@@ -29,7 +29,7 @@
 ******************************************************************************/
 
 
-//////////////////////////////////////////////////////////////////////////////                                                                                          
+//////////////////////////////////////////////////////////////////////////////
 //                                                                          //
 //  Minimalistic 1-wire (onewire) master with Avalon MM bus interface       //
 //                                                                          //
@@ -53,9 +53,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 
-#if defined(ALT_USE_SMALL_DRIVERS) || defined(SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL)
-
-
 #include <fcntl.h>
 
 #include "sys/alt_dev.h"
@@ -65,17 +62,19 @@
 
 #include "altera_avalon_uart.h"
 #include "sockit_avalon_onewire_master_mini_regs.h"
+#include "sockit_avalon_onewire_master_mini.h"
 
-#if !defined(ALT_USE_SMALL_DRIVERS) && !defined(SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL)
+//#if !defined(ALT_USE_SMALL_DRIVERS) && !defined(SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL)
+#if 0
 
 /* ----------------------------------------------------------- */
 /* ------------------------- FAST DRIVER --------------------- */
 /* ----------------------------------------------------------- */
 
 /*
- * sockit_avalon_onewire_master_mini_init() is called by the auto-generated function 
+ * sockit_avalon_onewire_master_mini_init() is called by the auto-generated function
  * alt_sys_init() in order to initialize a particular instance of this device.
- * It is responsible for configuring the device and associated software 
+ * It is responsible for configuring the device and associated software
  * constructs.
  */
 #ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
@@ -87,13 +86,13 @@ static void sockit_avalon_onewire_master_mini_irq(void* context, alt_u32 id);
 static void sockit_avalon_onewire_master_mini_irq_srx(sockit_avalon_onewire_master_mini_state* sp, alt_u32 status);
 static void sockit_avalon_onewire_master_mini_irq_stx(sockit_avalon_onewire_master_mini_state* sp, alt_u32 status);
 
-void 
+void
 sockit_avalon_onewire_master_mini_init(sockit_avalon_onewire_master_mini_state* sp, alt_u32 irq)
 {
   void* base = sp->base;
   /* enable interrupts at the device */
-  sp->reg = SOCKIT_AVALON_ONEWIRE_MASTER_MINI_CONTROL_STX_MSK
-          | SOCKIT_AVALON_ONEWIRE_MASTER_MINI_CONTROL_SRX_MSK;
+  sp->reg = SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK
+          | SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SRX_MSK;
   /* register the interrupt handler */
 #ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
   alt_ic_isr_register (0, irq, sockit_avalon_onewire_master_mini_irq, sp, 0x0);
@@ -126,7 +125,7 @@ static void sockit_avalon_onewire_master_mini_irq(void* context, alt_u32 id)
     sockit_avalon_onewire_master_mini_irq_srx(sp, reg);
 
   /* process a TX irq */
-  if (reg & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATUS_STX_MSK)
+  if (reg & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK)
     sockit_avalon_onewire_master_mini_irq_stx(sp, reg);
 }
 
