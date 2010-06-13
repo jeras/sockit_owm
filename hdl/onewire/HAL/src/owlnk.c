@@ -37,6 +37,8 @@
 //
 
 #include "ownet.h"
+#include "sockit_avalon_onewire_master_mini_regs.h"
+#include "system.h"  // TODO should be removed
 
 // exportable link-level functions
 SMALLINT owTouchReset(int);
@@ -63,11 +65,11 @@ SMALLINT owTouchReset(int portnum)
 {
    SMALLINT reg;
    // write RST
-   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_MSK);
+   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (ONEWIRE_BASE, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_MSK);
    // wait for STX (end of transfer cycle)
-   while ((reg = IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE)) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK);
+   while (!((reg = IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (ONEWIRE_BASE)) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK));
    // return DRX (presence datect)
-   return (reg & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_MSK) >> SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_OFST;
+   return (~reg >> SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_OFST) & 0x1;
 }
 
 //--------------------------------------------------------------------------
@@ -87,9 +89,9 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
 {
    SMALLINT reg;
    // write RST
-   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE, (sendbit & 0x1) << SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_OFST);
+   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (ONEWIRE_BASE, (sendbit & 0x1) << SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_OFST);
    // wait for STX (end of transfer cycle)
-   while ((reg = IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE)) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK);
+   while (!((reg = IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (ONEWIRE_BASE)) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK));
    // return DRX (presence datect)
    return (reg >> SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DRX_OFST) & 0x1;
 }
@@ -209,9 +211,9 @@ SMALLINT owProgramPulse(int portnum)
 void msDelay(int len)
 {
    // write RST and DTX
-   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_MSK | SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_MSK);
+   IOWR_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (ONEWIRE_BASE, SOCKIT_AVALON_ONEWIRE_MASTER_MINI_DTX_MSK | SOCKIT_AVALON_ONEWIRE_MASTER_MINI_RST_MSK);
    // wait for STX (end of transfer cycle)
-   while (IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (SOCKIT_AVALON_ONEWIRE_MASTER_MINI_BASE) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK);
+   while (IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI (ONEWIRE_BASE) & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK);
 }
 
 //--------------------------------------------------------------------------
@@ -224,4 +226,91 @@ long msGettick(void)
    return 0;
 }
 
+//--------------------------------------------------------------------------
+// Send 8 bits of communication to the 1-Wire Net and verify that the
+// 8 bits read from the 1-Wire Net is the same (write operation).
+// The parameter 'sendbyte' least significant 8 bits are used.  After the
+// 8 bits are sent change the level of the 1-Wire net.
+//
+// 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
+//              OpenCOM to indicate the port number.
+// 'sendbyte' - 8 bits to send (least significant byte)
+//
+// Returns:  TRUE: bytes written and echo was the same
+//           FALSE: echo was not the same
+//
+SMALLINT owWriteBytePower(int portnum, SMALLINT sendbyte)
+{
+   portnum = 0;
+   sendbyte = 0;
+        // not supported on the by the DS520
+        return FALSE;
+}
 
+//--------------------------------------------------------------------------
+// Send 1 bit of communication to the 1-Wire Net and verify that the
+// response matches the 'applyPowerResponse' bit and apply power delivery
+// to the 1-Wire net.  Note that some implementations may apply the power
+// first and then turn it off if the response is incorrect.
+//
+// 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
+//              OpenCOM to indicate the port number.
+// 'applyPowerResponse' - 1 bit response to check, if correct then start
+//                        power delivery
+//
+// Returns:  TRUE: bit written and response correct, strong pullup now on
+//           FALSE: response incorrect
+//
+SMALLINT owReadBitPower(int portnum, SMALLINT applyPowerResponse)
+{
+   portnum = 0;
+   applyPowerResponse = 0;
+        // not supported on the by the DS520
+        return FALSE;
+}
+
+//--------------------------------------------------------------------------
+// This procedure indicates wether the adapter can deliver power.
+//
+// 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
+//              OpenCOM to indicate the port number.
+//
+// Returns:  TRUE  if adapter is capable of delivering power.
+//
+SMALLINT owHasPowerDelivery(int portnum)
+{
+   portnum = 0;
+   // add adapter specific code here
+   return FALSE;
+}
+
+//--------------------------------------------------------------------------
+// This procedure indicates wether the adapter can deliver power.
+//
+// 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
+//              OpenCOM to indicate the port number.
+//
+// Returns:  TRUE  if adapter is capable of over drive.
+//
+SMALLINT owHasOverDrive(int portnum)
+{
+   portnum = 0;
+   // add adapter specific code here
+   return TRUE;
+}
+
+//--------------------------------------------------------------------------
+// This procedure creates a fixed 480 microseconds 12 volt pulse
+// on the 1-Wire Net for programming EPROM iButtons.
+//
+// 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
+//              OpenCOM to indicate the port number.
+//
+// Returns:  TRUE  program volatage available
+//           FALSE program voltage not available
+SMALLINT owHasProgramPulse(int portnum)
+{
+   portnum = 0;
+   // add adapter specific code here
+   return FALSE;
+}
