@@ -98,8 +98,8 @@ assign avalon_readdata = {{ADW-8{1'b0}}, irq_erx, irq_etx, irq_srx, irq_stx,
                                          owr_drx, owr_dtx, owr_rst, owr_ovd};
 
 // Avalon interrupt
-assign avalon_interrupt = irq_etx & irq_srx
-                        | irq_erx & irq_stx;
+assign avalon_interrupt = irq_erx & irq_srx
+                        | irq_etx & irq_stx;
 
 // interrupt enable
 always @ (posedge clk, posedge rst)
@@ -108,17 +108,19 @@ else if (avalon_write)  {irq_erx, irq_etx} <= avalon_writedata[7:6];
 
 // transmit status
 always @ (posedge clk, posedge rst)
-if (rst)                   irq_stx <= 1'b0;
+if (rst)                        irq_stx <= 1'b0;
 else begin
-  if (pls & (cnt == 'd0))  irq_stx <= 1'b1;
-  else if (avalon_read)    irq_stx <= 1'b0;
+  if (avalon_write)             irq_stx <= avalon_writedata[4];
+  else if (pls & (cnt == 'd0))  irq_stx <= 1'b1;
+  else if (avalon_read)         irq_stx <= 1'b0;
 end
 
 // receive status
 always @ (posedge clk, posedge rst)
 if (rst)                               irq_srx <= 1'b0;
 else begin
-  if (pls) begin
+  if (avalon_write)                    irq_srx <= avalon_writedata[5];
+  else if (pls) begin
     if      (owr_rst & (cnt == 'd54))  irq_srx <= 1'b1;
     else if (owr_dtx & (cnt == 'd07))  irq_srx <= 1'b1;
   end else if (avalon_read)            irq_srx <= 1'b0;
@@ -164,8 +166,8 @@ end
 // receive data
 always @ (posedge clk)
 if (pls) begin
-  if      (owr_rst & (cnt == 'd54))  owr_drx <= owr_i;
-  else if (owr_dtx & (cnt == 'd07))  owr_drx <= owr_i;
+  if      ( owr_rst & (cnt == 'd54))  owr_drx <= owr_i;
+  else if (~owr_rst & (cnt == 'd07))  owr_drx <= owr_i;
 end
 
 // output register

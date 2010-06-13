@@ -166,7 +166,7 @@ assign avalon_waitrequest = 1'b0;
 // RTL instance
 //////////////////////////////////////////////////////////////////////////////
 
-onewire #(
+sockit_avalon_onewire_master_mini #(
   .CDR    (CDR)
 ) onewire_master (
   // system

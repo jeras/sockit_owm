@@ -194,22 +194,6 @@
          type = "boolean";
       }
    }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "8388608";
-         type = "long";
-      }
-   }
-   element cfi_flash.s1
-   {
-      datum baseAddress
-      {
-         value = "20971520";
-         type = "long";
-      }
-   }
    element pio_7seg.s1
    {
       datum baseAddress
@@ -234,11 +218,11 @@
          type = "long";
       }
    }
-   element pio_ledr.s1
+   element sdram.s1
    {
       datum baseAddress
       {
-         value = "25206848";
+         value = "8388608";
          type = "long";
       }
    }
@@ -247,6 +231,22 @@
       datum baseAddress
       {
          value = "25182208";
+         type = "long";
+      }
+   }
+   element pio_ledr.s1
+   {
+      datum baseAddress
+      {
+         value = "25206848";
+         type = "long";
+      }
+   }
+   element cfi_flash.s1
+   {
+      datum baseAddress
+      {
+         value = "20971520";
          type = "long";
       }
    }
@@ -314,8 +314,8 @@
  <parameter name="hardcopyCompatible" value="false" />
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
- <parameter name="systemHash" value="29718886831" />
- <parameter name="timeStamp" value="1276369017964" />
+ <parameter name="systemHash" value="27728937835" />
+ <parameter name="timeStamp" value="1276446570825" />
  <module name="clk" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -548,7 +548,7 @@
  <module
    name="onewire"
    kind="sockit_avalon_onewire_master_mini"
-   version="1.1"
+   version="1.2"
    enabled="1">
   <parameter name="CDR" value="180" />
   <parameter name="ADW" value="32" />
