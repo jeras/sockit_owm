@@ -50,7 +50,7 @@ void     owRelease(int);
 SMALLINT owAcquire(int portnum, char *port_zstr)
 {
    // add platform specific code here
-   return 0;
+   return TRUE;
 }
 
 //---------------------------------------------------------------------------
