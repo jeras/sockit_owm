@@ -37,7 +37,7 @@ add_sw_property c_source HAL/src/ownet.c
 add_sw_property c_source HAL/src/owtran.c
 add_sw_property c_source HAL/src/owlnk.c
 add_sw_property c_source HAL/src/owses.c
-add_sw_property include_source HAL/src/sockit_avalon_onewire_master_mini.c
+add_sw_property c_source HAL/src/sockit_avalon_onewire_master_mini.c
 
 # Include files
 add_sw_property include_source HAL/inc/ownet.h
@@ -63,10 +63,10 @@ add_sw_property supported_bsp_type UCOSII
 #  o Default value (if the user doesn't specify at BSP creation): false
 #    (which means: 'do not emit above CPPFLAGS string in generated makefile)
 #  o Description text
-add_sw_setting boolean_define_only public_mk_define enable_small_driver SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL false "Small-footprint (polled mode) driver"
+#add_sw_setting boolean_define_only public_mk_define enable_small_driver SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL false "Small-footprint (polled mode) driver"
 
 # Add per-driver configuration option for optional IOCTL functionality in
 # UART driver.
-add_sw_setting boolean_define_only public_mk_define enable_ioctl MY_UART_USE_IOCTL false "Enable driver ioctl() support"
+#add_sw_setting boolean_define_only public_mk_define enable_ioctl MY_UART_USE_IOCTL false "Enable driver ioctl() support"
 
 # End of file
