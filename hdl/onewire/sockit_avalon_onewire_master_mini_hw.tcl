@@ -14,7 +14,7 @@ package require -exact sopc 9.1
 # | 
 set_module_property DESCRIPTION "1-wire (onewire) master"
 set_module_property NAME sockit_avalon_onewire_master_mini
-set_module_property VERSION 1.2
+set_module_property VERSION 0.9
 set_module_property INTERNAL false
 set_module_property GROUP "Interface Protocols/Serial"
 set_module_property AUTHOR "Iztok Jeras"

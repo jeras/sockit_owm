@@ -5,17 +5,17 @@
 # Create a new driver
 create_driver sockit_avalon_onewire_master_mini_driver
 
-# Association woth hardware
+# Association with hardware
 set_sw_property hw_class_name sockit_avalon_onewire_master_mini
 
 # Pre release driver version
-set_sw_property version 0.01
+set_sw_property version 0.9
 
 # This driver is proclaimed to be compatible with altera_avalon_uart hardware
 # as old as version "1.0". If the hardware component  version number is not
 # equal or greater than the min_compatable_hw_version number, the driver 
 # source files will not be copied over to the BSP drivers subdirectory
-set_sw_property min_compatible_hw_version 7.1
+set_sw_property min_compatible_hw_version 0.8
 
 # Interrupt properties: This driver supports both legacy and enhanced
 # interrupt APIs, as well as ISR preemption.
@@ -37,7 +37,7 @@ add_sw_property c_source HAL/src/ownet.c
 add_sw_property c_source HAL/src/owtran.c
 add_sw_property c_source HAL/src/owlnk.c
 add_sw_property c_source HAL/src/owses.c
-add_sw_property include_source HAL/src/sockit_avalon_onewire_master_mini.c
+add_sw_property c_source HAL/src/sockit_avalon_onewire_master_mini.c
 
 # Include files
 add_sw_property include_source HAL/inc/ownet.h
@@ -67,6 +67,6 @@ add_sw_setting boolean_define_only public_mk_define enable_small_driver SOCKIT_A
 
 # Add per-driver configuration option for optional IOCTL functionality in
 # UART driver.
-add_sw_setting boolean_define_only public_mk_define enable_ioctl MY_UART_USE_IOCTL false "Enable driver ioctl() support"
+#add_sw_setting boolean_define_only public_mk_define enable_A SOCKIT_AVALON_ONEWIRE_MASTER_MINI_A false "Enable driver A"
 
 # End of file
