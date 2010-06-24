@@ -1,17 +1,17 @@
 #
-# sockit_avalon_onewire_master_mini_sw.tcl
+# sockit_owm_sw.tcl
 #
 
 # Create a new driver
-create_driver sockit_avalon_onewire_master_mini_driver
+create_driver sockit_owm_driver
 
 # Association with hardware
-set_sw_property hw_class_name sockit_avalon_onewire_master_mini
+set_sw_property hw_class_name sockit_owm
 
 # Pre release driver version
 set_sw_property version 0.9
 
-# This driver is proclaimed to be compatible with altera_avalon_uart hardware
+# This driver is proclaimed to be compatible with sockit_owm hardware
 # as old as version "1.0". If the hardware component  version number is not
 # equal or greater than the min_compatable_hw_version number, the driver 
 # source files will not be copied over to the BSP drivers subdirectory
@@ -37,12 +37,12 @@ add_sw_property c_source HAL/src/ownet.c
 add_sw_property c_source HAL/src/owtran.c
 add_sw_property c_source HAL/src/owlnk.c
 add_sw_property c_source HAL/src/owses.c
-add_sw_property c_source HAL/src/sockit_avalon_onewire_master_mini.c
+add_sw_property c_source HAL/src/sockit_owm.c
 
 # Include files
 add_sw_property include_source HAL/inc/ownet.h
-add_sw_property include_source HAL/inc/sockit_avalon_onewire_master_mini.h
-add_sw_property include_source inc/sockit_avalon_onewire_master_mini_regs.h
+add_sw_property include_source HAL/inc/sockit_owm.h
+add_sw_property include_source inc/sockit_owm_regs.h
 
 # This driver supports HAL & UCOSII BSP (OS) types
 add_sw_property supported_bsp_type HAL
@@ -58,15 +58,15 @@ add_sw_property supported_bsp_type UCOSII
 #    driver class to form a settings hierarchy to assure unique
 #    settings names
 #  o '#define' in driver code (and therefore string in generated
-#     makefile): "SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL", which means: "emit
-#     CPPFLAGS += SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL in generated makefile
+#     makefile): "SOCKIT_OWM_SMALL", which means: "emit
+#     CPPFLAGS += SOCKIT_OWM_SMALL in generated makefile
 #  o Default value (if the user doesn't specify at BSP creation): false
 #    (which means: 'do not emit above CPPFLAGS string in generated makefile)
 #  o Description text
-add_sw_setting boolean_define_only public_mk_define enable_small_driver SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL false "Small-footprint (polled mode) driver"
+add_sw_setting boolean_define_only public_mk_define enable_small_driver SOCKIT_OWM_SMALL false "Small-footprint (polled mode) driver"
 
 # Add per-driver configuration option for optional IOCTL functionality in
 # UART driver.
-#add_sw_setting boolean_define_only public_mk_define enable_A SOCKIT_AVALON_ONEWIRE_MASTER_MINI_A false "Enable driver A"
+#add_sw_setting boolean_define_only public_mk_define enable_A SOCKIT_OWM_A false "Enable driver A"
 
 # End of file

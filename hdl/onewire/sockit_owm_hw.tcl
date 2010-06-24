@@ -1,4 +1,4 @@
-# sockit_avalon_onewire_master_mini
+# sockit_owm
 # Iztok Jeras 2010.06.13.18:29:39
 # 1-wire (onewire) master
 
@@ -10,17 +10,17 @@ package require -exact sopc 9.1
 # +-----------------------------------
 
 # +-----------------------------------
-# | module sockit_avalon_onewire_master_mini
+# | module sockit_owm
 # | 
 set_module_property DESCRIPTION "1-wire (onewire) master"
-set_module_property NAME sockit_avalon_onewire_master_mini
+set_module_property NAME sockit_owm
 set_module_property VERSION 0.9
 set_module_property INTERNAL false
 set_module_property GROUP "Interface Protocols/Serial"
 set_module_property AUTHOR "Iztok Jeras"
 set_module_property DISPLAY_NAME "onewire (1-wire)"
-set_module_property TOP_LEVEL_HDL_FILE sockit_avalon_onewire_master_mini.v
-set_module_property TOP_LEVEL_HDL_MODULE sockit_avalon_onewire_master_mini
+set_module_property TOP_LEVEL_HDL_FILE sockit_owm.v
+set_module_property TOP_LEVEL_HDL_MODULE sockit_owm
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 set_module_property ANALYZE_HDL TRUE
@@ -31,7 +31,7 @@ set_module_property ELABORATION_CALLBACK elaboration_callback
 # +-----------------------------------
 # | files
 # | 
-add_file sockit_avalon_onewire_master_mini.v {SYNTHESIS SIMULATION}
+add_file sockit_owm.v {SYNTHESIS SIMULATION}
 # | 
 # +-----------------------------------
 

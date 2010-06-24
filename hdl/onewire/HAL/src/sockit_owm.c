@@ -61,10 +61,10 @@
 #include "sys/alt_errno.h"
 
 #include "altera_avalon_uart.h"
-#include "sockit_avalon_onewire_master_mini_regs.h"
-#include "sockit_avalon_onewire_master_mini.h"
+#include "sockit_owm_regs.h"
+#include "sockit_owm.h"
 
-//#if !defined(ALT_USE_SMALL_DRIVERS) && !defined(SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL)
+//#if !defined(ALT_USE_SMALL_DRIVERS) && !defined(SOCKIT_OWM_SMALL)
 #if 0
 
 /* ----------------------------------------------------------- */
@@ -72,75 +72,73 @@
 /* ----------------------------------------------------------- */
 
 /*
- * sockit_avalon_onewire_master_mini_init() is called by the auto-generated function
+ * sockit_owm_init() is called by the auto-generated function
  * alt_sys_init() in order to initialize a particular instance of this device.
  * It is responsible for configuring the device and associated software
  * constructs.
  */
 #ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-static void sockit_avalon_onewire_master_mini_irq(void* context);
+static void sockit_owm_irq(void* context);
 #else
-static void sockit_avalon_onewire_master_mini_irq(void* context, alt_u32 id);
+static void sockit_owm_irq(void* context, alt_u32 id);
 #endif
 
-static void sockit_avalon_onewire_master_mini_irq_srx(sockit_avalon_onewire_master_mini_state* sp, alt_u32 status);
-static void sockit_avalon_onewire_master_mini_irq_stx(sockit_avalon_onewire_master_mini_state* sp, alt_u32 status);
+static void sockit_owm_irq_srx(sockit_owm_state* sp, alt_u32 status);
+static void sockit_owm_irq_stx(sockit_owm_state* sp, alt_u32 status);
 
 void
-sockit_avalon_onewire_master_mini_init(sockit_avalon_onewire_master_mini_state* sp, alt_u32 irq)
+sockit_owm_init(sockit_owm_state* sp, alt_u32 irq)
 {
   void* base = sp->base;
   /* enable interrupts at the device */
-  sp->reg = SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK
-          | SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SRX_MSK;
+  sp->reg = SOCKIT_OWM_STX_MSK
+          | SOCKIT_OWM_SRX_MSK;
   /* register the interrupt handler */
 #ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-  alt_ic_isr_register (0, irq, sockit_avalon_onewire_master_mini_irq, sp, 0x0);
+  alt_ic_isr_register (0, irq, sockit_owm_irq, sp, 0x0);
 #else
-  alt_irq_register (irq, sp, sockit_avalon_onewire_master_mini_irq);
+  alt_irq_register (irq, sp, sockit_owm_irq);
 #endif
 }
 
 /*
- * sockit_avalon_onewire_master_mini_irq() is the interrupt handler
+ * sockit_owm_irq() is the interrupt handler
  * registered at configuration time for processing 1-wire interrupts.
  */
 
 #ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-static void sockit_avalon_onewire_master_mini_irq(void* context)
+static void sockit_owm_irq(void* context)
 #else
-static void sockit_avalon_onewire_master_mini_irq(void* context, alt_u32 id)
+static void sockit_owm_irq(void* context, alt_u32 id)
 #endif
 {
   alt_u32 reg;
 
-  sockit_avalon_onewire_master_mini_state* sp = (sockit_avalon_onewire_master_mini_state*) context;
+  sockit_owm_state* sp = (sockit_owm_state*) context;
   void* base = sp->base;
 
   // determine the cause of the interrupt
-  reg = IORD_SOCKIT_AVALON_ONEWIRE_MASTER_MINI(base);
+  reg = IORD_SOCKIT_OWM(base);
 
   /* process a RX irq */
-  if (reg & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SRX_MSK)
-    sockit_avalon_onewire_master_mini_irq_srx(sp, reg);
+  if (reg & SOCKIT_OWM_SRX_MSK)  sockit_owm_irq_srx(sp, reg);
 
   /* process a TX irq */
-  if (reg & SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STX_MSK)
-    sockit_avalon_onewire_master_mini_irq_stx(sp, reg);
+  if (reg & SOCKIT_OWM_STX_MSK)  sockit_owm_irq_stx(sp, reg);
 }
 
 /*
- * sockit_avalon_onewire_master_mini_txirq() is called by sockit_avalon_onewire_master_mini_irq() to process a
+ * sockit_owm_txirq() is called by sockit_owm_irq() to process a
  * transmit interrupt. It transfers data from the transmit buffer to the
  * device, and sets the apropriate flags to indicate that there is
  * data ready to be processed.
  */
 
-static void sockit_avalon_onewire_master_mini_srx(sockit_avalon_onewire_master_mini_state* sp, alt_u32 status)
+static void sockit_owm_srx(sockit_owm_state* sp, alt_u32 status)
 {
 }
 
-static void sockit_avalon_onewire_master_mini_stx(sockit_avalon_onewire_master_mini_state* sp, alt_u32 status)
+static void sockit_owm_stx(sockit_owm_state* sp, alt_u32 status)
 {
 }
 

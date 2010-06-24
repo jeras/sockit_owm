@@ -44,7 +44,7 @@
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
 
-module sockit_avalon_onewire_master_mini #(
+module sockit_owm #(
   parameter CDR = 10,  // clock cycles per bit (7.5us)
   parameter ADW = 32,  // Avalon bus data width
   parameter OWN = 1    // number of 1-wire ports

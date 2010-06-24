@@ -29,7 +29,7 @@
 ******************************************************************************/
 
 
-//////////////////////////////////////////////////////////////////////////////                                                                                          
+//////////////////////////////////////////////////////////////////////////////
 //                                                                          //
 //  Minimalistic 1-wire (onewire) master with Avalon MM bus interface       //
 //                                                                          //
@@ -53,8 +53,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef __SOCKIT_AVALON_ONEWIRE_MASTER_MINI_H__
-#define __SOCKIT_AVALON_ONEWIRE_MASTER_MINI_H__
+#ifndef __SOCKIT_OWM_H__
+#define __SOCKIT_OWM_H__
 
 #include <stddef.h>
 
@@ -69,7 +69,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-#if defined(ALT_USE_SMALL_DRIVERS) || defined(SOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL)
+#if defined(ALT_USE_SMALL_DRIVERS) || defined(SOCKIT_OWM_SMALL)
 
 /*
  ***********************************************************************
@@ -82,29 +82,29 @@ extern "C"
  * of these structures to hold its associated state.
  */
 
-typedef struct sockit_avalon_onewire_master_mini_state_s
+typedef struct sockit_owm_state_s
 {
   unsigned int base;
-} sockit_avalon_onewire_master_mini_state;
+} sockit_owm_state;
 
 /*
- * The macro SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INSTANCE is used by the 
+ * The macro SOCKIT_OWM_STATE_INSTANCE is used by the 
  * auto-generated file alt_sys_init.c to create an instance of this 
  * device driver state.
  */
 
-#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_INSTANCE(name, state)   \
-  sockit_avalon_onewire_master_mini_state state =                 \
+#define SOCKIT_OWM_INSTANCE(name, state)   \
+  sockit_owm_state state =                 \
     {                                                             \
       name##_BASE                                                 \
     }
 
 /*
- * The macro SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INIT is used by the auto-generated file
+ * The macro SOCKIT_OWM_STATE_INIT is used by the auto-generated file
  * alt_sys_init.c to initialize an instance of the device driver state.
  */
 
-#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INIT(name, state)
+#define SOCKIT_OWM_STATE_INIT(name, state)
 
 #else /* fast driver */
 
@@ -115,48 +115,48 @@ typedef struct sockit_avalon_onewire_master_mini_state_s
  */
 
 /*
- * The sockit_avalon_onewire_master_mini_state structure is used to hold device specific data.
+ * The sockit_owm_state structure is used to hold device specific data.
  * This includes the transmit and receive buffers.
  *
  * An instance of this structure is created in the auto-generated 
  * alt_sys_init.c file for each UART listed in the systems SOPC file. This is
- * done using the SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INSTANCE macro given below.
+ * done using the SOCKIT_OWM_STATE_INSTANCE macro given below.
  */
 
-typedef struct sockit_avalon_onewire_master_mini_state_s
+typedef struct sockit_owm_state_s
 {
   void*            base;            /* The base address of the device */
   alt_u32          reg;             /* Configuation register shadow */
-} sockit_avalon_onewire_master_mini_state;
+} sockit_owm_state;
 
 /*
  * The macro ALTERA_AVALON_UART_INSTANCE is used by the auto-generated file
  * alt_sys_init.c to create an instance of this device driver state.
- * ALTERA_AVALON_UART_INSTANCE is mapped below to SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INSTANCE.
+ * ALTERA_AVALON_UART_INSTANCE is mapped below to SOCKIT_OWM_STATE_INSTANCE.
  */
 
-#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INSTANCE(name, state) \
-  sockit_avalon_onewire_master_mini_state state =                     \
+#define SOCKIT_OWM_STATE_INSTANCE(name, state) \
+  sockit_owm_state state =                     \
    {                                                                  \
      (void*) name##_BASE,                                             \
      0,                                                               \
    }
 
 /*
- * sockit_avalon_onewire_master_mini_init() is called by the auto-generated function 
+ * sockit_owm_init() is called by the auto-generated function 
  * alt_sys_init() for each UART in the system. This is done using the 
- * SOCKIT_AVALON_ONEWIRE_MASTER_MINI_INIT macro given below.
+ * SOCKIT_OWM_INIT macro given below.
  *
  * This function is responsible for performing all the run time initilisation
  * for a device instance, i.e. registering the interrupt handler, and 
  * regestering the device with the system.
  */
 
-extern void sockit_avalon_onewire_master_mini_init(
-   sockit_avalon_onewire_master_mini_state* sp, alt_u32 irq);
+extern void sockit_owm_init(
+   sockit_owm_state* sp, alt_u32 irq);
 
 /*
- * The macro SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INIT is used by the auto-generated file
+ * The macro SOCKIT_OWM_STATE_INIT is used by the auto-generated file
  * alt_sys_init.c to initialize an instance of the device driver state.
  *
  * This macro performs a sanity check to ensure that the interrupt has been
@@ -164,7 +164,7 @@ extern void sockit_avalon_onewire_master_mini_init(
  * generated at build time.
  */
 
-#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INIT(name, state)          \
+#define SOCKIT_OWM_STATE_INIT(name, state)          \
   if (name##_IRQ == ALT_IRQ_NOT_CONNECTED)                                 \
   {                                                                        \
     ALT_LINK_ERROR ("Error: Interrupt not connected for " #name ". "       \
@@ -173,24 +173,23 @@ extern void sockit_avalon_onewire_master_mini_init(
                     "the interrupt is not connected for this device. You " \
                     "can select a polled mode driver by checking the "     \
                     "'small driver' option in the HAL configuration "      \
-                    " window, or by using the "                            \
-                    "-DSOCKIT_AVALON_ONEWIRE_MASTER_MINI_SMALL "           \
+                    " window, or by using the -DSOCKIT_OWM_SMALL "         \
                     "preprocessor flag.");                                 \
   }                                                                        \
   else                                                                     \
   {                                                                        \
-    sockit_avalon_onewire_master_mini_init(&state, name##_IRQ);            \
+    sockit_owm_init(&state, name##_IRQ);                                   \
   }
 
 #endif /* fast driver */
 
-#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_INSTANCE(name, state) \
-        SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INSTANCE(name, state)
-#define SOCKIT_AVALON_ONEWIRE_MASTER_MINI_INIT(name, state) \
-        SOCKIT_AVALON_ONEWIRE_MASTER_MINI_STATE_INIT(name, state)
+#define SOCKIT_OWM_INSTANCE(name, state) \
+        SOCKIT_OWM_STATE_INSTANCE(name, state)
+#define SOCKIT_OWM_INIT(name, state) \
+        SOCKIT_OWM_STATE_INIT(name, state)
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* __SOCKIT_AVALON_ONEWIRE_MASTER_MINI_H__ */
+#endif /* __SOCKIT_OWM_H__ */
