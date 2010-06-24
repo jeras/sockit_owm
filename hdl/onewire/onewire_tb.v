@@ -31,6 +31,9 @@ localparam real FRQ =  4_000_000;      // 24MHz // realistic option
 localparam real CP  = 1000000000/FRQ;  // clock period
 localparam      CDR = 7500/CP;         // divider number
 
+// onewire parameters
+localparam OWN = 3;      // number of ports
+
 // Avalon MM parameters
 localparam AAW = 1;      // address width
 localparam ADW = 32;     // data width
@@ -54,9 +57,10 @@ wire           avalon_transfer;
 reg  [ADW-1:0] data;
 
 // onewire
-wire           owr;     // bidirectional
-wire           owr_i;   // input into master
-wire           owr_oe;  // output enable from master
+wire [OWN-1:0] owr;     // bidirectional
+wire [OWN-1:0] owr_o;   // output from master
+wire [OWN-1:0] owr_oe;  // output enable from master
+wire [OWN-1:0] owr_i;   // input into master
 
 // request for a dumpfile
 initial begin
@@ -167,25 +171,27 @@ assign avalon_waitrequest = 1'b0;
 //////////////////////////////////////////////////////////////////////////////
 
 sockit_owm #(
-  .CDR    (CDR)
+  .CDR               (CDR),
+  .OWN               (OWN)
 ) onewire_master (
   // system
-  .clk  (clk),
-  .rst  (rst),
+  .clk               (clk),
+  .rst               (rst),
   // Avalon
-  .avalon_read         (avalon_read),
-  .avalon_write        (avalon_write),
-  .avalon_writedata    (avalon_writedata),
-  .avalon_readdata     (avalon_readdata),
-  .avalon_interrupt    (avalon_interrupt),
+  .avalon_read       (avalon_read),
+  .avalon_write      (avalon_write),
+  .avalon_writedata  (avalon_writedata),
+  .avalon_readdata   (avalon_readdata),
+  .avalon_interrupt  (avalon_interrupt),
   // onewire
-  .owr_oe              (owr_oe),
-  .owr_i               (owr_i)
+  .onewire_o         (owr_o),
+  .onewire_oe        (owr_oe),
+  .onewire_i         (owr_i)
 );
 
 // onewire
-pullup onewire_pullup (owr);
-assign owr   = owr_oe ? 1'b0 : 1'bz;
+pullup onewire_pullup [OWN-1:0] (owr);
+assign owr   = owr_oe ? owr_o : 1'bz;
 assign owr_i = owr;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -194,7 +200,7 @@ assign owr_i = owr;
 
 onewire_slave_model #(
 ) onewire_slave (
-  .owr  (owr)
+  .owr  (owr[0])
 );
 
 endmodule

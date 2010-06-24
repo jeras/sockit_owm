@@ -59,8 +59,9 @@ module sockit_owm #(
   output [ADW-1:0] avalon_readdata,
   output           avalon_interrupt,
   // onewire
-  output reg       owr_oe,  // output enable
-  input            owr_i    // input from bidirectional wire
+  output [OWN-1:0] onewire_o,   // output enable (TODO: fixed to 0 for now)
+  output [OWN-1:0] onewire_oe,  // output enable
+  input  [OWN-1:0] onewire_i    // input from bidirectional wire
 );
 
 //////////////////////////////////////////////////////////////////////////////
@@ -70,33 +71,62 @@ module sockit_owm #(
 // size of boudrate generator counter
 localparam CDW = $clog2(CDR);
 
+// size of port select signal
+localparam SDW = $clog2(OWN);
+
 // clock divider
+//generate if (CDR>1) begin : div_declaration
 reg [CDW-1:0] div;
+//end endgenerate
 wire          pls;
 
 // state counter
 reg           run;
 reg     [6:0] cnt;
 
+// port select
+//generate if (OWN>1) begin : sel_declaration
+reg [SDW-1:0] sel;
+//end endgenerate
+
 // onewire signals
-reg owr_ovd;  // overdrive
-reg owr_rst;  // reset
-reg owr_dtx;  // data bit transmit
-reg owr_drx;  // data bit receive
+reg  owr_ovd;  // overdrive
+reg  owr_rst;  // reset
+reg  owr_pwr;  // power
+reg  owr_dtx;  // data bit transmit
+reg  owr_drx;  // data bit receive
+
+wire owr_o;    // output
+reg  owr_oe;   // output enable
+wire owr_i;    // input
 
 // interrupt signals
-reg irq_etx;  // interrupt enable transmit
-reg irq_erx;  // interrupt enable receive
-reg irq_stx;  // interrupt status transmit
-reg irq_srx;  // interrupt status receive
+reg  irq_etx;  // interrupt enable transmit
+reg  irq_erx;  // interrupt enable receive
+reg  irq_stx;  // interrupt status transmit
+reg  irq_srx;  // interrupt status receive
 
 //////////////////////////////////////////////////////////////////////////////
 // Avalon logic
 //////////////////////////////////////////////////////////////////////////////
 
 // Avalon read data
-assign avalon_readdata = {{ADW-8{1'b0}}, irq_erx, irq_etx, irq_srx, irq_stx,
-                                         owr_drx, owr_dtx, owr_rst, owr_ovd};
+generate if (OWN>1) begin : sel_readdata
+  assign avalon_readdata = {{ADW-OWN-8{1'b0}}, sel,
+                            irq_erx, irq_etx, irq_srx, irq_stx,
+                            owr_drx, owr_dtx, owr_rst, owr_ovd};
+end else begin
+  assign avalon_readdata = {{ADW-8{1'b0}}, 
+                            irq_erx, irq_etx, irq_srx, irq_stx,
+                            owr_drx, owr_dtx, owr_rst, owr_ovd};
+end endgenerate
+
+generate if (OWN>1) begin : sel_implementation
+  // port select
+  always @ (posedge clk, posedge rst)
+  if (rst)                sel <= {SDW{1'b0}};
+  else if (avalon_write)  sel <= avalon_writedata[8+:SDW];
+end endgenerate
 
 // Avalon interrupt
 assign avalon_interrupt = irq_erx & irq_srx
@@ -131,13 +161,17 @@ end
 // clock divider
 //////////////////////////////////////////////////////////////////////////////
 
-// clock divider
-always @ (posedge clk, posedge rst)
-if (rst)  div <= 'd0;
-else      div <= pls ? 'd0 : div + run;
-
-// divided clock pulse
-assign pls = (div == (owr_ovd ? CDR/10 : CDR) - 1);
+generate if (CDR>1) begin : div_implementation
+  // clock divider
+  always @ (posedge clk, posedge rst)
+  if (rst)  div <= 'd0;
+  else      div <= pls ? 'd0 : div + run;
+  // divided clock pulse
+  assign pls = (div == (owr_ovd ? CDR/10 : CDR) - 1);
+end else begin
+  // clock period is same as the onewire period
+  assign pls = 1'b1;
+end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
 // onewire
@@ -182,5 +216,21 @@ else begin
     else if (          (cnt == 'd01)) owr_oe <= 1'b0;
   end
 end
+
+assign owr_o = 0;
+
+//////////////////////////////////////////////////////////////////////////////
+// Avalon logic
+//////////////////////////////////////////////////////////////////////////////
+
+generate if (OWN>1) begin : sel_multiplexer
+  assign onewire_o  = owr_o  << sel;
+  assign onewire_oe = owr_oe << sel;
+  assign owr_i = onewire_i [sel];
+end else begin
+  assign onewire_o  = owr_o;
+  assign onewire_oe = owr_oe;
+  assign owr_i = onewire_i;
+end endgenerate
 
 endmodule
