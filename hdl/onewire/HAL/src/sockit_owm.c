@@ -60,7 +60,6 @@
 #include "sys/ioctl.h"
 #include "sys/alt_errno.h"
 
-#include "altera_avalon_uart.h"
 #include "sockit_owm_regs.h"
 #include "sockit_owm.h"
 

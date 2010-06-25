@@ -69,51 +69,6 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-#if defined(ALT_USE_SMALL_DRIVERS) || defined(SOCKIT_OWM_SMALL)
-
-/*
- ***********************************************************************
- *********************** SMALL DRIVER **********************************
- ***********************************************************************
- */
-
-/*
- * State structure definition. Each instance of the driver uses one
- * of these structures to hold its associated state.
- */
-
-typedef struct sockit_owm_state_s
-{
-  unsigned int base;
-} sockit_owm_state;
-
-/*
- * The macro SOCKIT_OWM_STATE_INSTANCE is used by the 
- * auto-generated file alt_sys_init.c to create an instance of this 
- * device driver state.
- */
-
-#define SOCKIT_OWM_INSTANCE(name, state)   \
-  sockit_owm_state state =                 \
-    {                                                             \
-      name##_BASE                                                 \
-    }
-
-/*
- * The macro SOCKIT_OWM_STATE_INIT is used by the auto-generated file
- * alt_sys_init.c to initialize an instance of the device driver state.
- */
-
-#define SOCKIT_OWM_STATE_INIT(name, state)
-
-#else /* fast driver */
-
-/*
- **********************************************************************
- *********************** FAST DRIVER **********************************
- **********************************************************************
- */
-
 /*
  * The sockit_owm_state structure is used to hold device specific data.
  * This includes the transmit and receive buffers.
@@ -126,6 +81,7 @@ typedef struct sockit_owm_state_s
 typedef struct sockit_owm_state_s
 {
   void*            base;            /* The base address of the device */
+  alt_u32          own;             /* Number of onewire ports */
   alt_u32          reg;             /* Configuation register shadow */
 } sockit_owm_state;
 
@@ -135,12 +91,8 @@ typedef struct sockit_owm_state_s
  * ALTERA_AVALON_UART_INSTANCE is mapped below to SOCKIT_OWM_STATE_INSTANCE.
  */
 
-#define SOCKIT_OWM_STATE_INSTANCE(name, state) \
-  sockit_owm_state state =                     \
-   {                                                                  \
-     (void*) name##_BASE,                                             \
-     0,                                                               \
-   }
+#define SOCKIT_OWM_INSTANCE(name, state) \
+  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, 0}
 
 /*
  * sockit_owm_init() is called by the auto-generated function 
@@ -152,8 +104,7 @@ typedef struct sockit_owm_state_s
  * regestering the device with the system.
  */
 
-extern void sockit_owm_init(
-   sockit_owm_state* sp, alt_u32 irq);
+extern void sockit_owm_init(sockit_owm_state* sp, alt_u32 irq);
 
 /*
  * The macro SOCKIT_OWM_STATE_INIT is used by the auto-generated file
@@ -164,7 +115,7 @@ extern void sockit_owm_init(
  * generated at build time.
  */
 
-#define SOCKIT_OWM_STATE_INIT(name, state)          \
+#define SOCKIT_OWM_INIT(name, state)                                       \
   if (name##_IRQ == ALT_IRQ_NOT_CONNECTED)                                 \
   {                                                                        \
     ALT_LINK_ERROR ("Error: Interrupt not connected for " #name ". "       \
@@ -180,13 +131,6 @@ extern void sockit_owm_init(
   {                                                                        \
     sockit_owm_init(&state, name##_IRQ);                                   \
   }
-
-#endif /* fast driver */
-
-#define SOCKIT_OWM_INSTANCE(name, state) \
-        SOCKIT_OWM_STATE_INSTANCE(name, state)
-#define SOCKIT_OWM_INIT(name, state) \
-        SOCKIT_OWM_STATE_INIT(name, state)
 
 #ifdef __cplusplus
 }

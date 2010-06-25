@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 693
 [pos] -1 -1
-*-28.709551 1000250000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-28.898329 1058000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] onewire_tb.
 [treeopen] onewire_tb.onewire_slave.
 @200
@@ -46,12 +46,23 @@ onewire_tb.onewire_master.owr_drx
 onewire_tb.onewire_master.owr_dtx
 onewire_tb.onewire_master.owr_rst
 onewire_tb.onewire_master.owr_ovd
+@29
 onewire_tb.onewire_master.owr_pwr
-onewire_tb.onewire_master.owr_o
 onewire_tb.onewire_master.owr_oe
+@28
 onewire_tb.onewire_master.owr_i
+onewire_tb.onewire_master.sel[1:0]
 onewire_tb.onewire_master.onewire_o[2:0]
+@800028
 onewire_tb.onewire_master.onewire_oe[2:0]
+@28
+(0)onewire_tb.onewire_master.onewire_oe[2:0]
+(1)onewire_tb.onewire_master.onewire_oe[2:0]
+@29
+(2)onewire_tb.onewire_master.onewire_oe[2:0]
+@1001200
+-group_end
+@28
 onewire_tb.onewire_master.onewire_i[2:0]
 @1000200
 -1-wire master

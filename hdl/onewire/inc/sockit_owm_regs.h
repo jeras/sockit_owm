@@ -32,14 +32,14 @@
 #define IORD_SOCKIT_OWM(base)          IORD(base, SOCKIT_OWM_REG) 
 #define IOWR_SOCKIT_OWM(base, data)    IOWR(base, SOCKIT_OWM_REG, data)
 
-#define SOCKIT_OWM_OVD_MSK             (0x01)
-#define SOCKIT_OWM_OVD_OFST            (0)
+#define SOCKIT_OWM_DAT_MSK             (0x01)
+#define SOCKIT_OWM_DAT_OFST            (0)
 #define SOCKIT_OWM_RST_MSK             (0x02)
 #define SOCKIT_OWM_RST_OFST            (1)
-#define SOCKIT_OWM_DTX_MSK             (0x04)
-#define SOCKIT_OWM_DTX_OFST            (2)
-#define SOCKIT_OWM_DRX_MSK             (0x08)
-#define SOCKIT_OWM_DRX_OFST            (3)
+#define SOCKIT_OWM_OVD_MSK             (0x04)
+#define SOCKIT_OWM_OVD_OFST            (2)
+#define SOCKIT_OWM_PWR_MSK             (0x08)
+#define SOCKIT_OWM_PWR_OFST            (3)
 #define SOCKIT_OWM_STX_MSK             (0x10)
 #define SOCKIT_OWM_STX_OFST            (4)
 #define SOCKIT_OWM_SRX_MSK             (0x20)
@@ -48,5 +48,8 @@
 #define SOCKIT_OWM_ETX_OFST            (6)
 #define SOCKIT_OWM_ERX_MSK             (0x80)
 #define SOCKIT_OWM_ERX_OFST            (7)
+
+#define SOCKIT_OWM_SEL_MSK             (0x0f00)
+#define SOCKIT_OWM_SEL_OFST            (8)
 
 #endif /* __SOCKIT_OWM_REGS_H__ */
