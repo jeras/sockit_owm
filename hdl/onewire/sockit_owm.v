@@ -217,20 +217,15 @@ else begin
   end
 end
 
-assign owr_o = owr_pwr;
-
 //////////////////////////////////////////////////////////////////////////////
 // Avalon logic
 //////////////////////////////////////////////////////////////////////////////
 
-generate if (OWN>1) begin : sel_multiplexer
-  assign onewire_o  = owr_o  << sel;
-  assign onewire_oe = owr_oe << sel;
-  assign owr_i = onewire_i [sel];
-end else begin
-  assign onewire_o  = owr_o;
-  assign onewire_oe = owr_oe;
-  assign owr_i = onewire_i;
+genvar i;
+generate for (i=0; i<OWN; i=i+1) begin : sel_multiplexer
+  assign onewire_o  [i] = (i == sel) ? owr_pwr          : 1'b0;
+  assign onewire_oe [i] = (i == sel) ? owr_pwr | owr_oe : 1'b0;
 end endgenerate
+assign owr_i = onewire_i [sel];
 
 endmodule
