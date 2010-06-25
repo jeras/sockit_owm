@@ -102,16 +102,16 @@ initial begin
   avalon_cycle (1, 0, 4'hf, 32'b00000000, data);
   avalon_pulling (8, 0);
   // write '1'
-  avalon_cycle (1, 0, 4'hf, 32'b00000100, data);
+  avalon_cycle (1, 0, 4'hf, 32'b00000001, data);
   avalon_pulling (8, 0);
 
   // switch to overdrive mode
 
   // generate a reset pulse
-  avalon_cycle (1, 0, 4'hf, 32'b00000011, data);
+  avalon_cycle (1, 0, 4'hf, 32'b00000110, data);
   avalon_pulling (8, 0);
   // write '0'
-  avalon_cycle (1, 0, 4'hf, 32'b00000001, data);
+  avalon_cycle (1, 0, 4'hf, 32'b00000100, data);
   avalon_pulling (8, 0);
   // write '1'
   avalon_cycle (1, 0, 4'hf, 32'b00000101, data);
@@ -191,8 +191,12 @@ sockit_owm #(
 
 // onewire
 pullup onewire_pullup [OWN-1:0] (owr);
-assign owr   = owr_oe ? owr_o : 1'bz;
-assign owr_i = owr;
+
+genvar i;
+generate for (i=0; i<OWN; i=i+1) begin : owr_loop
+  assign owr   [i] = owr_oe [i] ? owr_o [i] : 1'bz;
+  assign owr_i [i] = owr    [i];
+end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
 // Verilog onewire slave model

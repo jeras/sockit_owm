@@ -145,8 +145,9 @@ add_interface conduit conduit end
 set_interface_property conduit ASSOCIATED_CLOCK clock_reset
 set_interface_property conduit ENABLED true
 
-add_interface_port conduit owr_oe export Output 1
-add_interface_port conduit owr_i export Input 1
+add_interface_port conduit onewire_o  export Output 1
+add_interface_port conduit onewire_oe export Output 1
+add_interface_port conduit onewire_i  export Input  1
 # | 
 # +-----------------------------------
 

@@ -114,11 +114,11 @@ reg  irq_srx;  // interrupt status receive
 generate if (OWN>1) begin : sel_readdata
   assign avalon_readdata = {{ADW-OWN-8{1'b0}}, sel,
                             irq_erx, irq_etx, irq_srx, irq_stx,
-                            owr_drx, owr_dtx, owr_rst, owr_ovd};
+                            owr_pwr, owr_ovd, owr_rst, owr_drx};
 end else begin
   assign avalon_readdata = {{ADW-8{1'b0}}, 
                             irq_erx, irq_etx, irq_srx, irq_stx,
-                            owr_drx, owr_dtx, owr_rst, owr_ovd};
+                            owr_pwr, owr_ovd, owr_rst, owr_drx};
 end endgenerate
 
 generate if (OWN>1) begin : sel_implementation
@@ -179,8 +179,8 @@ end endgenerate
 
 // transmit data, reset, overdrive
 always @ (posedge clk, posedge rst)
-if (rst)                {owr_dtx, owr_rst, owr_ovd} <= 3'b000;     
-else if (avalon_write)  {owr_dtx, owr_rst, owr_ovd} <= avalon_writedata[2:0]; 
+if (rst)                {owr_pwr, owr_ovd, owr_rst, owr_dtx} <= 4'b0000;     
+else if (avalon_write)  {owr_pwr, owr_ovd, owr_rst, owr_dtx} <= avalon_writedata[3:0]; 
 
 // avalon run status
 always @ (posedge clk, posedge rst)
@@ -209,7 +209,7 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)                              owr_oe <= 1'b0;
 else begin
-  if (avalon_write)                   owr_oe <= ~&avalon_writedata[2:1];
+  if (avalon_write)                   owr_oe <= ~&avalon_writedata[1:0];
   else if (pls) begin
     if      (owr_rst & (cnt == 'd64)) owr_oe <= 1'b0;
     else if (owr_dtx & (cnt == 'd08)) owr_oe <= 1'b0;
@@ -217,7 +217,7 @@ else begin
   end
 end
 
-assign owr_o = 0;
+assign owr_o = owr_pwr;
 
 //////////////////////////////////////////////////////////////////////////////
 // Avalon logic
