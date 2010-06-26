@@ -73,7 +73,7 @@ extern "C"
  * The sockit_owm_state structure is used to hold device specific data.
  * This includes the transmit and receive buffers.
  *
- * An instance of this structure is created in the auto-generated 
+ * An instance of this structure is created in the auto-generated
  * alt_sys_init.c file for each UART listed in the systems SOPC file. This is
  * done using the SOCKIT_OWM_STATE_INSTANCE macro given below.
  */
@@ -82,7 +82,8 @@ typedef struct sockit_owm_state_s
 {
   void*            base;            /* The base address of the device */
   alt_u32          own;             /* Number of onewire ports */
-  alt_u32          reg;             /* Configuation register shadow */
+  alt_u32          ovd;             /* Overdrive status */
+  alt_u32          pwr;             /* Power status */
 } sockit_owm_state;
 
 /*
@@ -92,15 +93,15 @@ typedef struct sockit_owm_state_s
  */
 
 #define SOCKIT_OWM_INSTANCE(name, state) \
-  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, 0}
-
+  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, 0, 0}; \
+  void* state = name##_BASE
 /*
- * sockit_owm_init() is called by the auto-generated function 
- * alt_sys_init() for each UART in the system. This is done using the 
+ * sockit_owm_init() is called by the auto-generated function
+ * alt_sys_init() for each UART in the system. This is done using the
  * SOCKIT_OWM_INIT macro given below.
  *
  * This function is responsible for performing all the run time initilisation
- * for a device instance, i.e. registering the interrupt handler, and 
+ * for a device instance, i.e. registering the interrupt handler, and
  * regestering the device with the system.
  */
 
@@ -111,7 +112,7 @@ extern void sockit_owm_init(sockit_owm_state* sp, alt_u32 irq);
  * alt_sys_init.c to initialize an instance of the device driver state.
  *
  * This macro performs a sanity check to ensure that the interrupt has been
- * connected for this device. If not, then an apropriate error message is 
+ * connected for this device. If not, then an apropriate error message is
  * generated at build time.
  */
 

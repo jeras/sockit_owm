@@ -29,7 +29,7 @@
 
 #define SOCKIT_OWM_REG                 0
 #define IOADDR_SOCKIT_OWM(base)        __IO_CALC_ADDRESS_NATIVE(base, SOCKIT_OWM_REG)
-#define IORD_SOCKIT_OWM(base)          IORD(base, SOCKIT_OWM_REG) 
+#define IORD_SOCKIT_OWM(base)          IORD(base, SOCKIT_OWM_REG)
 #define IOWR_SOCKIT_OWM(base, data)    IOWR(base, SOCKIT_OWM_REG, data)
 
 #define SOCKIT_OWM_DAT_MSK             (0x01)
@@ -51,5 +51,8 @@
 
 #define SOCKIT_OWM_SEL_MSK             (0x0f00)
 #define SOCKIT_OWM_SEL_OFST            (8)
+
+#define SOCKIT_OWM_POWER_MSK           (0xffff0000)
+#define SOCKIT_OWM_POWER_OFST          (16)
 
 #endif /* __SOCKIT_OWM_REGS_H__ */
