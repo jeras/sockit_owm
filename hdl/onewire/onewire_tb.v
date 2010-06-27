@@ -116,6 +116,13 @@ initial begin
   // write '1'
   avalon_cycle (1, 0, 4'hf, 32'b00000101, data);
   avalon_pulling (8, 0);
+
+  // test power supply
+
+  // generate a delay pulse
+  avalon_cycle (1, 0, 4'hf, 32'h00010003, data);
+  avalon_pulling (8, 0);
+
   // wait a few cycles and finish
   repeat (10) @(posedge clk);
   $finish(); 

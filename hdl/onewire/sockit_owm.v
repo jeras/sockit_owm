@@ -59,7 +59,7 @@ module sockit_owm #(
   output [ADW-1:0] avalon_readdata,
   output           avalon_interrupt,
   // onewire
-  output [OWN-1:0] onewire_o,   // output enable (TODO: fixed to 0 for now)
+  output [OWN-1:0] onewire_o,   // output
   output [OWN-1:0] onewire_oe,  // output enable
   input  [OWN-1:0] onewire_i    // input from bidirectional wire
 );
@@ -86,25 +86,25 @@ reg     [6:0] cnt;
 
 // port select
 //generate if (OWN>1) begin : sel_declaration
-reg [SDW-1:0] sel;
+reg [SDW-1:0] owr_sel;
 //end endgenerate
 
 // onewire signals
-reg  owr_ovd;  // overdrive
-reg  owr_rst;  // reset
-reg  owr_pwr;  // power
-reg  owr_dtx;  // data bit transmit
-reg  owr_drx;  // data bit receive
+reg           owr_ovd;  // overdrive
+reg           owr_rst;  // reset
+reg [OWN-1:0] owr_pwr;  // power
+reg           owr_dtx;  // data bit transmit
+reg           owr_drx;  // data bit receive
 
-wire owr_o;    // output
-reg  owr_oe;   // output enable
-wire owr_i;    // input
+wire          owr_o;    // output
+reg           owr_oe;   // output enable
+wire          owr_i;    // input
 
 // interrupt signals
-reg  irq_etx;  // interrupt enable transmit
-reg  irq_erx;  // interrupt enable receive
-reg  irq_stx;  // interrupt status transmit
-reg  irq_srx;  // interrupt status receive
+reg           irq_etx;  // interrupt enable transmit
+reg           irq_erx;  // interrupt enable receive
+reg           irq_stx;  // interrupt status transmit
+reg           irq_srx;  // interrupt status receive
 
 //////////////////////////////////////////////////////////////////////////////
 // Avalon logic
@@ -112,20 +112,29 @@ reg  irq_srx;  // interrupt status receive
 
 // Avalon read data
 generate if (OWN>1) begin : sel_readdata
-  assign avalon_readdata = {{ADW-OWN-8{1'b0}}, sel,
+  assign avalon_readdata = {{ADW-OWN-16{1'b0}}, owr_pwr, {8-SDW{1'b0}}, owr_sel,
                             irq_erx, irq_etx, irq_srx, irq_stx,
-                            owr_pwr, owr_ovd, owr_rst, owr_drx};
+                            owr_o  , owr_ovd, owr_rst, owr_drx};
 end else begin
-  assign avalon_readdata = {{ADW-8{1'b0}}, 
+  assign avalon_readdata = {{ADW-OWN-16{1'b0}}, owr_pwr, 8'd0,
                             irq_erx, irq_etx, irq_srx, irq_stx,
-                            owr_pwr, owr_ovd, owr_rst, owr_drx};
+                            owr_o  , owr_ovd, owr_rst, owr_drx};
 end endgenerate
 
 generate if (OWN>1) begin : sel_implementation
   // port select
   always @ (posedge clk, posedge rst)
-  if (rst)                sel <= {SDW{1'b0}};
-  else if (avalon_write)  sel <= avalon_writedata[8+:SDW];
+  if (rst)                owr_sel <= {SDW{1'b0}};
+  else if (avalon_write)  owr_sel <= avalon_writedata[8+:SDW];
+
+  // power delivery
+  always @ (posedge clk, posedge rst)
+  if (rst)                owr_pwr <= {SDW{1'b0}};
+  else if (avalon_write)  owr_pwr <= avalon_writedata[16+:SDW];
+end else begin
+  always @ (posedge clk, posedge rst)
+  if (rst)                owr_pwr <= 1'b0;
+  else if (avalon_write)  owr_pwr <= avalon_writedata[3];
 end endgenerate
 
 // Avalon interrupt
@@ -179,8 +188,8 @@ end endgenerate
 
 // transmit data, reset, overdrive
 always @ (posedge clk, posedge rst)
-if (rst)                {owr_pwr, owr_ovd, owr_rst, owr_dtx} <= 4'b0000;     
-else if (avalon_write)  {owr_pwr, owr_ovd, owr_rst, owr_dtx} <= avalon_writedata[3:0]; 
+if (rst)                {owr_ovd, owr_rst, owr_dtx} <= 4'b0000;     
+else if (avalon_write)  {owr_ovd, owr_rst, owr_dtx} <= avalon_writedata[3:0]; 
 
 // avalon run status
 always @ (posedge clk, posedge rst)
@@ -221,11 +230,10 @@ end
 // Avalon logic
 //////////////////////////////////////////////////////////////////////////////
 
-genvar i;
-generate for (i=0; i<OWN; i=i+1) begin : sel_multiplexer
-  assign onewire_o  [i] = (i == sel) ? owr_pwr          : 1'b0;
-  assign onewire_oe [i] = (i == sel) ? owr_pwr | owr_oe : 1'b0;
-end endgenerate
-assign owr_i = onewire_i [sel];
+assign onewire_oe = owr_pwr | (owr_oe << owr_sel);
+assign onewire_o  = owr_pwr;
+
+assign owr_i = onewire_i [owr_sel];
+assign owr_o = onewire_o [owr_sel];
 
 endmodule
