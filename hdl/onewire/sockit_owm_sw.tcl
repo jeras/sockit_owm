@@ -37,12 +37,18 @@ add_sw_property c_source HAL/src/ownet.c
 add_sw_property c_source HAL/src/owtran.c
 add_sw_property c_source HAL/src/owlnk.c
 add_sw_property c_source HAL/src/owses.c
+add_sw_property c_source HAL/src/owerr.c
+add_sw_property c_source HAL/src/crcutil.c
 add_sw_property c_source HAL/src/sockit_owm.c
 
 # Include files
 add_sw_property include_source HAL/inc/ownet.h
 add_sw_property include_source HAL/inc/sockit_owm.h
 add_sw_property include_source inc/sockit_owm_regs.h
+
+# Common files
+add_sw_property include_source HAL/inc/findtype.h
+add_sw_property       c_source HAL/src/findtype.c
 
 # This driver supports HAL & UCOSII BSP (OS) types
 add_sw_property supported_bsp_type HAL

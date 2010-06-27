@@ -75,9 +75,9 @@ SMALLINT owTouchReset(int portnum)
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
    // write RST
-   IOWR_SOCKIT_OWM (ONEWIRE_BASE, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (portnum << SOCKIT_OWM_SEL_OFST) | (ovd << SOCKIT_OWM_OVD_OFST) | SOCKIT_OWM_RST_MSK);
+   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (portnum << SOCKIT_OWM_SEL_OFST) | (ovd << SOCKIT_OWM_OVD_OFST) | SOCKIT_OWM_RST_MSK);
    // wait for STX (end of transfer cycle)
-   while (!((reg = IORD_SOCKIT_OWM (ONEWIRE_BASE)) & SOCKIT_OWM_STX_MSK));
+   while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
    // return DRX (presence datect)
    return (~reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
 }
@@ -100,9 +100,9 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
    // write RST
-   IOWR_SOCKIT_OWM (ONEWIRE_BASE, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (portnum << SOCKIT_OWM_SEL_OFST) | (ovd << SOCKIT_OWM_OVD_OFST) | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
+   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (portnum << SOCKIT_OWM_SEL_OFST) | (ovd << SOCKIT_OWM_OVD_OFST) | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
    // wait for STX (end of transfer cycle)
-   while (!((reg = IORD_SOCKIT_OWM (ONEWIRE_BASE)) & SOCKIT_OWM_STX_MSK));
+   while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
    // return DRX (presence datect)
    return (reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
 }
@@ -200,12 +200,12 @@ SMALLINT owLevel(int portnum, SMALLINT new_level)
    if (new_level == MODE_STRONG5) {
 	  // set the power bit
 	  sockit_owm.pwr |=  (1 << portnum);
-	  IOWR_SOCKIT_OWM (ONEWIRE_BASE, (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) | SOCKIT_OWM_PWR_MSK | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
+	  IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) | SOCKIT_OWM_PWR_MSK | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
    }
    if (new_level == MODE_NORMAL) {
 	  // clear the power bit
 	  sockit_owm.pwr &= ~(1 << portnum);
-      IOWR_SOCKIT_OWM (ONEWIRE_BASE, (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST)                      | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST)                      | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
    }
    // return the current port state
    return ((sockit_owm.pwr >> portnum) & 0x1) ? MODE_STRONG5 : MODE_NORMAL;
@@ -236,13 +236,13 @@ void msDelay(int len)
    int i;
    for (i=0; i<len; i++) {
       // create a 960us pause
-      IOWR_SOCKIT_OWM (ONEWIRE_BASE, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) |                      SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) |                      SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
       // wait for STX (end of transfer cycle)
-      while (IORD_SOCKIT_OWM (ONEWIRE_BASE) & SOCKIT_OWM_STX_MSK);
+      while (IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK);
       // create a 96us pause
-      IOWR_SOCKIT_OWM (ONEWIRE_BASE, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) | SOCKIT_OWM_DAT_MSK | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) | SOCKIT_OWM_DAT_MSK | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
       // wait for STX (end of transfer cycle)
-      while (IORD_SOCKIT_OWM (ONEWIRE_BASE) & SOCKIT_OWM_STX_MSK);
+      while (IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK);
    }
 }
 

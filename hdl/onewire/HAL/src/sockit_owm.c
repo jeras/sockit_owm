@@ -63,6 +63,10 @@
 #include "sockit_owm_regs.h"
 #include "sockit_owm.h"
 
+void sockit_owm_init(sockit_owm_state* sp, alt_u32 irq)
+{
+}
+
 //#if !defined(ALT_USE_SMALL_DRIVERS) && !defined(SOCKIT_OWM_SMALL)
 #if 0
 
