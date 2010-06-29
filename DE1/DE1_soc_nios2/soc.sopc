@@ -131,11 +131,6 @@
          value = "12";
          type = "int";
       }
-      datum sopceditor_expanded
-      {
-         value = "0";
-         type = "boolean";
-      }
    }
    element pio_7seg
    {
@@ -191,19 +186,27 @@
          type = "boolean";
       }
    }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "8388608";
-         type = "long";
-      }
-   }
    element pio_ledg.s1
    {
       datum baseAddress
       {
          value = "25206832";
+         type = "long";
+      }
+   }
+   element onewire.s1
+   {
+      datum baseAddress
+      {
+         value = "0";
+         type = "long";
+      }
+   }
+   element pio_7seg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206816";
          type = "long";
       }
    }
@@ -215,22 +218,6 @@
          type = "long";
       }
    }
-   element cfi_flash.s1
-   {
-      datum baseAddress
-      {
-         value = "20971520";
-         type = "long";
-      }
-   }
-   element onchip_ram.s1
-   {
-      datum baseAddress
-      {
-         value = "25182208";
-         type = "long";
-      }
-   }
    element pio_ledr.s1
    {
       datum baseAddress
@@ -239,11 +226,27 @@
          type = "long";
       }
    }
-   element pio_7seg.s1
+   element cfi_flash.s1
    {
       datum baseAddress
       {
-         value = "25206816";
+         value = "20971520";
+         type = "long";
+      }
+   }
+   element sdram.s1
+   {
+      datum baseAddress
+      {
+         value = "8388608";
+         type = "long";
+      }
+   }
+   element onchip_ram.s1
+   {
+      datum baseAddress
+      {
+         value = "25182208";
          type = "long";
       }
    }
@@ -311,8 +314,8 @@
  <parameter name="hardcopyCompatible" value="false" />
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
- <parameter name="systemHash" value="26488689555" />
- <parameter name="timeStamp" value="1277661277155" />
+ <parameter name="systemHash" value="26490178252" />
+ <parameter name="timeStamp" value="1277851894256" />
  <module name="clk" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -544,8 +547,8 @@
  </module>
  <module name="onewire" kind="sockit_owm" version="0.9" enabled="1">
   <parameter name="CDR" value="180" />
-  <parameter name="OWN" value="2" />
-  <parameter name="ADW" value="32" />
+  <parameter name="OWN" value="1" />
+  <parameter name="BDW" value="32" />
  </module>
  <connection kind="clock" version="9.1" start="clk.clk" end="cpu_0.clk" />
  <connection

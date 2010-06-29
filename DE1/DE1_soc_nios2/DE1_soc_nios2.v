@@ -94,8 +94,8 @@ wire [3:0] btn;
 wire [31:0] seg7;
 
 // 1-wire
-wire [1:0] onewire_o;
-wire [1:0] onewire_oe;
+wire [1:0] onewire_p;
+wire [1:0] onewire_e;
 wire [1:0] onewire_i;
 
 // All inout port turn to tri-state
@@ -147,14 +147,14 @@ soc soc_i (
   .rxd_to_the_uart                 (UART_TXD),
   .txd_from_the_uart               (UART_RXD),
   // onewire
-  .onewire_o_from_the_onewire      (onewire_o),
-  .onewire_oe_from_the_onewire     (onewire_oe),
+  .onewire_p_from_the_onewire      (onewire_p),
+  .onewire_e_from_the_onewire      (onewire_e),
   .onewire_i_to_the_onewire        (onewire_i)
 );
 
 // 1-wire
-assign PS2_DAT = onewire_oe [0] ? onewire_o [0] : 1'bz;
-assign PS2_CLK = onewire_oe [1] ? onewire_o [1] : 1'bz;
+assign PS2_DAT = (onewire_p [0] | onewire_p [0]) ? onewire_p [0] : 1'bz;
+assign PS2_CLK = (onewire_p [1] | onewire_p [1]) ? onewire_p [1] : 1'bz;
 assign onewire_i = {PS2_CLK, PS2_DAT};
 
 // SDRAM Interface
