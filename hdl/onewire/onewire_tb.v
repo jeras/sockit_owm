@@ -58,8 +58,8 @@ reg  [ADW-1:0] data;
 
 // onewire
 wire [OWN-1:0] owr;     // bidirectional
-wire [OWN-1:0] owr_o;   // output from master
-wire [OWN-1:0] owr_oe;  // output enable from master
+wire [OWN-1:0] owr_p;   // output power enable from master
+wire [OWN-1:0] owr_e;   // output pull down enable from master
 wire [OWN-1:0] owr_i;   // input into master
 
 // request for a dumpfile
@@ -119,9 +119,17 @@ initial begin
 
   // test power supply
 
-  // generate a delay pulse
+  // generate a delay pulse with power supply enabled
   avalon_cycle (1, 0, 4'hf, 32'h00010003, data);
   avalon_pulling (8, 0);
+
+  // test breaking a delay sequence with an idle transfer
+
+  // generate a delay pulse and break it, before it finishes
+  repeat (10) @(posedge clk);
+  avalon_cycle (1, 0, 4'hf, 32'h00000003, data);
+  repeat (10) @(posedge clk);
+  avalon_cycle (1, 0, 4'hf, 32'h0000000f, data);
 
   // wait a few cycles and finish
   repeat (10) @(posedge clk);
@@ -178,22 +186,22 @@ assign avalon_waitrequest = 1'b0;
 //////////////////////////////////////////////////////////////////////////////
 
 sockit_owm #(
-  .CDR               (CDR),
-  .OWN               (OWN)
+  .CDR            (CDR),
+  .OWN            (OWN)
 ) onewire_master (
   // system
-  .clk               (clk),
-  .rst               (rst),
+  .clk            (clk),
+  .rst            (rst),
   // Avalon
-  .avalon_read       (avalon_read),
-  .avalon_write      (avalon_write),
-  .avalon_writedata  (avalon_writedata),
-  .avalon_readdata   (avalon_readdata),
-  .avalon_interrupt  (avalon_interrupt),
+  .bus_read       (avalon_read),
+  .bus_write      (avalon_write),
+  .bus_writedata  (avalon_writedata),
+  .bus_readdata   (avalon_readdata),
+  .bus_interrupt  (avalon_interrupt),
   // onewire
-  .onewire_o         (owr_o),
-  .onewire_oe        (owr_oe),
-  .onewire_i         (owr_i)
+  .onewire_p      (owr_p),
+  .onewire_e      (owr_e),
+  .onewire_i      (owr_i)
 );
 
 // onewire
@@ -201,8 +209,8 @@ pullup onewire_pullup [OWN-1:0] (owr);
 
 genvar i;
 generate for (i=0; i<OWN; i=i+1) begin : owr_loop
-  assign owr   [i] = owr_oe [i] ? owr_o [i] : 1'bz;
-  assign owr_i [i] = owr    [i];
+  assign owr   [i] = owr_e [i] | owr_p ? owr_p [i] : 1'bz;
+  assign owr_i [i] = owr   [i];
 end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////

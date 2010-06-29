@@ -53,7 +53,7 @@ set_parameter_property CDR HDL_PARAMETER true
 set description {OWN 1-wire ports are created, each representing its own network. This module can only access one 1-wire slave simultaneously.}
 add_parameter OWN INTEGER 100
 set_parameter_property OWN DEFAULT_VALUE 1
-set_parameter_property OWN ALLOWED_RANGES "1:8"
+set_parameter_property OWN ALLOWED_RANGES 1:16
 set_parameter_property OWN DISPLAY_NAME "Nummber of 1-wire channels"
 set_parameter_property OWN UNITS None
 set_parameter_property OWN DESCRIPTION $description
@@ -62,15 +62,15 @@ set_parameter_property OWN AFFECTS_GENERATION false
 set_parameter_property OWN AFFECTS_ELABORATION true
 set_parameter_property OWN HDL_PARAMETER true
 
-add_parameter ADW INTEGER 32
-set_parameter_property ADW DEFAULT_VALUE 32
-set_parameter_property ADW DISPLAY_NAME ADW
-set_parameter_property ADW ENABLED false
-set_parameter_property ADW UNITS Bits
-set_parameter_property ADW ALLOWED_RANGES 0:32
-set_parameter_property ADW DISPLAY_HINT ""
-set_parameter_property ADW AFFECTS_GENERATION false
-set_parameter_property ADW HDL_PARAMETER true
+add_parameter BDW INTEGER 32
+set_parameter_property BDW DEFAULT_VALUE 32
+set_parameter_property BDW DISPLAY_NAME BDW
+set_parameter_property BDW ENABLED false
+set_parameter_property BDW UNITS Bits
+set_parameter_property BDW ALLOWED_RANGES 0:32
+set_parameter_property BDW DISPLAY_HINT ""
+set_parameter_property BDW AFFECTS_GENERATION false
+set_parameter_property BDW HDL_PARAMETER true
 
 # | 
 # +-----------------------------------
@@ -117,10 +117,10 @@ set_interface_property s1 writeWaitTime 0
 set_interface_property s1 ASSOCIATED_CLOCK clock_reset
 set_interface_property s1 ENABLED true
 
-add_interface_port s1 avalon_read read Input 1
-add_interface_port s1 avalon_write write Input 1
-add_interface_port s1 avalon_writedata writedata Input ADW
-add_interface_port s1 avalon_readdata readdata Output ADW
+add_interface_port s1 bus_read read Input 1
+add_interface_port s1 bus_write write Input 1
+add_interface_port s1 bus_writedata writedata Input BDW
+add_interface_port s1 bus_readdata readdata Output BDW
 # | 
 # +-----------------------------------
 
@@ -133,7 +133,7 @@ set_interface_property irq associatedAddressablePoint s1
 set_interface_property irq ASSOCIATED_CLOCK clock_reset
 set_interface_property irq ENABLED true
 
-add_interface_port irq avalon_interrupt irq Output 1
+add_interface_port irq bus_interrupt irq Output 1
 # | 
 # +-----------------------------------
 
@@ -145,9 +145,9 @@ add_interface conduit conduit end
 set_interface_property conduit ASSOCIATED_CLOCK clock_reset
 set_interface_property conduit ENABLED true
 
-add_interface_port conduit onewire_o  export Output 1
-add_interface_port conduit onewire_oe export Output 1
-add_interface_port conduit onewire_i  export Input  1
+add_interface_port conduit onewire_p export Output 1
+add_interface_port conduit onewire_e export Output 1
+add_interface_port conduit onewire_i export Input  1
 # | 
 # +-----------------------------------
 
