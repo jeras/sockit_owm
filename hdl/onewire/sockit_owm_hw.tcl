@@ -2,16 +2,10 @@
 # Iztok Jeras 2010.06.13.18:29:39
 # 1-wire (onewire) master
 
-# +-----------------------------------
-# | request TCL package from ACDS 9.1
-# | 
+# request TCL package from ACDS 9.1
 package require -exact sopc 9.1
-# | 
-# +-----------------------------------
 
-# +-----------------------------------
-# | module sockit_owm
-# | 
+# module sockit_owm
 set_module_property DESCRIPTION "1-wire (onewire) master"
 set_module_property NAME sockit_owm
 set_module_property VERSION 0.9
@@ -24,20 +18,13 @@ set_module_property TOP_LEVEL_HDL_MODULE sockit_owm
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 set_module_property ANALYZE_HDL TRUE
+
 set_module_property ELABORATION_CALLBACK elaboration_callback
-# | 
-# +-----------------------------------
 
-# +-----------------------------------
-# | files
-# | 
+# RTL files
 add_file sockit_owm.v {SYNTHESIS SIMULATION}
-# | 
-# +-----------------------------------
 
-# +-----------------------------------
-# | parameters
-# | 
+# parameters
 set description {The clock divider should divide the Avalon port clock to a exactly 7.5us period.}
 add_parameter CDR INTEGER 10
 set_parameter_property CDR DEFAULT_VALUE 10
@@ -72,30 +59,15 @@ set_parameter_property BDW DISPLAY_HINT ""
 set_parameter_property BDW AFFECTS_GENERATION false
 set_parameter_property BDW HDL_PARAMETER true
 
-# | 
-# +-----------------------------------
-
-# +-----------------------------------
-# | display items
-# | 
-# | 
-# +-----------------------------------
-
-# +-----------------------------------
-# | connection point clock_reset
-# | 
+# connection point clock_reset
 add_interface clock_reset clock end
 
 set_interface_property clock_reset ENABLED true
 
 add_interface_port clock_reset clk clk Input 1
 add_interface_port clock_reset rst reset Input 1
-# | 
-# +-----------------------------------
 
-# +-----------------------------------
-# | connection point s1
-# | 
+# connection point s1
 add_interface s1 avalon end
 set_interface_property s1 addressAlignment DYNAMIC
 set_interface_property s1 associatedClock clock_reset
@@ -121,12 +93,8 @@ add_interface_port s1 bus_read read Input 1
 add_interface_port s1 bus_write write Input 1
 add_interface_port s1 bus_writedata writedata Input BDW
 add_interface_port s1 bus_readdata readdata Output BDW
-# | 
-# +-----------------------------------
 
-# +-----------------------------------
-# | connection point irq
-# | 
+# connection point irq
 add_interface irq interrupt end
 set_interface_property irq associatedAddressablePoint s1
 
@@ -134,12 +102,8 @@ set_interface_property irq ASSOCIATED_CLOCK clock_reset
 set_interface_property irq ENABLED true
 
 add_interface_port irq bus_interrupt irq Output 1
-# | 
-# +-----------------------------------
 
-# +-----------------------------------
-# | connection point conduit
-# | 
+# connection point conduit
 add_interface conduit conduit end
 
 set_interface_property conduit ASSOCIATED_CLOCK clock_reset
@@ -148,10 +112,8 @@ set_interface_property conduit ENABLED true
 add_interface_port conduit onewire_p export Output 1
 add_interface_port conduit onewire_e export Output 1
 add_interface_port conduit onewire_i export Input  1
-# | 
-# +-----------------------------------
 
 proc elaboration_callback {} {
-    # Add software defines
-    set_module_assignment embeddedsw.CMacro.OWN [get_parameter_value OWN]
+  # Add software defines
+  set_module_assignment embeddedsw.CMacro.OWN [get_parameter_value OWN]
 }
