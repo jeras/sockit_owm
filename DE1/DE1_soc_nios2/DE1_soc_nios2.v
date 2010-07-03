@@ -153,8 +153,8 @@ soc soc_i (
 );
 
 // 1-wire
-assign PS2_DAT = (onewire_p [0] | onewire_p [0]) ? onewire_p [0] : 1'bz;
-assign PS2_CLK = (onewire_p [1] | onewire_p [1]) ? onewire_p [1] : 1'bz;
+assign PS2_DAT = (onewire_p [0] | onewire_e [0]) ? onewire_p [0] : 1'bz;
+assign PS2_CLK = (onewire_p [1] | onewire_e [1]) ? onewire_p [1] : 1'bz;
 assign onewire_i = {PS2_CLK, PS2_DAT};
 
 // SDRAM Interface

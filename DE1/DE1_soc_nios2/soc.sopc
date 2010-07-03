@@ -186,35 +186,11 @@
          type = "boolean";
       }
    }
-   element pio_ledg.s1
+   element sdram.s1
    {
       datum baseAddress
       {
-         value = "25206832";
-         type = "long";
-      }
-   }
-   element onewire.s1
-   {
-      datum baseAddress
-      {
-         value = "0";
-         type = "long";
-      }
-   }
-   element pio_7seg.s1
-   {
-      datum baseAddress
-      {
-         value = "25206816";
-         type = "long";
-      }
-   }
-   element uart.s1
-   {
-      datum baseAddress
-      {
-         value = "25206784";
+         value = "8388608";
          type = "long";
       }
    }
@@ -226,6 +202,22 @@
          type = "long";
       }
    }
+   element uart.s1
+   {
+      datum baseAddress
+      {
+         value = "25206784";
+         type = "long";
+      }
+   }
+   element pio_7seg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206816";
+         type = "long";
+      }
+   }
    element cfi_flash.s1
    {
       datum baseAddress
@@ -234,19 +226,27 @@
          type = "long";
       }
    }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "8388608";
-         type = "long";
-      }
-   }
    element onchip_ram.s1
    {
       datum baseAddress
       {
          value = "25182208";
+         type = "long";
+      }
+   }
+   element onewire.s1
+   {
+      datum baseAddress
+      {
+         value = "0";
+         type = "long";
+      }
+   }
+   element pio_ledg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206832";
          type = "long";
       }
    }
@@ -315,7 +315,7 @@
  <parameter name="hdlLanguage" value="VERILOG" />
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
  <parameter name="systemHash" value="26490178252" />
- <parameter name="timeStamp" value="1277851894256" />
+ <parameter name="timeStamp" value="1278141693945" />
  <module name="clk" kind="clock_source" version="9.1" enabled="1">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
