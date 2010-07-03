@@ -75,10 +75,14 @@ SMALLINT owTouchReset(int portnum)
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
    // write RST
-   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (portnum << SOCKIT_OWM_SEL_OFST) | (ovd << SOCKIT_OWM_OVD_OFST) | SOCKIT_OWM_RST_MSK);
+   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
+		                           | (portnum        << SOCKIT_OWM_SEL_OFST)
+		                           | (ovd            << SOCKIT_OWM_OVD_OFST)
+		                           |                    SOCKIT_OWM_RST_MSK);
+   IOWR_SOCKIT_OWM (0x0, 0x2);
    // wait for STX (end of transfer cycle)
    while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
-   // return DRX (presence datect)
+   // return DRX (presence detect)
    return (~reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
 }
 
@@ -100,10 +104,13 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
    // write RST
-   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (portnum << SOCKIT_OWM_SEL_OFST) | (ovd << SOCKIT_OWM_OVD_OFST) | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
+   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr  << SOCKIT_OWM_POWER_OFST)
+		                           | (portnum         << SOCKIT_OWM_SEL_OFST)
+		                           | (ovd             << SOCKIT_OWM_OVD_OFST)
+		                           | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
    // wait for STX (end of transfer cycle)
    while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
-   // return DRX (presence datect)
+   // return DRX (presence detect)
    return (reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
 }
 
@@ -163,7 +170,7 @@ SMALLINT owReadByte(int portnum)
 }
 
 //--------------------------------------------------------------------------
-// Set the 1-Wire Net communucation speed.
+// Set the 1-Wire Net communication speed.
 //
 // 'portnum'    - number 0 to MAX_PORTNUM-1.  This number is provided to
 //                indicate the symbolic port number.
@@ -200,12 +207,15 @@ SMALLINT owLevel(int portnum, SMALLINT new_level)
    if (new_level == MODE_STRONG5) {
 	  // set the power bit
 	  sockit_owm.pwr |=  (1 << portnum);
-	  IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) | SOCKIT_OWM_PWR_MSK | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
+	  IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
+			                          |                    SOCKIT_OWM_PWR_MSK
+			                          |                    SOCKIT_OWM_IDL_MSK);
    }
    if (new_level == MODE_NORMAL) {
 	  // clear the power bit
 	  sockit_owm.pwr &= ~(1 << portnum);
-      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST)                      | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
+    		                          |                    SOCKIT_OWM_IDL_MSK);
    }
    // return the current port state
    return ((sockit_owm.pwr >> portnum) & 0x1) ? MODE_STRONG5 : MODE_NORMAL;
@@ -236,13 +246,11 @@ void msDelay(int len)
    int i;
    for (i=0; i<len; i++) {
       // create a 960us pause
-      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) |                      SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, ( sockit_owm.pwr        << SOCKIT_OWM_POWER_OFST)
+    		                          | ((sockit_owm.pwr & 0x1) << SOCKIT_OWM_PWR_OFST)
+    		                          |                            SOCKIT_OWM_DLY_MSK);
       // wait for STX (end of transfer cycle)
-      while (IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK);
-      // create a 96us pause
-      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | (sockit_owm.pwr << SOCKIT_OWM_PWR_OFST) | SOCKIT_OWM_DAT_MSK | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK);
-      // wait for STX (end of transfer cycle)
-      while (IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK);
+      while (!(IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK));
    }
 }
 
@@ -337,7 +345,7 @@ SMALLINT owReadBytePower(int portnum)
 }
 
 //--------------------------------------------------------------------------
-// This procedure indicates wether the adapter can deliver power.
+// This procedure indicates whether the adapter can deliver power.
 //
 // 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
 //              OpenCOM to indicate the port number.
@@ -350,7 +358,7 @@ SMALLINT owHasPowerDelivery(int portnum)
 }
 
 //--------------------------------------------------------------------------
-// This procedure indicates wether the adapter can deliver power.
+// This procedure indicates whether the adapter can deliver power.
 //
 // 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
 //              OpenCOM to indicate the port number.
@@ -369,7 +377,7 @@ SMALLINT owHasOverDrive(int portnum)
 // 'portnum'  - number 0 to MAX_PORTNUM-1.  This number was provided to
 //              OpenCOM to indicate the port number.
 //
-// Returns:  TRUE  program volatage available
+// Returns:  TRUE  program voltage available
 //           FALSE program voltage not available
 SMALLINT owHasProgramPulse(int portnum)
 {

@@ -55,4 +55,8 @@
 #define SOCKIT_OWM_POWER_MSK           (0xffff0000)
 #define SOCKIT_OWM_POWER_OFST          (16)
 
+// two common commands
+#define SOCKIT_OWM_DLY_MSK             (                     SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK)
+#define SOCKIT_OWM_IDL_MSK             (SOCKIT_OWM_OVD_MSK | SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK)
+
 #endif /* __SOCKIT_OWM_REGS_H__ */
