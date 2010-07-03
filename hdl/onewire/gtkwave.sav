@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 693
 [pos] -1 -1
-*-29.250235 2216750000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-29.164242 3176750000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] onewire_tb.
 [treeopen] onewire_tb.onewire_slave.
 @200
@@ -12,19 +12,15 @@ onewire_tb.rst
 @800200
 -Avalon MM bus
 @28
-onewire_tb.bus_write
-onewire_tb.bus_read
-onewire_tb.bus_address
+onewire_tb.avalon_write
 @22
-onewire_tb.bus_byteenable[3:0]
-onewire_tb.bus_writedata[31:0]
-onewire_tb.bus_readdata[31:0]
+onewire_tb.avalon_writedata[31:0]
 @28
-onewire_tb.bus_waitrequest
-onewire_tb.bus_interrupt
-onewire_tb.bus_transfer
+onewire_tb.avalon_read
 @22
-onewire_tb.data[31:0]
+onewire_tb.avalon_readdata[31:0]
+@28
+onewire_tb.avalon_interrupt
 @1000200
 -Avalon MM bus
 @800200
@@ -48,7 +44,6 @@ onewire_tb.onewire_master.owr_rst
 onewire_tb.onewire_master.owr_ovd
 onewire_tb.onewire_master.owr_pwr[2:0]
 onewire_tb.onewire_master.owr_sel[1:0]
-onewire_tb.onewire_master.owr_e
 onewire_tb.onewire_master.owr_i
 onewire_tb.onewire_master.onewire_p[2:0]
 @c00028
@@ -68,7 +63,6 @@ onewire_tb.owr[2:0]
 @28
 (0)onewire_tb.owr[2:0]
 (1)onewire_tb.owr[2:0]
-@29
 (2)onewire_tb.owr[2:0]
 @1001200
 -group_end

@@ -156,13 +156,13 @@ end
 
 // receive status
 always @ (posedge clk, posedge rst)
-if (rst)                               irq_srx <= 1'b0;
+if (rst)                   irq_srx <= 1'b0;
 else begin
-  if (bus_write)                       irq_srx <= 1'b0;
+  if (bus_write)           irq_srx <= 1'b0;
   else if (pls) begin
-    if      (owr_rst & (cnt == 'd54))  irq_srx <= 1'b1;
-    else if (owr_dtx & (cnt == 'd07))  irq_srx <= 1'b1;
-  end else if (bus_read)               irq_srx <= 1'b0;
+    if      (cnt == 'd54)  irq_srx <=  owr_rst & ~owr_dtx;
+    else if (cnt == 'd07)  irq_srx <= ~owr_rst &  owr_dtx;
+  end else if (bus_read)   irq_srx <= 1'b0;
 end
 
 //////////////////////////////////////////////////////////////////////////////

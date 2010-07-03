@@ -129,7 +129,7 @@ initial begin
   repeat (10) @(posedge clk);
   avalon_cycle (1, 0, 4'hf, 32'h00000003, data);
   repeat (10) @(posedge clk);
-  avalon_cycle (1, 0, 4'hf, 32'h0000000f, data);
+  avalon_cycle (1, 0, 4'hf, 32'h00000007, data);
 
   // wait a few cycles and finish
   repeat (10) @(posedge clk);
