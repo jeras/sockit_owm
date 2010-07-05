@@ -96,6 +96,7 @@ add_interface_port s1 bus_readdata readdata Output BDW
 
 # connection point irq
 add_interface irq interrupt end
+set_interface_property irq associatedClock clock_reset
 set_interface_property irq associatedAddressablePoint s1
 
 set_interface_property irq ASSOCIATED_CLOCK clock_reset
@@ -104,14 +105,13 @@ set_interface_property irq ENABLED true
 add_interface_port irq bus_interrupt irq Output 1
 
 # connection point conduit
-add_interface conduit conduit end
+add_interface ext conduit end
 
-set_interface_property conduit ASSOCIATED_CLOCK clock_reset
-set_interface_property conduit ENABLED true
+set_interface_property ext ENABLED true
 
-add_interface_port conduit onewire_p export Output 1
-add_interface_port conduit onewire_e export Output 1
-add_interface_port conduit onewire_i export Input  1
+add_interface_port ext onewire_p export Output 1
+add_interface_port ext onewire_e export Output 1
+add_interface_port ext onewire_i export Input  1
 
 proc elaboration_callback {} {
   # Add software defines
