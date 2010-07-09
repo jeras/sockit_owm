@@ -34,6 +34,8 @@
 
 #include "ownet.h"
 
+extern sockit_owm_state sockit_owm;
+
 // local function prototypes
 SMALLINT owAcquire(int,char *);
 void     owRelease(int);
@@ -47,10 +49,25 @@ void     owRelease(int);
 //
 // Returns: TRUE - success, port opened
 //
+// The current implementation does not wait for a port to be freed,
+// it returns FALSE.
+//
 SMALLINT owAcquire(int portnum, char *port_zstr)
 {
-   // add platform specific code here
-   return TRUE;
+   // check if there are enough ports available
+   if (sockit_owm.own <= portnum) {
+      // TODO some error message might be added
+      return FALSE;
+   }
+   // check if port is already in use
+   if ((sockit_owm.use >> portnum) & 0x1) {
+      return FALSE;
+   }
+   // if it is unused take it
+   else {
+      sockit_owm.use |= (0x1 << portnum);
+      return TRUE;
+   }
 }
 
 //---------------------------------------------------------------------------
@@ -61,7 +78,14 @@ SMALLINT owAcquire(int portnum, char *port_zstr)
 //
 void owRelease(int portnum)
 {
-   // add platform specific code here
+   // check if port is already in use and release it
+   if ((sockit_owm.use >> portnum) & 0x1) {
+      sockit_owm.use &= ~(0x1 << portnum);
+   }
+   // releasing an unused port is not supported
+   else {
+      // TODO some error message might be added
+   }
 }
 
 

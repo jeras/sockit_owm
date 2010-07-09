@@ -63,86 +63,52 @@
 #include "sockit_owm_regs.h"
 #include "sockit_owm.h"
 
-void sockit_owm_init(sockit_owm_state* sp, alt_u32 irq)
-{
-}
+#ifndef SOCKIT_OWM_PULING
 
-//#if !defined(ALT_USE_SMALL_DRIVERS) && !defined(SOCKIT_OWM_SMALL)
-#if 0
-
-/* ----------------------------------------------------------- */
-/* ------------------------- FAST DRIVER --------------------- */
-/* ----------------------------------------------------------- */
-
-/*
- * sockit_owm_init() is called by the auto-generated function
- * alt_sys_init() in order to initialize a particular instance of this device.
- * It is responsible for configuring the device and associated software
- * constructs.
- */
-#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-static void sockit_owm_irq(void* context);
-#else
-static void sockit_owm_irq(void* context, alt_u32 id);
-#endif
-
-static void sockit_owm_irq_srx(sockit_owm_state* sp, alt_u32 status);
-static void sockit_owm_irq_stx(sockit_owm_state* sp, alt_u32 status);
-
-void
-sockit_owm_init(sockit_owm_state* sp, alt_u32 irq)
-{
-  void* base = sp->base;
-  /* enable interrupts at the device */
-  sp->reg = SOCKIT_OWM_STX_MSK
-          | SOCKIT_OWM_SRX_MSK;
-  /* register the interrupt handler */
-#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-  alt_ic_isr_register (0, irq, sockit_owm_irq, sp, 0x0);
-#else
-  alt_irq_register (irq, sp, sockit_owm_irq);
-#endif
-}
-
-/*
- * sockit_owm_irq() is the interrupt handler
- * registered at configuration time for processing 1-wire interrupts.
- */
+//////////////////////////////////////////////////////////////////////////////
+// interrupt implementation
+//////////////////////////////////////////////////////////////////////////////
 
 #ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
-static void sockit_owm_irq(void* context)
+static void sockit_owm_irq ();
 #else
-static void sockit_owm_irq(void* context, alt_u32 id)
+static void sockit_owm_irq (alt_u32 id);
+#endif
+
+svoid sockit_owm_init (alt_u32 irq)
+{
+  int error;
+  // initialise semaphore for transfer locking
+  error = ALT_FLAG_CREATE (sockit_owm.irq, 0) || 
+          ALT_SEM_CREATE  (sockit_owm.trn, 1);
+
+  if (!error) {
+    // enable TX interrupt, RX is unused
+    sockit_owm.ena = 0x1;
+    // register the interrupt handler
+#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
+    alt_ic_isr_register (0, irq, sockit_owm_irq, NULL, 0x0);
+#else
+    alt_irq_register (irq, NULL, sockit_owm_irq);
+#endif
+  }
+}
+
+#ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
+static void sockit_owm_irq(void * state)
+#else
+static void sockit_owm_irq(void * state, alt_u32 id)
 #endif
 {
-  alt_u32 reg;
-
-  sockit_owm_state* sp = (sockit_owm_state*) context;
-  void* base = sp->base;
-
-  // determine the cause of the interrupt
-  reg = IORD_SOCKIT_OWM(base);
-
-  /* process a RX irq */
-  if (reg & SOCKIT_OWM_SRX_MSK)  sockit_owm_irq_srx(sp, reg);
-
-  /* process a TX irq */
-  if (reg & SOCKIT_OWM_STX_MSK)  sockit_owm_irq_stx(sp, reg);
+  // clear onewire interrupts
+  reg = IORD_SOCKIT_OWM (sockit_owm.base);
+  // set the flag indicating a completed transfer
+  ALT_FLAG_POST (sockit_owm.irq, 0x1, OS_FLAG_SET);
 }
+#else
 
-/*
- * sockit_owm_txirq() is called by sockit_owm_irq() to process a
- * transmit interrupt. It transfers data from the transmit buffer to the
- * device, and sets the apropriate flags to indicate that there is
- * data ready to be processed.
- */
+//////////////////////////////////////////////////////////////////////////////
+// pulling implementation
+//////////////////////////////////////////////////////////////////////////////
 
-static void sockit_owm_srx(sockit_owm_state* sp, alt_u32 status)
-{
-}
-
-static void sockit_owm_stx(sockit_owm_state* sp, alt_u32 status)
-{
-}
-
-#endif /* fast driver */
+#endif

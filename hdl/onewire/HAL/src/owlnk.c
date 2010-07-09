@@ -39,7 +39,6 @@
 #include "ownet.h"
 #include "sockit_owm_regs.h"
 #include "sockit_owm.h"
-#include "system.h"  // TODO should be removed
 
 extern sockit_owm_state sockit_owm;
 
@@ -67,21 +66,48 @@ SMALLINT owHasProgramPulse(int);
 // 'portnum'    - number 0 to MAX_PORTNUM-1.  This number is provided to
 //                indicate the symbolic port number.
 //
-// Returns: TRUE(1):  presense pulse(s) detected, device(s) reset
-//          FALSE(0): no presense pulses detected
+// Returns: TRUE(1):  presence pulse(s) detected, device(s) reset
+//          FALSE(0): no presence pulses detected
 //
 SMALLINT owTouchReset(int portnum)
 {
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
+
+#ifndef SOCKIT_OWM_POLLING
+#ifdef UCOSII
+   // lock transfer
+   ALT_SEM_PEND (sockit_owm.trn, 0);
+#endif
+#endif
+
    // write RST
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
 		                           | (portnum        << SOCKIT_OWM_SEL_OFST)
+		                           | (sockit_owm.ena << SOCKIT_OWM_STX_OFST)
 		                           | (ovd            << SOCKIT_OWM_OVD_OFST)
 		                           |                    SOCKIT_OWM_RST_MSK);
-   IOWR_SOCKIT_OWM (0x0, 0x2);
+
+#ifndef SOCKIT_OWM_POLLING
+   // wait for irq to set the transfer end flag
+#ifdef UCOSII
+   ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
+#else
+   while (!sockit_owm.irq);
+#endif
+   reg = IORD_SOCKIT_OWM (sockit_owm.base);
+#else
    // wait for STX (end of transfer cycle)
    while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
+#endif
+
+#ifndef SOCKIT_OWM_POLLING
+#ifdef UCOSII
+   // release transfer lock
+   ALT_SEM_POST (sockit_owm.trn);
+#endif
+#endif
+
    // return DRX (presence detect)
    return (~reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
 }
@@ -243,6 +269,7 @@ SMALLINT owProgramPulse(int portnum)
 void msDelay(int len)
 {
    // TODO: place a system (Altera+uCOSII) delay here if possible
+   // usleep (1000*len);
    int i;
    for (i=0; i<len; i++) {
       // create a 960us pause

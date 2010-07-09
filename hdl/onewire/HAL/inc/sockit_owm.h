@@ -80,10 +80,23 @@ extern "C"
 
 typedef struct sockit_owm_state_s
 {
-  void*            base;            /* The base address of the device */
-  alt_u32          own;             /* Number of onewire ports */
-  alt_u32          ovd;             /* Overdrive status */
-  alt_u32          pwr;             /* Power status */
+  // constants
+  void*            base;            // The base address of the device
+  alt_u32          own;             // Number of onewire ports
+  // status
+  alt_u32          ena;             // interrupt enable status
+  alt_u32          use;             // Aquire status
+  alt_u32          ovd;             // Overdrive status
+  alt_u32          pwr;             // Power status
+  // OS multitasking features
+//ALT_FLAG_GRP    (srx)             // receive event flag
+#ifdef UCOSII
+  ALT_FLAG_GRP    (irq)             // transmit event flag
+  ALT_SEM         (trn)             // transfer lock semaphore
+#else
+  alt_u32          irq;             // transmit event flag
+  alt_u32          trn;             // transfer lock semaphore
+#endif
 } sockit_owm_state;
 
 /*
@@ -105,7 +118,7 @@ typedef struct sockit_owm_state_s
  * regestering the device with the system.
  */
 
-extern void sockit_owm_init(sockit_owm_state* sp, alt_u32 irq);
+extern void sockit_owm_init(alt_u32 irq);
 
 /*
  * The macro SOCKIT_OWM_STATE_INIT is used by the auto-generated file
@@ -130,7 +143,7 @@ extern void sockit_owm_init(sockit_owm_state* sp, alt_u32 irq);
   }                                                                        \
   else                                                                     \
   {                                                                        \
-    sockit_owm_init(&state, name##_IRQ);                                   \
+    sockit_owm_init(name##_IRQ);                                           \
   }
 
 #ifdef __cplusplus
