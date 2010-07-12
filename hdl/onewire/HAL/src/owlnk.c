@@ -84,10 +84,10 @@ SMALLINT owTouchReset(int portnum)
 
    // write RST
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
-		                           | (portnum        << SOCKIT_OWM_SEL_OFST)
-		                           | (sockit_owm.ena << SOCKIT_OWM_ETX_OFST)
-		                           | (ovd            << SOCKIT_OWM_OVD_OFST)
-		                           |                    SOCKIT_OWM_RST_MSK);
+                                   | (portnum        << SOCKIT_OWM_SEL_OFST)
+                                   | (sockit_owm.ena << SOCKIT_OWM_ETX_OFST)
+                                   | (ovd            << SOCKIT_OWM_OVD_OFST)
+                                   |                    SOCKIT_OWM_RST_MSK);
 
 #ifndef SOCKIT_OWM_POLLING
    // wait for irq to set the transfer end flag
@@ -141,10 +141,10 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
 
    // write RST
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr  << SOCKIT_OWM_POWER_OFST)
-		                           | (portnum         << SOCKIT_OWM_SEL_OFST)
+      	                           | (portnum         << SOCKIT_OWM_SEL_OFST)
                                    | (sockit_owm.ena  << SOCKIT_OWM_ETX_OFST)
-		                           | (ovd             << SOCKIT_OWM_OVD_OFST)
-		                           | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
+                                   | (ovd             << SOCKIT_OWM_OVD_OFST)
+                                   | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
 
 #ifndef SOCKIT_OWM_POLLING
    // wait for irq to set the transfer end flag
@@ -262,17 +262,17 @@ SMALLINT owSpeed(int portnum, SMALLINT new_speed)
 SMALLINT owLevel(int portnum, SMALLINT new_level)
 {
    if (new_level == MODE_STRONG5) {
-	  // set the power bit
-	  sockit_owm.pwr |=  (1 << portnum);
-	  IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
-			                          |                    SOCKIT_OWM_PWR_MSK
-			                          |                    SOCKIT_OWM_IDL_MSK);
+      // set the power bit
+      sockit_owm.pwr |=  (1 << portnum);
+      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
+                                      |                    SOCKIT_OWM_PWR_MSK
+                                      |                    SOCKIT_OWM_IDL_MSK);
    }
    if (new_level == MODE_NORMAL) {
-	  // clear the power bit
-	  sockit_owm.pwr &= ~(1 << portnum);
+      // clear the power bit
+      sockit_owm.pwr &= ~(1 << portnum);
       IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
-    		                          |                    SOCKIT_OWM_IDL_MSK);
+                                      |                    SOCKIT_OWM_IDL_MSK);
    }
    // return the current port state
    return ((sockit_owm.pwr >> portnum) & 0x1) ? MODE_STRONG5 : MODE_NORMAL;
@@ -299,13 +299,14 @@ SMALLINT owProgramPulse(int portnum)
 //
 void msDelay(int len)
 {
+   // TODO: provide BSP MACRO and add OS ind irq related code
 #if 1
    int i;
    for (i=0; i<len; i++) {
       // create a 960us pause
       IOWR_SOCKIT_OWM (sockit_owm.base, ( sockit_owm.pwr        << SOCKIT_OWM_POWER_OFST)
-    		                          | ((sockit_owm.pwr & 0x1) << SOCKIT_OWM_PWR_OFST)
-    		                          |                            SOCKIT_OWM_DLY_MSK);
+                                      | ((sockit_owm.pwr & 0x1) << SOCKIT_OWM_PWR_OFST)
+                                      |                            SOCKIT_OWM_DLY_MSK);
       // wait for STX (end of transfer cycle)
       while (!(IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK));
    }
