@@ -69,7 +69,8 @@ add_sw_property supported_bsp_type UCOSII
 #  o Default value (if the user doesn't specify at BSP creation): false
 #    (which means: 'do not emit above CPPFLAGS string in generated makefile)
 #  o Description text
-add_sw_setting boolean_define_only public_mk_define enable_small_driver SOCKIT_OWM_POLLING false "Small-footprint (polled mode) driver"
+add_sw_setting boolean_define_only public_mk_define enable_polling_driver SOCKIT_OWM_POLLING false "Small-footprint (polled mode) driver"
+add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_HW__DLY false "Mili second delay implemented in hardware"
 
 # Add per-driver configuration option for optional IOCTL functionality in
 # UART driver.

@@ -300,7 +300,7 @@ SMALLINT owProgramPulse(int portnum)
 void msDelay(int len)
 {
    // TODO: provide BSP MACRO and add OS ind irq related code
-#if 1
+#if SOCKIT_OWM_HW_DLY
    int i;
    for (i=0; i<len; i++) {
       // create a 960us pause
