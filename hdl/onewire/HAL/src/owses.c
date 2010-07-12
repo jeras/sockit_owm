@@ -33,6 +33,7 @@
 //
 
 #include "ownet.h"
+#include "sockit_owm.h"
 
 extern sockit_owm_state sockit_owm;
 

@@ -75,7 +75,7 @@ SMALLINT owTouchReset(int portnum)
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
 
 #ifndef SOCKIT_OWM_POLLING
-#ifdef UCOSII
+#ifdef UCOS_II
    // lock transfer
    ALT_SEM_PEND (sockit_owm.trn, 0);
 #endif
@@ -84,13 +84,13 @@ SMALLINT owTouchReset(int portnum)
    // write RST
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
 		                           | (portnum        << SOCKIT_OWM_SEL_OFST)
-		                           | (sockit_owm.ena << SOCKIT_OWM_STX_OFST)
+		                           | (sockit_owm.ena << SOCKIT_OWM_ETX_OFST)
 		                           | (ovd            << SOCKIT_OWM_OVD_OFST)
 		                           |                    SOCKIT_OWM_RST_MSK);
 
 #ifndef SOCKIT_OWM_POLLING
    // wait for irq to set the transfer end flag
-#ifdef UCOSII
+#ifdef UCOS_II
    ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
 #else
    while (!sockit_owm.irq);
@@ -102,7 +102,7 @@ SMALLINT owTouchReset(int portnum)
 #endif
 
 #ifndef SOCKIT_OWM_POLLING
-#ifdef UCOSII
+#ifdef UCOS_II
    // release transfer lock
    ALT_SEM_POST (sockit_owm.trn);
 #endif

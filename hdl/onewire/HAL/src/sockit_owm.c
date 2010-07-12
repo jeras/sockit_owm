@@ -63,7 +63,9 @@
 #include "sockit_owm_regs.h"
 #include "sockit_owm.h"
 
-#ifndef SOCKIT_OWM_PULING
+extern sockit_owm_state sockit_owm;
+
+#ifndef SOCKIT_OWM_POLLING
 
 //////////////////////////////////////////////////////////////////////////////
 // interrupt implementation
@@ -75,10 +77,10 @@ static void sockit_owm_irq ();
 static void sockit_owm_irq (alt_u32 id);
 #endif
 
-svoid sockit_owm_init (alt_u32 irq)
+void sockit_owm_init (alt_u32 irq)
 {
   int error;
-  // initialise semaphore for transfer locking
+  // initialize semaphore for transfer locking
   error = ALT_FLAG_CREATE (sockit_owm.irq, 0) || 
           ALT_SEM_CREATE  (sockit_owm.trn, 1);
 
@@ -101,14 +103,14 @@ static void sockit_owm_irq(void * state, alt_u32 id)
 #endif
 {
   // clear onewire interrupts
-  reg = IORD_SOCKIT_OWM (sockit_owm.base);
+  IORD_SOCKIT_OWM (sockit_owm.base);
   // set the flag indicating a completed transfer
   ALT_FLAG_POST (sockit_owm.irq, 0x1, OS_FLAG_SET);
 }
 #else
 
 //////////////////////////////////////////////////////////////////////////////
-// pulling implementation
+// polling implementation
 //////////////////////////////////////////////////////////////////////////////
 
 #endif

@@ -90,7 +90,7 @@ typedef struct sockit_owm_state_s
   alt_u32          pwr;             // Power status
   // OS multitasking features
 //ALT_FLAG_GRP    (srx)             // receive event flag
-#ifdef UCOSII
+#ifdef UCOS_II
   ALT_FLAG_GRP    (irq)             // transmit event flag
   ALT_SEM         (trn)             // transfer lock semaphore
 #else
