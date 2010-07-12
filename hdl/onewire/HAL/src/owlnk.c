@@ -39,6 +39,7 @@
 #include "ownet.h"
 #include "sockit_owm_regs.h"
 #include "sockit_owm.h"
+#include <time.h>
 
 extern sockit_owm_state sockit_owm;
 
@@ -93,6 +94,7 @@ SMALLINT owTouchReset(int portnum)
 #ifdef UCOS_II
    ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
 #else
+   sockit_owm.irq = 0;
    while (!sockit_owm.irq);
 #endif
    reg = IORD_SOCKIT_OWM (sockit_owm.base);
@@ -129,14 +131,43 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
 {
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
+
+#ifndef SOCKIT_OWM_POLLING
+#ifdef UCOS_II
+   // lock transfer
+   ALT_SEM_PEND (sockit_owm.trn, 0);
+#endif
+#endif
+
    // write RST
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr  << SOCKIT_OWM_POWER_OFST)
 		                           | (portnum         << SOCKIT_OWM_SEL_OFST)
+                                   | (sockit_owm.ena  << SOCKIT_OWM_ETX_OFST)
 		                           | (ovd             << SOCKIT_OWM_OVD_OFST)
 		                           | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
+
+#ifndef SOCKIT_OWM_POLLING
+   // wait for irq to set the transfer end flag
+#ifdef UCOS_II
+   ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
+#else
+   sockit_owm.irq = 0;
+   while (!sockit_owm.irq);
+#endif
+   reg = IORD_SOCKIT_OWM (sockit_owm.base);
+#else
    // wait for STX (end of transfer cycle)
    while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
-   // return DRX (presence detect)
+#endif
+
+#ifndef SOCKIT_OWM_POLLING
+#ifdef UCOS_II
+   // release transfer lock
+   ALT_SEM_POST (sockit_owm.trn);
+#endif
+#endif
+
+   // return DRX (read bit)
    return (reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
 }
 
@@ -268,8 +299,7 @@ SMALLINT owProgramPulse(int portnum)
 //
 void msDelay(int len)
 {
-   // TODO: place a system (Altera+uCOSII) delay here if possible
-   // usleep (1000*len);
+#if 1
    int i;
    for (i=0; i<len; i++) {
       // create a 960us pause
@@ -279,6 +309,10 @@ void msDelay(int len)
       // wait for STX (end of transfer cycle)
       while (!(IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK));
    }
+#else
+   // Altera HAL us delay
+   usleep (1000*len);
+#endif
 }
 
 //--------------------------------------------------------------------------

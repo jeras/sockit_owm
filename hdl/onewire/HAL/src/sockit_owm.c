@@ -81,7 +81,7 @@ void sockit_owm_init (alt_u32 irq)
 {
   int error;
   // initialize semaphore for transfer locking
-  error = ALT_FLAG_CREATE (sockit_owm.irq, 0) || 
+  error = ALT_FLAG_CREATE (sockit_owm.irq, 0) ||
           ALT_SEM_CREATE  (sockit_owm.trn, 1);
 
   if (!error) {
@@ -104,8 +104,13 @@ static void sockit_owm_irq(void * state, alt_u32 id)
 {
   // clear onewire interrupts
   IORD_SOCKIT_OWM (sockit_owm.base);
+#ifdef UCOS_II
   // set the flag indicating a completed transfer
   ALT_FLAG_POST (sockit_owm.irq, 0x1, OS_FLAG_SET);
+#else
+  // set the global variable indication a completed transfer
+  sockit_owm.irq = 1;
+#endif
 }
 #else
 
