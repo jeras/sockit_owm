@@ -299,16 +299,41 @@ SMALLINT owProgramPulse(int portnum)
 //
 void msDelay(int len)
 {
-   // TODO: provide BSP MACRO and add OS ind irq related code
-#if SOCKIT_OWM_HW_DLY
+#if 1
    int i;
+
+#ifndef SOCKIT_OWM_POLLING
+#ifdef UCOS_II
+   // lock transfer
+   ALT_SEM_PEND (sockit_owm.trn, 0);
+#endif
+#endif
+
    for (i=0; i<len; i++) {
       // create a 960us pause
       IOWR_SOCKIT_OWM (sockit_owm.base, ( sockit_owm.pwr        << SOCKIT_OWM_POWER_OFST)
+                                      | ( sockit_owm.ena        << SOCKIT_OWM_ETX_OFST)
                                       | ((sockit_owm.pwr & 0x1) << SOCKIT_OWM_PWR_OFST)
                                       |                            SOCKIT_OWM_DLY_MSK);
-      // wait for STX (end of transfer cycle)
-      while (!(IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_STX_MSK));
+#ifndef SOCKIT_OWM_POLLING
+   // wait for irq to set the transfer end flag
+#ifdef UCOS_II
+   ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
+#else
+   sockit_owm.irq = 0;
+   while (!sockit_owm.irq);
+#endif
+#else
+   // wait for STX (end of transfer cycle)
+   while (!((IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
+#endif
+
+#ifndef SOCKIT_OWM_POLLING
+#ifdef UCOS_II
+   // release transfer lock
+   ALT_SEM_POST (sockit_owm.trn);
+#endif
+#endif
    }
 #else
    // Altera HAL us delay
