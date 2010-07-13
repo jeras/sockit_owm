@@ -125,10 +125,10 @@ extern void sockit_owm_init(alt_u32 irq);
  * alt_sys_init.c to initialize an instance of the device driver state.
  *
  * This macro performs a sanity check to ensure that the interrupt has been
- * connected for this device. If not, then an apropriate error message is
+ * connected for this device. If not, then an appropriate error message is
  * generated at build time.
  */
-
+#ifndef SOCKIT_OWM_POLLING
 #define SOCKIT_OWM_INIT(name, state)                                       \
   if (name##_IRQ == ALT_IRQ_NOT_CONNECTED)                                 \
   {                                                                        \
@@ -145,6 +145,9 @@ extern void sockit_owm_init(alt_u32 irq);
   {                                                                        \
     sockit_owm_init(name##_IRQ);                                           \
   }
+#else
+#define SOCKIT_OWM_INIT(name, state)
+#endif
 
 #ifdef __cplusplus
 }
