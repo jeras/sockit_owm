@@ -299,7 +299,7 @@ SMALLINT owProgramPulse(int portnum)
 //
 void msDelay(int len)
 {
-#if 1
+#if SOCKIT_OWM_HW_DLY
    int i;
 
 #ifndef SOCKIT_OWM_POLLING
