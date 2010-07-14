@@ -34,8 +34,10 @@
 
 #define SOCKIT_OWM_DAT_MSK             (0x01)        // data bit
 #define SOCKIT_OWM_DAT_OFST            (0)
-#define SOCKIT_OWM_RST_MSK             (0x02)        // reset
+#define SOCKIT_OWM_RST_MSK             (0x02)        // reset (write only)
 #define SOCKIT_OWM_RST_OFST            (1)
+#define SOCKIT_OWM_TRN_MSK             (0x02)        // transfer (read only)
+#define SOCKIT_OWM_TRN_OFST            (1)
 #define SOCKIT_OWM_OVD_MSK             (0x04)        // overdrive
 #define SOCKIT_OWM_OVD_OFST            (2)
 #define SOCKIT_OWM_PWR_MSK             (0x08)        // power (strong pull-up)

@@ -80,9 +80,9 @@ reg [CDW-1:0] div;
 //end endgenerate
 wire          pls;
 
-// state counter
-reg           run;
-reg     [6:0] cnt;
+// transfer control
+reg           owr_trn;  // transfer status
+reg     [6:0]     cnt;  // transfer counter
 
 // port select
 //generate if (OWN>1) begin : sel_declaration
@@ -90,9 +90,9 @@ reg [SDW-1:0] owr_sel;
 //end endgenerate
 
 // onewire signals
+reg [OWN-1:0] owr_pwr;  // power
 reg           owr_ovd;  // overdrive
 reg           owr_rst;  // reset
-reg [OWN-1:0] owr_pwr;  // power
 reg           owr_dtx;  // data bit transmit
 reg           owr_drx;  // data bit receive
 
@@ -114,10 +114,10 @@ reg           irq_srx;  // interrupt status receive
 generate if (OWN>1) begin : sel_readdata
   assign bus_readdata = {{BDW-OWN-16{1'b0}}, owr_pwr, {8-SDW{1'b0}}, owr_sel,
                          irq_erx, irq_etx, irq_srx, irq_stx,
-                         owr_p  , owr_ovd, owr_rst, owr_drx};
+                         owr_p  , owr_ovd, owr_trn, owr_drx};
 end else begin
   assign bus_readdata = {irq_erx, irq_etx, irq_srx, irq_stx,
-                         owr_p  , owr_ovd, owr_rst, owr_drx};
+                         owr_p  , owr_ovd, owr_trn, owr_drx};
 end endgenerate
 
 generate if (OWN>1) begin : sel_implementation
@@ -175,7 +175,7 @@ generate if (CDR>1) begin : div_implementation
   if (rst)          div <= 'd0;
   else begin
     if (bus_write)  div <= 'd0;
-    else            div <= pls ? 'd0 : div + run;
+    else            div <= pls ? 'd0 : div + owr_trn;
   end
   // divided clock pulse
   assign pls = (div == (owr_ovd ? CDR/10 : CDR) - 1);
@@ -193,12 +193,12 @@ always @ (posedge clk, posedge rst)
 if (rst)             {owr_ovd, owr_rst, owr_dtx} <= 4'b0000;     
 else if (bus_write)  {owr_ovd, owr_rst, owr_dtx} <= bus_writedata[2:0]; 
 
-// avalon run status
+// onewire transfer status
 always @ (posedge clk, posedge rst)
-if (rst)                        run <= 1'b0;
+if (rst)                        owr_trn <= 1'b0;
 else begin
-  if (bus_write)                run <= ~&bus_writedata[2:0];
-  else if (pls & (cnt == 'd0))  run <= 1'b0;
+  if (bus_write)                owr_trn <= ~&bus_writedata[2:0];
+  else if (pls & (cnt == 'd0))  owr_trn <= 1'b0;
 end
 
 // state counter (initial value depends whether the cycle is reset or data)

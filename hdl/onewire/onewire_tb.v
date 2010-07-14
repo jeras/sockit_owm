@@ -97,31 +97,31 @@ initial begin
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00000010, data);
-  avalon_pulling (8, 0);
+  avalon_pulling (8);
   // write '0'
   avalon_cycle (1, 0, 4'hf, 32'b00000000, data);
-  avalon_pulling (8, 0);
+  avalon_pulling (8);
   // write '1'
   avalon_cycle (1, 0, 4'hf, 32'b00000001, data);
-  avalon_pulling (8, 0);
+  avalon_pulling (8);
 
   // switch to overdrive mode
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00000110, data);
-  avalon_pulling (8, 0);
+  avalon_pulling (8);
   // write '0'
   avalon_cycle (1, 0, 4'hf, 32'b00000100, data);
-  avalon_pulling (8, 0);
+  avalon_pulling (8);
   // write '1'
   avalon_cycle (1, 0, 4'hf, 32'b00000101, data);
-  avalon_pulling (8, 0);
+  avalon_pulling (8);
 
   // test power supply
 
   // generate a delay pulse with power supply enabled
   avalon_cycle (1, 0, 4'hf, 32'h00010003, data);
-  avalon_pulling (8, 0);
+  avalon_pulling (8);
 
   // test breaking a delay sequence with an idle transfer
 
@@ -137,10 +137,10 @@ initial begin
 end
 
 // wait for the onewire cycle completion
-task avalon_pulling (input integer d, n);
+task avalon_pulling (input integer d);
 begin
-  data = 32'd0;
-  while (!(data & 32'h10)) begin
+  data = 32'h02;
+  while (data & 32'h02) begin
     repeat (d) @ (posedge clk);
     avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
   end

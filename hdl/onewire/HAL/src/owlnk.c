@@ -25,7 +25,7 @@
 //---------------------------------------------------------------------------
 //
 //  TODO.C - Link Layer functions required by general 1-Wire drive
-//           implimentation.  Fill in the platform specific code.
+//           implementation.  Fill in the platform specific code.
 //
 //  Version: 3.00
 //
@@ -39,7 +39,7 @@
 #include "ownet.h"
 #include "sockit_owm_regs.h"
 #include "sockit_owm.h"
-#include <time.h>
+#include <unistd.h>
 
 extern sockit_owm_state sockit_owm;
 
@@ -75,12 +75,8 @@ SMALLINT owTouchReset(int portnum)
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
 
-#ifndef SOCKIT_OWM_POLLING
-#ifdef UCOS_II
    // lock transfer
    ALT_SEM_PEND (sockit_owm.trn, 0);
-#endif
-#endif
 
    // write RST
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
@@ -89,26 +85,13 @@ SMALLINT owTouchReset(int portnum)
                                    | (ovd            << SOCKIT_OWM_OVD_OFST)
                                    |                    SOCKIT_OWM_RST_MSK);
 
-#ifndef SOCKIT_OWM_POLLING
    // wait for irq to set the transfer end flag
-#ifdef UCOS_II
    ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
-#else
-   sockit_owm.irq = 0;
-   while (!sockit_owm.irq);
-#endif
-   reg = IORD_SOCKIT_OWM (sockit_owm.base);
-#else
-   // wait for STX (end of transfer cycle)
-   while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
-#endif
+   // wait for STX (end of transfer cycle) and read the presence status
+   while ((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_TRN_MSK);
 
-#ifndef SOCKIT_OWM_POLLING
-#ifdef UCOS_II
    // release transfer lock
    ALT_SEM_POST (sockit_owm.trn);
-#endif
-#endif
 
    // return DRX (presence detect)
    return (~reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
@@ -132,12 +115,8 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
    int reg;
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
 
-#ifndef SOCKIT_OWM_POLLING
-#ifdef UCOS_II
    // lock transfer
    ALT_SEM_PEND (sockit_owm.trn, 0);
-#endif
-#endif
 
    // write RST
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr  << SOCKIT_OWM_POWER_OFST)
@@ -146,26 +125,13 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
                                    | (ovd             << SOCKIT_OWM_OVD_OFST)
                                    | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
 
-#ifndef SOCKIT_OWM_POLLING
    // wait for irq to set the transfer end flag
-#ifdef UCOS_II
    ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
-#else
-   sockit_owm.irq = 0;
-   while (!sockit_owm.irq);
-#endif
-   reg = IORD_SOCKIT_OWM (sockit_owm.base);
-#else
-   // wait for STX (end of transfer cycle)
-   while (!((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
-#endif
+   // wait for STX (end of transfer cycle) and read the read data bit
+   while ((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_TRN_MSK);
 
-#ifndef SOCKIT_OWM_POLLING
-#ifdef UCOS_II
    // release transfer lock
    ALT_SEM_POST (sockit_owm.trn);
-#endif
-#endif
 
    // return DRX (read bit)
    return (reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
@@ -302,12 +268,8 @@ void msDelay(int len)
 #if SOCKIT_OWM_HW_DLY
    int i;
 
-#ifndef SOCKIT_OWM_POLLING
-#ifdef UCOS_II
    // lock transfer
    ALT_SEM_PEND (sockit_owm.trn, 0);
-#endif
-#endif
 
    for (i=0; i<len; i++) {
       // create a 960us pause
@@ -315,29 +277,23 @@ void msDelay(int len)
                                       | ( sockit_owm.ena        << SOCKIT_OWM_ETX_OFST)
                                       | ((sockit_owm.pwr & 0x1) << SOCKIT_OWM_PWR_OFST)
                                       |                            SOCKIT_OWM_DLY_MSK);
-#ifndef SOCKIT_OWM_POLLING
-   // wait for irq to set the transfer end flag
-#ifdef UCOS_II
-   ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
-#else
-   sockit_owm.irq = 0;
-   while (!sockit_owm.irq);
-#endif
-#else
-   // wait for STX (end of transfer cycle)
-   while (!((IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_STX_MSK));
-#endif
 
-#ifndef SOCKIT_OWM_POLLING
-#ifdef UCOS_II
-   // release transfer lock
-   ALT_SEM_POST (sockit_owm.trn);
-#endif
-#endif
+     // wait for irq to set the transfer end flag
+     ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
+     // wait for STX (end of transfer cycle)
+     while (IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_TRN_MSK);
+
+     // release transfer lock
+     ALT_SEM_POST (sockit_owm.trn);
    }
+#else
+#ifdef UCOS_II
+   // uCOS-II timed delay
+   OSTimeDlyHMSM(0,0,0,len);
 #else
    // Altera HAL us delay
    usleep (1000*len);
+#endif
 #endif
 }
 
@@ -347,8 +303,13 @@ void msDelay(int len)
 //
 long msGettick(void)
 {
+#ifdef UCOS_II
+   // uCOS-II tick counter
+	OSTimeGet();
+#else
    // TODO add platform specific code here
    return 0;
+#endif
 }
 
 //--------------------------------------------------------------------------

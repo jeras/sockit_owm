@@ -35,7 +35,7 @@
 #include "temp10.h"
 
 //----------------------------------------------------------------------
-// Read the temperature of a DS1920/DS1820
+// Read the temperature of a DS18B20
 //
 // 'portnum'     - number 0 to MAX_PORTNUM-1.  This number was provided to
 //                 OpenCOM to indicate the port number.
@@ -52,7 +52,6 @@ int ReadTemperature(int portnum, uchar *SerialNum, float *Temp)
    uchar rt=FALSE;
    uchar send_block[30],lastcrc8;
    int send_cnt, tsht, i, loop=0;
-   float tmp,cr,cpc;
 
    // set the device serial number to the counter device
    owSerialNum(portnum,SerialNum,FALSE);
@@ -87,7 +86,7 @@ int ReadTemperature(int portnum, uchar *SerialNum, float *Temp)
             // now send the block
             if (owBlock(portnum,FALSE,send_block,send_cnt))
             {
-               // initialize the CRC8 
+               // initialize the CRC8
                setcrc8(portnum,0);
                // perform the CRC8 on the last 8 bytes of packet
                for (i = send_cnt - 9; i < send_cnt; i++)
@@ -97,20 +96,11 @@ int ReadTemperature(int portnum, uchar *SerialNum, float *Temp)
                if (lastcrc8 == 0x00)
                {
                   // calculate the high-res temperature
-                  tsht = send_block[1]/2;
-                  if (send_block[2] & 0x01)
-                     tsht |= -128;
-                  tmp = (float)(tsht);
-                  cr = send_block[7];
-                  cpc = send_block[8];
-                  if (((cpc - cr) == 1) && (loop == 0))
-                     continue;
-                  if (cpc == 0)
-                     return FALSE;
-                  else
-                     tmp = tmp - (float)0.25 + (cpc - cr)/cpc;
-
-                  *Temp = tmp;
+            	  tsht =        send_block[2] << 8;
+            	  tsht = tsht | send_block[1];
+            	  if (tsht & 0x00001000)
+            		  tsht = tsht | 0xffff0000;
+                  *Temp = ((float) tsht)/16;
                   // success
                   rt = TRUE;
                   break;

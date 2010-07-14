@@ -90,13 +90,8 @@ typedef struct sockit_owm_state_s
   alt_u32          pwr;             // Power status
   // OS multitasking features
 //ALT_FLAG_GRP    (srx)             // receive event flag
-#ifdef UCOS_II
   ALT_FLAG_GRP    (irq)             // transmit event flag
   ALT_SEM         (trn)             // transfer lock semaphore
-#else
-  alt_u32          irq;             // transmit event flag
-  alt_u32          trn;             // transfer lock semaphore
-#endif
 } sockit_owm_state;
 
 /*
@@ -106,14 +101,14 @@ typedef struct sockit_owm_state_s
  */
 
 #define SOCKIT_OWM_INSTANCE(name, state) \
-  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, 0, 0}; \
-  void* state = name##_BASE
+  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, 0, 0, 0, 0}; \
+  void* state = name##_BASE // TODO there is a warning to fix here
 /*
  * sockit_owm_init() is called by the auto-generated function
  * alt_sys_init() for each UART in the system. This is done using the
  * SOCKIT_OWM_INIT macro given below.
  *
- * This function is responsible for performing all the run time initilisation
+ * This function is responsible for performing all the run time initialization
  * for a device instance, i.e. registering the interrupt handler, and
  * regestering the device with the system.
  */
