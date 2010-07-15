@@ -199,27 +199,11 @@
          type = "boolean";
       }
    }
-   element timer.s1
+   element sdram.s1
    {
       datum baseAddress
       {
-         value = "25206816";
-         type = "long";
-      }
-   }
-   element pio_ledg.s1
-   {
-      datum baseAddress
-      {
-         value = "25206864";
-         type = "long";
-      }
-   }
-   element cfi_flash.s1
-   {
-      datum baseAddress
-      {
-         value = "20971520";
+         value = "8388608";
          type = "long";
       }
    }
@@ -228,6 +212,14 @@
       datum baseAddress
       {
          value = "25206784";
+         type = "long";
+      }
+   }
+   element pio_ledg.s1
+   {
+      datum baseAddress
+      {
+         value = "25206864";
          type = "long";
       }
    }
@@ -247,6 +239,14 @@
          type = "long";
       }
    }
+   element timer.s1
+   {
+      datum baseAddress
+      {
+         value = "25206816";
+         type = "long";
+      }
+   }
    element pio_7seg.s1
    {
       datum baseAddress
@@ -255,19 +255,19 @@
          type = "long";
       }
    }
+   element cfi_flash.s1
+   {
+      datum baseAddress
+      {
+         value = "20971520";
+         type = "long";
+      }
+   }
    element pio_ledr.s1
    {
       datum baseAddress
       {
          value = "25206880";
-         type = "long";
-      }
-   }
-   element sdram.s1
-   {
-      datum baseAddress
-      {
-         value = "8388608";
          type = "long";
       }
    }
@@ -374,7 +374,7 @@
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
  <parameter name="sopcBorderPoints" value="true" />
  <parameter name="systemHash" value="30174377340" />
- <parameter name="timeStamp" value="1279147258411" />
+ <parameter name="timeStamp" value="1279179086896" />
  <module kind="clock_source" version="10.0" enabled="1" name="clk">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -621,7 +621,7 @@
    name="tri_state_bridge_flash">
   <parameter name="registerIncomingSignals" value="true" />
  </module>
- <module kind="sockit_owm" version="0.9" enabled="1" name="onewire">
+ <module kind="sockit_owm" version="1.0" enabled="1" name="onewire">
   <parameter name="CDR" value="180" />
   <parameter name="OWN" value="1" />
   <parameter name="BDW" value="32" />

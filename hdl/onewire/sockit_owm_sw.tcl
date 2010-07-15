@@ -8,14 +8,14 @@ create_driver sockit_owm_driver
 # Association with hardware
 set_sw_property hw_class_name sockit_owm
 
-# Pre release driver version
-set_sw_property version 0.9
+# Driver version
+set_sw_property version 1.0
 
 # This driver is proclaimed to be compatible with sockit_owm hardware
 # as old as version "1.0". If the hardware component  version number is not
 # equal or greater than the min_compatable_hw_version number, the driver 
 # source files will not be copied over to the BSP drivers subdirectory
-set_sw_property min_compatible_hw_version 0.8
+set_sw_property min_compatible_hw_version 1.0
 
 # Interrupt properties: This driver supports both legacy and enhanced
 # interrupt APIs, as well as ISR preemption.
@@ -54,26 +54,11 @@ add_sw_property       c_source HAL/src/findtype.c
 add_sw_property supported_bsp_type HAL
 add_sw_property supported_bsp_type UCOSII
 
-# Add the following per_driver configuration option to the BSP:
-#  o Type of setting (boolean_define_only translates to "either
-#    emit a #define if true, or don't if false"). Useful for
-#    source code with "#ifdef" style build-options.
-#  o Generated file to write to (public_mk_define -> public.mk)
-#  o Name of setting for use with bsp command line settings tools
-#    (enable_small_driver). This name will be combined with the
-#    driver class to form a settings hierarchy to assure unique
-#    settings names
-#  o '#define' in driver code (and therefore string in generated
-#     makefile): "SOCKIT_OWM_SMALL", which means: "emit
-#     CPPFLAGS += SOCKIT_OWM_SMALL in generated makefile
-#  o Default value (if the user doesn't specify at BSP creation): false
-#    (which means: 'do not emit above CPPFLAGS string in generated makefile)
-#  o Description text
+# Driver configuration options
 add_sw_setting boolean_define_only public_mk_define enable_polling_driver SOCKIT_OWM_POLLING false "Small-footprint (polled mode) driver"
 add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_HW_DLY  false "Mili second delay implemented in hardware"
 
-# Add per-driver configuration option for optional IOCTL functionality in
-# UART driver.
+# Enable application layer code
 #add_sw_setting boolean_define_only public_mk_define enable_A SOCKIT_OWM_A false "Enable driver A"
 
 # End of file

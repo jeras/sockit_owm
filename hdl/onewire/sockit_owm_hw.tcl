@@ -8,11 +8,11 @@ package require -exact sopc 9.1
 # module sockit_owm
 set_module_property DESCRIPTION "1-wire (onewire) master"
 set_module_property NAME sockit_owm
-set_module_property VERSION 0.9
+set_module_property VERSION 1.0
 set_module_property INTERNAL false
 set_module_property GROUP "Interface Protocols/Serial"
 set_module_property AUTHOR "Iztok Jeras"
-set_module_property DISPLAY_NAME "onewire (1-wire)"
+set_module_property DISPLAY_NAME "1-wire (onewire)"
 set_module_property TOP_LEVEL_HDL_FILE sockit_owm.v
 set_module_property TOP_LEVEL_HDL_MODULE sockit_owm
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
