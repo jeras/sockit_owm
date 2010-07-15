@@ -102,7 +102,7 @@ typedef struct sockit_owm_state_s
 
 #define SOCKIT_OWM_INSTANCE(name, state) \
   sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, 0, 0, 0, 0}; \
-  void* state = name##_BASE // TODO there is a warning to fix here
+  void* state = (void*) name##_BASE
 /*
  * sockit_owm_init() is called by the auto-generated function
  * alt_sys_init() for each UART in the system. This is done using the
