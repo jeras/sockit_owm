@@ -223,11 +223,11 @@
          type = "long";
       }
    }
-   element onchip_ram.s1
+   element cfi_flash.s1
    {
       datum baseAddress
       {
-         value = "25182208";
+         value = "20971520";
          type = "long";
       }
    }
@@ -239,14 +239,6 @@
          type = "long";
       }
    }
-   element timer.s1
-   {
-      datum baseAddress
-      {
-         value = "25206816";
-         type = "long";
-      }
-   }
    element pio_7seg.s1
    {
       datum baseAddress
@@ -255,11 +247,19 @@
          type = "long";
       }
    }
-   element cfi_flash.s1
+   element timer.s1
    {
       datum baseAddress
       {
-         value = "20971520";
+         value = "25206816";
+         type = "long";
+      }
+   }
+   element onchip_ram.s1
+   {
+      datum baseAddress
+      {
+         value = "25182208";
          type = "long";
       }
    }
@@ -374,7 +374,7 @@
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
  <parameter name="sopcBorderPoints" value="true" />
  <parameter name="systemHash" value="30174377340" />
- <parameter name="timeStamp" value="1279179086896" />
+ <parameter name="timeStamp" value="1280079621156" />
  <module kind="clock_source" version="10.0" enabled="1" name="clk">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />

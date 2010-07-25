@@ -114,10 +114,10 @@ reg           irq_srx;  // interrupt status receive
 generate if (OWN>1) begin : sel_readdata
   assign bus_readdata = {{BDW-OWN-16{1'b0}}, owr_pwr, {8-SDW{1'b0}}, owr_sel,
                          irq_erx, irq_etx, irq_srx, irq_stx,
-                         owr_p  , owr_ovd, owr_trn, owr_drx};
+                         owr_i  , owr_ovd, owr_trn, owr_drx};
 end else begin
   assign bus_readdata = {irq_erx, irq_etx, irq_srx, irq_stx,
-                         owr_p  , owr_ovd, owr_trn, owr_drx};
+                         owr_i  , owr_ovd, owr_trn, owr_drx};
 end endgenerate
 
 generate if (OWN>1) begin : sel_implementation
@@ -145,7 +145,7 @@ always @ (posedge clk, posedge rst)
 if (rst)             {irq_erx, irq_etx} <= 2'b00;     
 else if (bus_write)  {irq_erx, irq_etx} <= bus_writedata[7:6]; 
 
-// transmit status
+// transmit status (active after onewire transfer cycle ends)
 always @ (posedge clk, posedge rst)
 if (rst)                        irq_stx <= 1'b0;
 else begin
@@ -154,20 +154,23 @@ else begin
   else if (bus_read)            irq_stx <= 1'b0;
 end
 
-// receive status
+// receive status (active after wire sampling point inside the transfer cycle)
 always @ (posedge clk, posedge rst)
 if (rst)                   irq_srx <= 1'b0;
 else begin
   if (bus_write)           irq_srx <= 1'b0;
   else if (pls) begin
-    if      (cnt == 'd54)  irq_srx <=  owr_rst & ~owr_dtx;
-    else if (cnt == 'd07)  irq_srx <= ~owr_rst &  owr_dtx;
+    if      (cnt == 'd54)  irq_srx <=  owr_rst & ~owr_dtx;  // presence detect
+    else if (cnt == 'd07)  irq_srx <= ~owr_rst &  owr_dtx;  // read data bit
   end else if (bus_read)   irq_srx <= 1'b0;
 end
 
 //////////////////////////////////////////////////////////////////////////////
 // clock divider
 //////////////////////////////////////////////////////////////////////////////
+
+// clock division ration depends on overdrive mode status,
+// at the same time overdrive works properly only if CDR is a multiple of 10
 
 generate if (CDR>1) begin : div_implementation
   // clock divider
@@ -185,7 +188,7 @@ end else begin
 end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
-// onewire
+// onewire state machine
 //////////////////////////////////////////////////////////////////////////////
 
 // transmit data, reset, overdrive
@@ -209,22 +212,22 @@ else begin
   else if (pls)   cnt <= cnt - 1;
 end
 
-// receive data
+// receive data (sampling point depends whether the cycle is reset or data)
 always @ (posedge clk)
 if (pls) begin
-  if      ( owr_rst & (cnt == 'd54))  owr_drx <= owr_i;
-  else if (~owr_rst & (cnt == 'd07))  owr_drx <= owr_i;
+  if      ( owr_rst & (cnt == 'd54))  owr_drx <= owr_i;  // presence detect
+  else if (~owr_rst & (cnt == 'd07))  owr_drx <= owr_i;  // read data bit
 end
 
-// output register
+// output register (switch point depends whether the cycle is reset or data)
 always @ (posedge clk, posedge rst)
 if (rst)                              owr_oen <= 1'b0;
 else begin
   if (bus_write)                      owr_oen <= ~&bus_writedata[1:0];
   else if (pls) begin
-    if      (owr_rst & (cnt == 'd64)) owr_oen <= 1'b0;
-    else if (owr_dtx & (cnt == 'd08)) owr_oen <= 1'b0;
-    else if (          (cnt == 'd01)) owr_oen <= 1'b0;
+    if      (owr_rst & (cnt == 'd64)) owr_oen <= 1'b0;  // reset
+    else if (owr_dtx & (cnt == 'd08)) owr_oen <= 1'b0;  // write 0
+    else if (          (cnt == 'd01)) owr_oen <= 1'b0;  // write 1, read
   end
 end
 
@@ -232,9 +235,12 @@ end
 // IO
 //////////////////////////////////////////////////////////////////////////////
 
+// only one 1-wire line cn be accessed at the same time
 assign onewire_e = owr_oen << owr_sel;
+// all 1-wire lines can be powered independently
 assign onewire_p = owr_pwr;
 
+// 1-wire line status read multiplexer
 assign owr_i = onewire_i [owr_sel];
 assign owr_p = onewire_p [owr_sel];
 
