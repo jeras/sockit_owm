@@ -27,9 +27,14 @@
 module onewire_tb;
 
 // system clock parameters
-localparam real FRQ =  4_000_000;      // 24MHz // realistic option
-localparam real CP  = 1000000000/FRQ;  // clock period
-localparam      CDR = 7500/CP;         // divider number
+localparam real FRQ   =  4_000_000;     // 24MHz // realistic option
+localparam real CP    = 1*(10**9)/FRQ;  // clock period
+
+localparam      MTP_N = 7500;           // divider number normal mode
+localparam      MTP_O =  750;           // divider number overdrive mode
+
+localparam      CDR_N = MTP_N / CP;     // divider number normal mode
+localparam      CDR_O = MTP_O / CP;     // divider number overdrive mode
 
 // onewire parameters
 localparam OWN = 3;      // number of ports
@@ -186,7 +191,8 @@ assign avalon_waitrequest = 1'b0;
 //////////////////////////////////////////////////////////////////////////////
 
 sockit_owm #(
-  .CDR            (CDR),
+  .CDR_N          (CDR_N),
+  .CDR_O          (CDR_O),
   .OWN            (OWN)
 ) onewire_master (
   // system

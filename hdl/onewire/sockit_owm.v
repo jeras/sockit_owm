@@ -35,8 +35,8 @@
 // CLK = CDR * (400/3)kHz = CDR * 133kHz                                    //
 //                                                                          //
 // If overdrive is needed than the additional restriction is that CDR must  //
-// be divisible by 10. This limits the system clock to multiples of 1.3MHz. //
-// CLK = CDR * (4/3)MHz = CDR * 1,33MHz                                     //
+// be divisible by 8. This limits the system clock to multiples of 1067kHz. //
+// CLK = CDR * (400*8/3)kHz = CDR * 1067kHz                                 //
 //                                                                          //
 // TODO: if the system clock requirements can not be met, it is possible to //
 // recode the state machine to use 6us reference periods, this way a better //
@@ -45,7 +45,13 @@
 //////////////////////////////////////////////////////////////////////////////
 
 module sockit_owm #(
-  parameter CDR = 10,  // clock cycles per bit (7.5us)
+  // master time period
+  parameter MTP_N = 7500,  // normal    mode (7.5us)
+  parameter MTP_O = 1000,  // overdrive mode (1.0us)
+  // clock divider ratios
+  parameter CDR_N =    8,  // normal    mode
+  parameter CDR_O =    1,  // overdrive mode
+  // interface parameters
   parameter BDW = 32,  // bus data width
   parameter OWN = 1    // number of 1-wire ports
 )(
@@ -68,8 +74,8 @@ module sockit_owm #(
 // local signals
 //////////////////////////////////////////////////////////////////////////////
 
-// size of boudrate generator counter
-localparam CDW = $clog2(CDR);
+// size of boudrate generator counter (divider for normal mode is largest)
+localparam CDW = $clog2(CDR_N);
 
 // size of port select signal
 localparam SDW = $clog2(OWN);
@@ -170,9 +176,9 @@ end
 //////////////////////////////////////////////////////////////////////////////
 
 // clock division ration depends on overdrive mode status,
-// at the same time overdrive works properly only if CDR is a multiple of 10
+// at the same time overdrive works properly only if CDR is a multiple of 8
 
-generate if (CDR>1) begin : div_implementation
+generate if ((CDR_N>1) | (CDR_O>1)) begin : div_implementation
   // clock divider
   always @ (posedge clk, posedge rst)
   if (rst)          div <= 'd0;
@@ -181,7 +187,7 @@ generate if (CDR>1) begin : div_implementation
     else            div <= pls ? 'd0 : div + owr_trn;
   end
   // divided clock pulse
-  assign pls = (div == (owr_ovd ? CDR/10 : CDR) - 1);
+  assign pls = (div == (owr_ovd ? CDR_O : CDR_N) - 1);
 end else begin
   // clock period is same as the onewire period
   assign pls = 1'b1;
