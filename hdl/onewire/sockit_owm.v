@@ -45,6 +45,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 module sockit_owm #(
+  // implementation of overdrive enable
+  parameter OEN   =    1,  // overdrive functionality is implemented by default
   // master time period
   parameter MTP_N = 7500,  // normal    mode (7.5us)
   parameter MTP_O = 1000,  // overdrive mode (1.0us)
@@ -52,8 +54,8 @@ module sockit_owm #(
   parameter CDR_N =    8,  // normal    mode
   parameter CDR_O =    1,  // overdrive mode
   // interface parameters
-  parameter BDW = 32,  // bus data width
-  parameter OWN = 1    // number of 1-wire ports
+  parameter BDW   =   32,  // bus data width
+  parameter OWN   =    1   // number of 1-wire ports
 )(
   // system signals
   input            clk,
@@ -71,7 +73,7 @@ module sockit_owm #(
 );
 
 //////////////////////////////////////////////////////////////////////////////
-// local signals
+// local parameters
 //////////////////////////////////////////////////////////////////////////////
 
 // size of boudrate generator counter (divider for normal mode is largest)
@@ -79,6 +81,30 @@ localparam CDW = $clog2(CDR_N);
 
 // size of port select signal
 localparam SDW = $clog2(OWN);
+
+// normal mode timing
+localparam T_RSTH_N = 64;  // reset high
+localparam T_RSTL_N = 64;  // reset low
+localparam T_RSTP_N = 10;  // reset presence pulse
+localparam T_BIT1_N =  1;  // bit 1 low
+localparam T_BIT0_N =  8;  // bit 0 low
+localparam T_BITS_N =  2;  // bit sample
+
+// overdrive mode timing
+localparam T_RSTH_O = 64;  // reset high
+localparam T_RSTL_O = 64;  // reset low
+localparam T_RSTP_O = 10;  // reset presence pulse
+localparam T_BIT1_O =  1;  // bit 1 low
+localparam T_BIT0_O =  8;  // bit 0 low
+localparam T_BITS_O =  2;  // bit sample
+
+// size of cycle timing counter
+localparam TDW =       (T_RSTH_O+T_RSTL_O) >       (T_RSTH_N+T_RSTL_N)
+               ? $clog2(T_RSTH_O+T_RSTL_O) : $clog2(T_RSTH_N+T_RSTL_N);
+
+//////////////////////////////////////////////////////////////////////////////
+// local signals
+//////////////////////////////////////////////////////////////////////////////
 
 // clock divider
 //generate if (CDR>1) begin : div_declaration
@@ -92,25 +118,78 @@ reg     [6:0]     cnt;  // transfer counter
 
 // port select
 //generate if (OWN>1) begin : sel_declaration
-reg [SDW-1:0] owr_sel;
+reg  [SDW-1:0] owr_sel;
 //end endgenerate
 
 // onewire signals
-reg [OWN-1:0] owr_pwr;  // power
-reg           owr_ovd;  // overdrive
-reg           owr_rst;  // reset
-reg           owr_dtx;  // data bit transmit
-reg           owr_drx;  // data bit receive
+reg  [OWN-1:0] owr_pwr;  // power
+reg            owr_ovd;  // overdrive
+reg            owr_rst;  // reset
+reg            owr_dtx;  // data bit transmit
+reg            owr_drx;  // data bit receive
 
-wire          owr_p;    // output
-reg           owr_oen;  // output enable
-wire          owr_i;    // input
+wire           owr_p;    // output
+reg            owr_oen;  // output enable
+wire           owr_i;    // input
 
 // interrupt signals
-reg           irq_etx;  // interrupt enable transmit
-reg           irq_erx;  // interrupt enable receive
-reg           irq_stx;  // interrupt status transmit
-reg           irq_srx;  // interrupt status receive
+reg            irq_etx;  // interrupt enable transmit
+reg            irq_erx;  // interrupt enable receive
+reg            irq_stx;  // interrupt status transmit
+reg            irq_srx;  // interrupt status receive
+
+// timing signals
+wire [TDW-1:0] t_zero;   // end of               cycle    time
+wire [TDW-1:0] t_rst ;   // reset                cycle    time
+wire [TDW-1:0] t_bit ;   // data bit transfer    cycle    time
+wire [TDW-1:0] t_rstp;   // reset presence pulse sampling time
+wire [TDW-1:0] t_bits;   // data bit transfer    sampling time
+wire [TDW-1:0] t_rsth;   // reset                release  time
+wire [TDW-1:0] t_bit0;   // data bit 0           release  time
+wire [TDW-1:0] t_bit1;   // data bit 1           release  time
+
+//////////////////////////////////////////////////////////////////////////////
+// cycle timing
+//////////////////////////////////////////////////////////////////////////////
+
+// end of            cycle time
+assign t_zero = 'd0;
+// reset             cycle time (reset low + reset hight)
+assign t_rst  = owr_ovd ? T_RSTL_O + T_RSTH_O       : T_RSTL_N + T_RSTH_N      ;
+// data bit transfer cycle time (write 0 + recovery)
+assign t_bit  = owr_ovd ? T_BIT0_O + 1              : T_BIT0_N + 1             ;
+
+// reset presence pulse sampling time (reset high - reset presence)
+assign t_rstp = owr_ovd ? T_RSTH_O - T_RSTP_O       : T_RSTH_N - T_RSTP_N      ;
+// data bit transfer    sampling time (write bit 0 - write bit 1 + recovery)
+assign t_bits = owr_ovd ? T_BIT0_O - T_BITS_O + 'd1 : T_BIT0_N - T_BITS_N + 'd1;
+
+// reset      release time (reset high)
+assign t_rsth = owr_ovd ? T_RSTH_O                  : T_RSTH_N                 ;
+// data bit 0 release time (write bit 0 - write bit 0 + recovery)
+assign t_bit0 = owr_ovd ? T_BIT0_O - T_BIT0_O + 'd1 : T_BIT0_N - T_BIT0_N + 'd1;
+// data bit 1 release time (write bit 0 - write bit 1 + recovery)
+assign t_bit1 = owr_ovd ? T_BIT0_O - T_BIT1_O + 'd1 : T_BIT0_N - T_BIT1_N + 'd1;
+
+//////////////////////////////////////////////////////////////////////////////
+// clock divider
+//////////////////////////////////////////////////////////////////////////////
+
+// clock division ratio depends on overdrive mode status,
+generate if ((CDR_N>1) | (CDR_O>1)) begin : div_implementation
+  // clock divider
+  always @ (posedge clk, posedge rst)
+  if (rst)          div <= 'd0;
+  else begin
+    if (bus_write)  div <= 'd0;
+    else            div <= pls ? 'd0 : div + owr_trn;
+  end
+  // divided clock pulse
+  assign pls = (div == (owr_ovd ? CDR_O : CDR_N) - 1);
+end else begin
+  // clock period is same as the onewire period
+  assign pls = 1'b1;
+end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
 // bus logic
@@ -153,87 +232,71 @@ else if (bus_write)  {irq_erx, irq_etx} <= bus_writedata[7:6];
 
 // transmit status (active after onewire transfer cycle ends)
 always @ (posedge clk, posedge rst)
-if (rst)                        irq_stx <= 1'b0;
+if (rst)                           irq_stx <= 1'b0;
 else begin
-  if (bus_write)                irq_stx <= 1'b0;
-  else if (pls & (cnt == 'd0))  irq_stx <= 1'b1;
-  else if (bus_read)            irq_stx <= 1'b0;
+  if (bus_write)                   irq_stx <= 1'b0;
+  else if (pls & (cnt == t_zero))  irq_stx <= 1'b1;
+  else if (bus_read)               irq_stx <= 1'b0;
 end
 
 // receive status (active after wire sampling point inside the transfer cycle)
 always @ (posedge clk, posedge rst)
-if (rst)                   irq_srx <= 1'b0;
+if (rst)                     irq_srx <= 1'b0;
 else begin
-  if (bus_write)           irq_srx <= 1'b0;
+  if (bus_write)             irq_srx <= 1'b0;
   else if (pls) begin
-    if      (cnt == 'd54)  irq_srx <=  owr_rst & ~owr_dtx;  // presence detect
-    else if (cnt == 'd07)  irq_srx <= ~owr_rst &  owr_dtx;  // read data bit
-  end else if (bus_read)   irq_srx <= 1'b0;
+    if      (cnt == t_rstp)  irq_srx <=  owr_rst & ~owr_dtx;  // presence detect
+    else if (cnt == t_bits)  irq_srx <= ~owr_rst &  owr_dtx;  // read data bit
+  end else if (bus_read)     irq_srx <= 1'b0;
 end
-
-//////////////////////////////////////////////////////////////////////////////
-// clock divider
-//////////////////////////////////////////////////////////////////////////////
-
-// clock division ration depends on overdrive mode status,
-// at the same time overdrive works properly only if CDR is a multiple of 8
-
-generate if ((CDR_N>1) | (CDR_O>1)) begin : div_implementation
-  // clock divider
-  always @ (posedge clk, posedge rst)
-  if (rst)          div <= 'd0;
-  else begin
-    if (bus_write)  div <= 'd0;
-    else            div <= pls ? 'd0 : div + owr_trn;
-  end
-  // divided clock pulse
-  assign pls = (div == (owr_ovd ? CDR_O : CDR_N) - 1);
-end else begin
-  // clock period is same as the onewire period
-  assign pls = 1'b1;
-end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
 // onewire state machine
 //////////////////////////////////////////////////////////////////////////////
 
 // transmit data, reset, overdrive
-always @ (posedge clk, posedge rst)
-if (rst)             {owr_ovd, owr_rst, owr_dtx} <= 4'b0000;     
-else if (bus_write)  {owr_ovd, owr_rst, owr_dtx} <= bus_writedata[2:0]; 
+generate if (OEN) begin : ctrl_writedata
+  always @ (posedge clk, posedge rst)
+  if (rst)             {owr_ovd, owr_rst, owr_dtx} <= 3'b000;     
+  else if (bus_write)  {owr_ovd, owr_rst, owr_dtx} <= bus_writedata[2:0]; 
+end else begin
+  always @ (posedge clk, posedge rst)
+  if (rst)             {owr_ovd, owr_rst, owr_dtx} <= 3'b000;     
+  else if (bus_write)  {         owr_rst, owr_dtx} <= bus_writedata[1:0]; 
+end endgenerate
 
 // onewire transfer status
 always @ (posedge clk, posedge rst)
-if (rst)                        owr_trn <= 1'b0;
+if (rst)                           owr_trn <= 1'b0;
 else begin
-  if (bus_write)                owr_trn <= ~&bus_writedata[2:0];
-  else if (pls & (cnt == 'd0))  owr_trn <= 1'b0;
+  if (bus_write)                   owr_trn <= ~&bus_writedata[2:0];
+  else if (pls & (cnt == t_zero))  owr_trn <= 1'b0;
 end
 
 // state counter (initial value depends whether the cycle is reset or data)
 always @ (posedge clk, posedge rst)
 if (rst)          cnt <= 0;
 else begin
-  if (bus_write)  cnt <= bus_writedata[1] ? 127 : 8;
-  else if (pls)   cnt <= cnt - 1;
+  if (bus_write)  cnt <= bus_writedata[1] ? t_rst - 'd1 : t_bit - 'd1;
+  else if (pls)   cnt <= cnt - 'd1;
 end
 
 // receive data (sampling point depends whether the cycle is reset or data)
 always @ (posedge clk)
 if (pls) begin
-  if      ( owr_rst & (cnt == 'd54))  owr_drx <= owr_i;  // presence detect
-  else if (~owr_rst & (cnt == 'd07))  owr_drx <= owr_i;  // read data bit
+  if      ( owr_rst & (cnt == t_rstp))  owr_drx <= owr_i;  // presence detect
+  else if (~owr_rst & (cnt == t_bits))  owr_drx <= owr_i;  // read data bit
 end
 
 // output register (switch point depends whether the cycle is reset or data)
 always @ (posedge clk, posedge rst)
-if (rst)                              owr_oen <= 1'b0;
+if (rst)                                owr_oen <= 1'b0;
 else begin
-  if (bus_write)                      owr_oen <= ~&bus_writedata[1:0];
+  if (bus_write)                        owr_oen <= ~&bus_writedata[1:0];
   else if (pls) begin
-    if      (owr_rst & (cnt == 'd64)) owr_oen <= 1'b0;  // reset
-    else if (owr_dtx & (cnt == 'd08)) owr_oen <= 1'b0;  // write 0
-    else if (          (cnt == 'd01)) owr_oen <= 1'b0;  // write 1, read
+    if      (owr_rst & (cnt == t_rsth)) owr_oen <= 1'b0;  // reset
+    else if (owr_dtx & (cnt == t_bit1)) owr_oen <= 1'b0;  // write 1, read
+    else if (          (cnt == t_bit0)) owr_oen <= 1'b0;  // write 0
   end
 end
 
