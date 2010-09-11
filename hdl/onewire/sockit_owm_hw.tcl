@@ -25,17 +25,41 @@ set_module_property ELABORATION_CALLBACK elaboration_callback
 add_file sockit_owm.v {SYNTHESIS SIMULATION}
 
 # parameters
+set description {Disabling overdrive can spare a small amount of logic.}
+add_parameter OVD_E BOOLEAN
+set_parameter_property OVD_E DEFAULT_VALUE 1
+set_parameter_property OVD_E DISPLAY_NAME OVD_E
+set_parameter_property OVD_E DISPLAY_NAME "Implementation of overdrive enable"
+set_parameter_property OVD_E UNITS None
+#set_parameter_property OVD_E ALLOWED_RANGES 0:1
+set_parameter_property OVD_E DESCRIPTION $description
+set_parameter_property OVD_E DISPLAY_HINT ""
+set_parameter_property OVD_E AFFECTS_GENERATION false
+set_parameter_property OVD_E HDL_PARAMETER true
+
 set description {The clock divider should divide the Avalon port clock to a exactly 7.5us period.}
-add_parameter CDR INTEGER 10
-set_parameter_property CDR DEFAULT_VALUE 10
-set_parameter_property CDR DISPLAY_NAME CDR
-set_parameter_property CDR DISPLAY_NAME "Clock divider ratio"
-set_parameter_property CDR UNITS None
-set_parameter_property CDR ALLOWED_RANGES 1:2048
-set_parameter_property CDR DESCRIPTION $description
-set_parameter_property CDR DISPLAY_HINT ""
-set_parameter_property CDR AFFECTS_GENERATION false
-set_parameter_property CDR HDL_PARAMETER true
+add_parameter CDR_N INTEGER 10
+set_parameter_property CDR_N DEFAULT_VALUE 8
+set_parameter_property CDR_N DISPLAY_NAME CDR_N
+set_parameter_property CDR_N DISPLAY_NAME "Clock divider ratio for normal mode"
+set_parameter_property CDR_N UNITS None
+set_parameter_property CDR_N ALLOWED_RANGES 1:2048
+set_parameter_property CDR_N DESCRIPTION $description
+set_parameter_property CDR_N DISPLAY_HINT ""
+set_parameter_property CDR_N AFFECTS_GENERATION false
+set_parameter_property CDR_N HDL_PARAMETER true
+
+set description {The clock divider should divide the Avalon port clock to a exactly 7.5us period.}
+add_parameter CDR_O INTEGER 10
+set_parameter_property CDR_O DEFAULT_VALUE 1
+set_parameter_property CDR_O DISPLAY_NAME CDR_O
+set_parameter_property CDR_O DISPLAY_NAME "Clock divider ratio for overdrive mode"
+set_parameter_property CDR_O UNITS None
+set_parameter_property CDR_O ALLOWED_RANGES 1:2048
+set_parameter_property CDR_O DESCRIPTION $description
+set_parameter_property CDR_O DISPLAY_HINT ""
+set_parameter_property CDR_O AFFECTS_GENERATION false
+set_parameter_property CDR_O HDL_PARAMETER true
 
 set description {OWN 1-wire ports are created, each representing its own network. This module can only access one 1-wire slave simultaneously.}
 add_parameter OWN INTEGER 100

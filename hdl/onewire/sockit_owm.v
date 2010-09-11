@@ -46,7 +46,7 @@
 
 module sockit_owm #(
   // implementation of overdrive enable
-  parameter OEN   =    1,  // overdrive functionality is implemented by default
+  parameter OVD_E =    1,  // overdrive functionality is implemented by default
   // master time period
   parameter MTP_N = 7500,  // normal    mode (7.5us)
   parameter MTP_O = 1000,  // overdrive mode (1.0us)
@@ -108,13 +108,13 @@ localparam TDW =       (T_RSTH_O+T_RSTL_O) >       (T_RSTH_N+T_RSTL_N)
 
 // clock divider
 //generate if (CDR>1) begin : div_declaration
-reg [CDW-1:0] div;
+reg  [CDW-1:0] div;
 //end endgenerate
-wire          pls;
+wire           pls;
 
 // transfer control
-reg           owr_trn;  // transfer status
-reg     [6:0]     cnt;  // transfer counter
+reg            owr_trn;  // transfer status
+reg  [TDW-1:0] cnt;      // transfer counter
 
 // port select
 //generate if (OWN>1) begin : sel_declaration
@@ -255,7 +255,7 @@ end
 //////////////////////////////////////////////////////////////////////////////
 
 // transmit data, reset, overdrive
-generate if (OEN) begin : ctrl_writedata
+generate if (OVD_E) begin : ctrl_writedata
   always @ (posedge clk, posedge rst)
   if (rst)             {owr_ovd, owr_rst, owr_dtx} <= 3'b000;     
   else if (bus_write)  {owr_ovd, owr_rst, owr_dtx} <= bus_writedata[2:0]; 
