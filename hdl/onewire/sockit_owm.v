@@ -45,17 +45,35 @@
 //////////////////////////////////////////////////////////////////////////////
 
 module sockit_owm #(
+  // interface parameters
+  parameter BDW   =   32,  // bus data width
+  parameter OWN   =    1,  // number of 1-wire ports
   // implementation of overdrive enable
   parameter OVD_E =    1,  // overdrive functionality is implemented by default
-  // master time period
-  parameter MTP_N = 7500,  // normal    mode (7.5us)
-  parameter MTP_O = 1000,  // overdrive mode (1.0us)
   // clock divider ratios
   parameter CDR_N =    8,  // normal    mode
   parameter CDR_O =    1,  // overdrive mode
-  // interface parameters
-  parameter BDW   =   32,  // bus data width
-  parameter OWN   =    1   // number of 1-wire ports
+  // master time period
+  parameter MTP_N = "7.5", // normal    mode (7.5us, options are "7.5", "5.0" and "6.0")
+  parameter MTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
+  // normal mode timing
+  parameter T_RSTH_N = (MTP_N == "7.5") ?  64 : (MTP_N == "5.0") ?  96 : 80,  // reset high
+  parameter T_RSTL_N = (MTP_N == "7.5") ?  64 : (MTP_N == "5.0") ?  96 : 80,  // reset low
+  parameter T_RSTP_N = (MTP_N == "7.5") ?  10 : (MTP_N == "5.0") ?  15 : 10,  // reset presence pulse
+  parameter T_DAT0_N = (MTP_N == "7.5") ?   8 : (MTP_N == "5.0") ?  12 : 10,  // bit 0 low
+  parameter T_DAT1_N = (MTP_N == "7.5") ?   1 : (MTP_N == "5.0") ?   1 :  1,  // bit 1 low
+  parameter T_BITS_N = (MTP_N == "7.5") ?   2 : (MTP_N == "5.0") ?   3 :  2,  // bit sample
+  parameter T_RCVR_N = (MTP_N == "7.5") ?   1 : (MTP_N == "5.0") ?   1 :  1,  // recovery
+  parameter T_IDLE_N = (MTP_N == "7.5") ?  64 : (MTP_N == "5.0") ? 104 :  1,  // recovery
+  // overdrive mode timing
+  parameter T_RSTH_O = (MTP_N == "1.0") ?  48 :  96,  // reset high
+  parameter T_RSTL_O = (MTP_N == "1.0") ?  48 :  96,  // reset low
+  parameter T_RSTP_O = (MTP_N == "1.0") ?  10 :  15,  // reset presence pulse
+  parameter T_DAT0_O = (MTP_N == "1.0") ?   6 :  12,  // bit 0 low
+  parameter T_DAT1_O = (MTP_N == "1.0") ?   1 :   2,  // bit 1 low
+  parameter T_BITS_O = (MTP_N == "1.0") ?   2 :   3,  // bit sample
+  parameter T_RCVR_O = (MTP_N == "1.0") ?   1 :   2,  // recovery
+  parameter T_IDLE_O = (MTP_N == "1.0") ?  48 :  96   // recovery
 )(
   // system signals
   input            clk,
@@ -81,22 +99,6 @@ localparam CDW = $clog2(CDR_N);
 
 // size of port select signal
 localparam SDW = $clog2(OWN);
-
-// normal mode timing
-localparam T_RSTH_N = 64;  // reset high
-localparam T_RSTL_N = 64;  // reset low
-localparam T_RSTP_N = 10;  // reset presence pulse
-localparam T_BIT1_N =  1;  // bit 1 low
-localparam T_BIT0_N =  8;  // bit 0 low
-localparam T_BITS_N =  2;  // bit sample
-
-// overdrive mode timing
-localparam T_RSTH_O = 64;  // reset high
-localparam T_RSTL_O = 64;  // reset low
-localparam T_RSTP_O = 10;  // reset presence pulse
-localparam T_BIT1_O =  1;  // bit 1 low
-localparam T_BIT0_O =  8;  // bit 0 low
-localparam T_BITS_O =  2;  // bit sample
 
 // size of cycle timing counter
 localparam TDW =       (T_RSTH_O+T_RSTL_O) >       (T_RSTH_N+T_RSTL_N)
@@ -139,37 +141,41 @@ reg            irq_stx;  // interrupt status transmit
 reg            irq_srx;  // interrupt status receive
 
 // timing signals
-wire [TDW-1:0] t_zero;   // end of               cycle    time
+wire [TDW-1:0] t_idl ;   // idle                 cycle    time
 wire [TDW-1:0] t_rst ;   // reset                cycle    time
 wire [TDW-1:0] t_bit ;   // data bit transfer    cycle    time
 wire [TDW-1:0] t_rstp;   // reset presence pulse sampling time
-wire [TDW-1:0] t_bits;   // data bit transfer    sampling time
 wire [TDW-1:0] t_rsth;   // reset                release  time
-wire [TDW-1:0] t_bit0;   // data bit 0           release  time
-wire [TDW-1:0] t_bit1;   // data bit 1           release  time
+wire [TDW-1:0] t_dat0;   // data bit 0           release  time
+wire [TDW-1:0] t_dat1;   // data bit 1           release  time
+wire [TDW-1:0] t_bits;   // data bit transfer    sampling time
+wire [TDW-1:0] t_zero;   // end of               cycle    time
 
 //////////////////////////////////////////////////////////////////////////////
 // cycle timing
 //////////////////////////////////////////////////////////////////////////////
 
-// end of            cycle time
-assign t_zero = 'd0;
-// reset             cycle time (reset low + reset hight)
-assign t_rst  = owr_ovd ? T_RSTL_O + T_RSTH_O       : T_RSTL_N + T_RSTH_N      ;
+// idle time
+assign t_idl  = owr_ovd ? T_IDLE_O                       : T_IDLE_N                      ;
+// reset cycle time (reset low + reset hight)
+assign t_rst  = owr_ovd ? T_RSTL_O + T_RSTH_O            : T_RSTL_N + T_RSTH_N           ;
 // data bit transfer cycle time (write 0 + recovery)
-assign t_bit  = owr_ovd ? T_BIT0_O + 1              : T_BIT0_N + 1             ;
+assign t_bit  = owr_ovd ? T_DAT0_O +          + T_RCVR_N : T_DAT0_N +            T_RCVR_O;
 
 // reset presence pulse sampling time (reset high - reset presence)
-assign t_rstp = owr_ovd ? T_RSTH_O - T_RSTP_O       : T_RSTH_N - T_RSTP_N      ;
-// data bit transfer    sampling time (write bit 0 - write bit 1 + recovery)
-assign t_bits = owr_ovd ? T_BIT0_O - T_BITS_O + 'd1 : T_BIT0_N - T_BITS_N + 'd1;
-
+assign t_rstp = owr_ovd ? T_RSTH_O - T_RSTP_O            : T_RSTH_N - T_RSTP_N           ;
 // reset      release time (reset high)
-assign t_rsth = owr_ovd ? T_RSTH_O                  : T_RSTH_N                 ;
+assign t_rsth = owr_ovd ? T_RSTH_O                       : T_RSTH_N                      ;
+
 // data bit 0 release time (write bit 0 - write bit 0 + recovery)
-assign t_bit0 = owr_ovd ? T_BIT0_O - T_BIT0_O + 'd1 : T_BIT0_N - T_BIT0_N + 'd1;
+assign t_dat0 = owr_ovd ? T_DAT0_O - T_DAT0_O + T_RCVR_O : T_DAT0_N - T_DAT0_N + T_RCVR_N;
 // data bit 1 release time (write bit 0 - write bit 1 + recovery)
-assign t_bit1 = owr_ovd ? T_BIT0_O - T_BIT1_O + 'd1 : T_BIT0_N - T_BIT1_N + 'd1;
+assign t_dat1 = owr_ovd ? T_DAT0_O - T_DAT1_O + T_RCVR_O : T_DAT0_N - T_DAT1_N + T_RCVR_N;
+// data bit transfer sampling time (write bit 0 - write bit 1 + recovery)
+assign t_bits = owr_ovd ? T_DAT0_O - T_BITS_O + T_RCVR_O : T_DAT0_N - T_BITS_N + T_RCVR_N;
+
+// end of cycle time
+assign t_zero = 'd0;
 
 //////////////////////////////////////////////////////////////////////////////
 // clock divider
@@ -277,7 +283,7 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)          cnt <= 0;
 else begin
-  if (bus_write)  cnt <= bus_writedata[1] ? t_rst - 'd1 : t_bit - 'd1;
+  if (bus_write)  cnt <= (&bus_writedata[1:0] ? t_idl : bus_writedata[1] ? t_rst : t_bit) - 'd1;
   else if (pls)   cnt <= cnt - 'd1;
 end
 
@@ -295,8 +301,8 @@ else begin
   if (bus_write)                        owr_oen <= ~&bus_writedata[1:0];
   else if (pls) begin
     if      (owr_rst & (cnt == t_rsth)) owr_oen <= 1'b0;  // reset
-    else if (owr_dtx & (cnt == t_bit1)) owr_oen <= 1'b0;  // write 1, read
-    else if (          (cnt == t_bit0)) owr_oen <= 1'b0;  // write 0
+    else if (owr_dtx & (cnt == t_dat1)) owr_oen <= 1'b0;  // write 1, read
+    else if (          (cnt == t_dat0)) owr_oen <= 1'b0;  // write 0
   end
 end
 
