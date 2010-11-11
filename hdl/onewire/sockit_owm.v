@@ -26,21 +26,23 @@
 //                                                                          //
 // The clock divider parameter is computed with the next formula:           //
 //                                                                          //
-// CDR = CLK * 7.5us  (example: 40MHz * 7.5us = 300)                        //
+// CDR_N = f_CLK * MTP_N  (example: CDR_N = 2MHz * 7.5us = 15)              //
+// CDR_O = f_CLK * MTP_O  (example: CDR_O = 2MHz * 1.0us =  2)              //
 //                                                                          //
 // If the dividing factor is not a round integer, than the timing of the    //
 // controller will be slightly off, and would support only a subset of      //
-// 1-wire devices with timing closer to the typical 30us slot. This limits  //
-// the system clock to multiples of 133kHz.                                 //
-// CLK = CDR * (400/3)kHz = CDR * 133kHz                                    //
+// 1-wire devices with timing closer to the typical 30us slot.              //
 //                                                                          //
-// If overdrive is needed than the additional restriction is that CDR must  //
-// be divisible by 8. This limits the system clock to multiples of 1067kHz. //
-// CLK = CDR * (400*8/3)kHz = CDR * 1067kHz                                 //
-//                                                                          //
-// TODO: if the system clock requirements can not be met, it is possible to //
-// recode the state machine to use 6us reference periods, this way a better //
-// tolerance to divider ratio error can be achieved.                        //
+// Mater time periods MTP_N = "7.5" and MTP_O = "1.0" are optimized for     //
+// logic consumption and optimal onewire timing.                            //
+// Since the default timing might shrink the range of available frequences  //
+// to multiples of 2MHz, a less restrictive timing is offered,              //
+// MTP_N = "5.0" and MTP_O = "1.0", this limits the frequency to multiples  //
+// of 1MHz.                                                                 //
+// If even this restrictions are too strict use timing MTP_N = "6.0" and    //
+// MTP_O = "0.5", where the actual periods can be in the range:             //
+// 6.0us <= MTP_N <= 7.5us                                                  //
+// 0.5us <= MTP_O <= 0.66us                                                 //
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -50,9 +52,9 @@ module sockit_owm #(
   parameter OWN   =    1,  // number of 1-wire ports
   // implementation of overdrive enable
   parameter OVD_E =    1,  // overdrive functionality is implemented by default
-  // clock divider ratios
-  parameter CDR_N =    8,  // normal    mode
-  parameter CDR_O =    1,  // overdrive mode
+  // clock divider ratios (defaults are for a 2MHz clock)
+  parameter CDR_N =   15,  // normal    mode
+  parameter CDR_O =    2,  // overdrive mode
   // master time period
   parameter MTP_N = "7.5", // normal    mode (7.5us, options are "7.5", "5.0" and "6.0")
   parameter MTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
