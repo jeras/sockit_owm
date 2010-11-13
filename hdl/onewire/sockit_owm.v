@@ -26,23 +26,23 @@
 //                                                                          //
 // The clock divider parameter is computed with the next formula:           //
 //                                                                          //
-// CDR_N = f_CLK * MTP_N  (example: CDR_N = 2MHz * 7.5us = 15)              //
-// CDR_O = f_CLK * MTP_O  (example: CDR_O = 2MHz * 1.0us =  2)              //
+// CDR_N = f_CLK * BTP_N  (example: CDR_N = 2MHz * 7.5us = 15)              //
+// CDR_O = f_CLK * BTP_O  (example: CDR_O = 2MHz * 1.0us =  2)              //
 //                                                                          //
 // If the dividing factor is not a round integer, than the timing of the    //
 // controller will be slightly off, and would support only a subset of      //
 // 1-wire devices with timing closer to the typical 30us slot.              //
 //                                                                          //
-// Mater time periods MTP_N = "7.5" and MTP_O = "1.0" are optimized for     //
+// Base time periods BTP_N = "7.5" and BTP_O = "1.0" are optimized for      //
 // logic consumption and optimal onewire timing.                            //
 // Since the default timing might shrink the range of available frequences  //
 // to multiples of 2MHz, a less restrictive timing is offered,              //
-// MTP_N = "5.0" and MTP_O = "1.0", this limits the frequency to multiples  //
+// BTP_N = "5.0" and BTP_O = "1.0", this limits the frequency to multiples  //
 // of 1MHz.                                                                 //
-// If even this restrictions are too strict use timing MTP_N = "6.0" and    //
-// MTP_O = "0.5", where the actual periods can be in the range:             //
-// 6.0us <= MTP_N <= 7.5us                                                  //
-// 0.5us <= MTP_O <= 0.66us                                                 //
+// If even this restrictions are too strict use timing BTP_N = "6.0" and    //
+// BTP_O = "0.5", where the actual periods can be in the range:             //
+// 6.0us <= BTP_N <= 7.5us                                                  //
+// 0.5us <= BTP_O <= 0.66us                                                 //
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -55,27 +55,27 @@ module sockit_owm #(
   // clock divider ratios (defaults are for a 2MHz clock)
   parameter CDR_N =   15,  // normal    mode
   parameter CDR_O =    2,  // overdrive mode
-  // master time period
-  parameter MTP_N = "7.5", // normal    mode (7.5us, options are "7.5", "5.0" and "6.0")
-  parameter MTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
+  // base time period
+  parameter BTP_N = "7.5", // normal    mode (7.5us, options are "7.5", "5.0" and "6.0")
+  parameter BTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
   // normal mode timing
-  parameter T_RSTH_N = (MTP_N == "7.5") ?  64 : (MTP_N == "5.0") ?  96 : 80,  // reset high
-  parameter T_RSTL_N = (MTP_N == "7.5") ?  64 : (MTP_N == "5.0") ?  96 : 80,  // reset low
-  parameter T_RSTP_N = (MTP_N == "7.5") ?  10 : (MTP_N == "5.0") ?  15 : 10,  // reset presence pulse
-  parameter T_DAT0_N = (MTP_N == "7.5") ?   8 : (MTP_N == "5.0") ?  12 : 10,  // bit 0 low
-  parameter T_DAT1_N = (MTP_N == "7.5") ?   1 : (MTP_N == "5.0") ?   1 :  1,  // bit 1 low
-  parameter T_BITS_N = (MTP_N == "7.5") ?   2 : (MTP_N == "5.0") ?   3 :  2,  // bit sample
-  parameter T_RCVR_N = (MTP_N == "7.5") ?   1 : (MTP_N == "5.0") ?   1 :  1,  // recovery
-  parameter T_IDLE_N = (MTP_N == "7.5") ?  64 : (MTP_N == "5.0") ? 104 :  1,  // recovery
+  parameter T_RSTH_N = (BTP_N == "7.5") ?  64 : (BTP_N == "5.0") ?  96 : 80,  // reset high
+  parameter T_RSTL_N = (BTP_N == "7.5") ?  64 : (BTP_N == "5.0") ?  96 : 80,  // reset low
+  parameter T_RSTP_N = (BTP_N == "7.5") ?  10 : (BTP_N == "5.0") ?  15 : 10,  // reset presence pulse
+  parameter T_DAT0_N = (BTP_N == "7.5") ?   8 : (BTP_N == "5.0") ?  12 : 10,  // bit 0 low
+  parameter T_DAT1_N = (BTP_N == "7.5") ?   1 : (BTP_N == "5.0") ?   1 :  1,  // bit 1 low
+  parameter T_BITS_N = (BTP_N == "7.5") ?   2 : (BTP_N == "5.0") ?   3 :  2,  // bit sample
+  parameter T_RCVR_N = (BTP_N == "7.5") ?   1 : (BTP_N == "5.0") ?   1 :  1,  // recovery
+  parameter T_IDLE_N = (BTP_N == "7.5") ?  64 : (BTP_N == "5.0") ? 104 :  1,  // recovery
   // overdrive mode timing
-  parameter T_RSTH_O = (MTP_N == "1.0") ?  48 :  96,  // reset high
-  parameter T_RSTL_O = (MTP_N == "1.0") ?  48 :  96,  // reset low
-  parameter T_RSTP_O = (MTP_N == "1.0") ?  10 :  15,  // reset presence pulse
-  parameter T_DAT0_O = (MTP_N == "1.0") ?   6 :  12,  // bit 0 low
-  parameter T_DAT1_O = (MTP_N == "1.0") ?   1 :   2,  // bit 1 low
-  parameter T_BITS_O = (MTP_N == "1.0") ?   2 :   3,  // bit sample
-  parameter T_RCVR_O = (MTP_N == "1.0") ?   1 :   2,  // recovery
-  parameter T_IDLE_O = (MTP_N == "1.0") ?  48 :  96   // recovery
+  parameter T_RSTH_O = (BTP_N == "1.0") ?  48 :  96,  // reset high
+  parameter T_RSTL_O = (BTP_N == "1.0") ?  48 :  96,  // reset low
+  parameter T_RSTP_O = (BTP_N == "1.0") ?  10 :  15,  // reset presence pulse
+  parameter T_DAT0_O = (BTP_N == "1.0") ?   6 :  12,  // bit 0 low
+  parameter T_DAT1_O = (BTP_N == "1.0") ?   1 :   2,  // bit 1 low
+  parameter T_BITS_O = (BTP_N == "1.0") ?   2 :   3,  // bit sample
+  parameter T_RCVR_O = (BTP_N == "1.0") ?   1 :   2,  // recovery
+  parameter T_IDLE_O = (BTP_N == "1.0") ?  48 :  96   // recovery
 )(
   // system signals
   input            clk,
