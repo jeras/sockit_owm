@@ -56,7 +56,7 @@ set_parameter_property OWN AFFECTS_ELABORATION true
 set_parameter_property OWN HDL_PARAMETER true
 
 add_parameter F_CLK INTEGER 2
-#set_parameter_property F_CLK SYSTEM_INFO CLOCK_RATE
+set_parameter_property F_CLK SYSTEM_INFO {CLOCK_RATE clock}
 set_parameter_property F_CLK DISPLAY_NAME F_CLK
 set_parameter_property F_CLK DESCRIPTION "System clock frequency"
 set_parameter_property F_CLK UNITS megahertz
