@@ -21,67 +21,88 @@ set_module_property ANALYZE_HDL TRUE
 
 set_module_property ELABORATION_CALLBACK elaboration_callback
 
+# TODO add_documentation_link
+
 # RTL files
 add_file sockit_owm.v {SYNTHESIS SIMULATION}
 
 # parameters
-set description {Disabling overdrive can spare a small amount of logic.}
+add_parameter BDW INTEGER
+set_parameter_property BDW DESCRIPTION "CPU interface data bus width"
+set_parameter_property BDW DISPLAY_NAME BDW
+set_parameter_property BDW DISPLAY_HINT "radio"
+set_parameter_property BDW DEFAULT_VALUE 32
+set_parameter_property BDW ALLOWED_RANGES {8 32}
+set_parameter_property BDW UNITS bits
+set_parameter_property BDW ENABLED false
+set_parameter_property BDW AFFECTS_GENERATION false
+set_parameter_property BDW HDL_PARAMETER true
+
 add_parameter OVD_E BOOLEAN
-set_parameter_property OVD_E DEFAULT_VALUE 1
+set_parameter_property OVD_E DESCRIPTION "Implementation of overdrive enable, disabling it can spare a small amount of logic."
 set_parameter_property OVD_E DISPLAY_NAME OVD_E
-set_parameter_property OVD_E DISPLAY_NAME "Implementation of overdrive enable"
+set_parameter_property OVD_E DEFAULT_VALUE 1
 set_parameter_property OVD_E UNITS None
-#set_parameter_property OVD_E ALLOWED_RANGES 0:1
-set_parameter_property OVD_E DESCRIPTION $description
-set_parameter_property OVD_E DISPLAY_HINT ""
 set_parameter_property OVD_E AFFECTS_GENERATION false
 set_parameter_property OVD_E HDL_PARAMETER true
 
-set description {The clock divider should divide the Avalon port clock to a exactly 7.5us period.}
-add_parameter CDR_N INTEGER 10
-set_parameter_property CDR_N DEFAULT_VALUE 8
-set_parameter_property CDR_N DISPLAY_NAME CDR_N
-set_parameter_property CDR_N DISPLAY_NAME "Clock divider ratio for normal mode"
-set_parameter_property CDR_N UNITS None
-set_parameter_property CDR_N ALLOWED_RANGES 1:2048
-set_parameter_property CDR_N DESCRIPTION $description
-set_parameter_property CDR_N DISPLAY_HINT ""
-set_parameter_property CDR_N AFFECTS_GENERATION false
-set_parameter_property CDR_N HDL_PARAMETER true
-
-set description {The clock divider should divide the Avalon port clock to a exactly 7.5us period.}
-add_parameter CDR_O INTEGER 10
-set_parameter_property CDR_O DEFAULT_VALUE 1
-set_parameter_property CDR_O DISPLAY_NAME CDR_O
-set_parameter_property CDR_O DISPLAY_NAME "Clock divider ratio for overdrive mode"
-set_parameter_property CDR_O UNITS None
-set_parameter_property CDR_O ALLOWED_RANGES 1:2048
-set_parameter_property CDR_O DESCRIPTION $description
-set_parameter_property CDR_O DISPLAY_HINT ""
-set_parameter_property CDR_O AFFECTS_GENERATION false
-set_parameter_property CDR_O HDL_PARAMETER true
-
-set description {OWN 1-wire ports are created, each representing its own network. This module can only access one 1-wire slave simultaneously.}
-add_parameter OWN INTEGER 100
+add_parameter OWN INTEGER
+set_parameter_property OWN DESCRIPTION "Nummber of 1-wire channels"
+set_parameter_property OWN DISPLAY_NAME OWN
 set_parameter_property OWN DEFAULT_VALUE 1
 set_parameter_property OWN ALLOWED_RANGES 1:16
-set_parameter_property OWN DISPLAY_NAME "Nummber of 1-wire channels"
-set_parameter_property OWN UNITS None
-set_parameter_property OWN DESCRIPTION $description
-set_parameter_property OWN DISPLAY_HINT ""
 set_parameter_property OWN AFFECTS_GENERATION false
 set_parameter_property OWN AFFECTS_ELABORATION true
 set_parameter_property OWN HDL_PARAMETER true
 
-add_parameter BDW INTEGER 32
-set_parameter_property BDW DEFAULT_VALUE 32
-set_parameter_property BDW DISPLAY_NAME BDW
-set_parameter_property BDW ENABLED false
-set_parameter_property BDW UNITS Bits
-set_parameter_property BDW ALLOWED_RANGES 0:32
-set_parameter_property BDW DISPLAY_HINT ""
-set_parameter_property BDW AFFECTS_GENERATION false
-set_parameter_property BDW HDL_PARAMETER true
+add_parameter F_CLK INTEGER 2
+#set_parameter_property F_CLK SYSTEM_INFO CLOCK_RATE
+set_parameter_property F_CLK DISPLAY_NAME F_CLK
+set_parameter_property F_CLK DESCRIPTION "System clock frequency"
+set_parameter_property F_CLK UNITS megahertz
+
+add_parameter BTP_N STRING
+set_parameter_property BTP_N DESCRIPTION "Base time period for normal mode"
+set_parameter_property BTP_N DISPLAY_NAME BTP_N
+set_parameter_property BTP_N DISPLAY_HINT "radio"
+set_parameter_property BTP_N DEFAULT_VALUE "7.5"
+set_parameter_property BTP_N ALLOWED_RANGES {"7.5" "5.0" "6.0"}
+set_parameter_property BTP_N UNITS microseconds
+set_parameter_property BTP_N AFFECTS_GENERATION false
+set_parameter_property BTP_N HDL_PARAMETER true
+
+add_parameter BTP_O STRING
+set_parameter_property BTP_O DESCRIPTION "Base time period for overdrive mode"
+set_parameter_property BTP_O DISPLAY_NAME BTP_N
+set_parameter_property BTP_O DISPLAY_HINT "radio"
+set_parameter_property BTP_O DEFAULT_VALUE "1.0"
+set_parameter_property BTP_O ALLOWED_RANGES {"1.0" "0.5"}
+set_parameter_property BTP_O UNITS microseconds
+set_parameter_property BTP_O AFFECTS_GENERATION false
+set_parameter_property BTP_O HDL_PARAMETER true
+
+add_parameter CDR_N INTEGER
+set_parameter_property CDR_N DESCRIPTION "Clock divider ratio for normal mode"
+set_parameter_property CDR_N DISPLAY_NAME CDR_N
+set_parameter_property CDR_N DEFAULT_VALUE 15
+set_parameter_property CDR_N ALLOWED_RANGES 1:2048
+set_parameter_property CDR_N UNITS None
+set_parameter_property CDR_N AFFECTS_GENERATION false
+set_parameter_property CDR_N HDL_PARAMETER true
+
+add_parameter CDR_O INTEGER
+set_parameter_property CDR_O DESCRIPTION "Clock divider ratio for overdrive mode"
+set_parameter_property CDR_O DISPLAY_NAME CDR_O
+set_parameter_property CDR_O DEFAULT_VALUE 2
+set_parameter_property CDR_O ALLOWED_RANGES 1:2048
+set_parameter_property CDR_O AFFECTS_GENERATION false
+set_parameter_property CDR_O HDL_PARAMETER true
+
+add_display_item "Timing base options" BTP_N parameter
+add_display_item "Timing base options" BTP_O parameter
+add_display_item "Clock dividers" F_CLK parameter
+add_display_item "Clock dividers" CDR_N parameter
+add_display_item "Clock dividers" CDR_O parameter
 
 # connection point clock_reset
 add_interface clock_reset clock end
