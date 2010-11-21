@@ -55,15 +55,15 @@ set_parameter_property OWN AFFECTS_GENERATION false
 set_parameter_property OWN AFFECTS_ELABORATION true
 set_parameter_property OWN HDL_PARAMETER true
 
-add_parameter F_CLK INTEGER 2
-set_parameter_property F_CLK SYSTEM_INFO {CLOCK_RATE clock}
+add_parameter F_CLK INTEGER
+set_parameter_property F_CLK SYSTEM_INFO {CLOCK_RATE clock_reset}
 set_parameter_property F_CLK DISPLAY_NAME F_CLK
 set_parameter_property F_CLK DESCRIPTION "System clock frequency"
 set_parameter_property F_CLK UNITS megahertz
 
 add_parameter BTP_N STRING
 set_parameter_property BTP_N DESCRIPTION "Base time period for normal mode"
-set_parameter_property BTP_N DISPLAY_NAME BTP_N
+#set_parameter_property BTP_N DISPLAY_NAME BTP_N
 set_parameter_property BTP_N DISPLAY_HINT "radio"
 set_parameter_property BTP_N DEFAULT_VALUE "7.5"
 set_parameter_property BTP_N ALLOWED_RANGES {"7.5" "5.0" "6.0"}
@@ -74,7 +74,7 @@ set_parameter_property BTP_N HDL_PARAMETER true
 add_parameter BTP_O STRING
 set_parameter_property BTP_O DESCRIPTION "Base time period for overdrive mode"
 set_parameter_property BTP_O DISPLAY_NAME BTP_N
-set_parameter_property BTP_O DISPLAY_HINT "radio"
+#set_parameter_property BTP_O DISPLAY_HINT "radio"
 set_parameter_property BTP_O DEFAULT_VALUE "1.0"
 set_parameter_property BTP_O ALLOWED_RANGES {"1.0" "0.5"}
 set_parameter_property BTP_O UNITS microseconds
@@ -103,6 +103,8 @@ add_display_item "Timing base options" BTP_O parameter
 add_display_item "Clock dividers" F_CLK parameter
 add_display_item "Clock dividers" CDR_N parameter
 add_display_item "Clock dividers" CDR_O parameter
+
+add
 
 # connection point clock_reset
 add_interface clock_reset clock end
@@ -160,5 +162,6 @@ add_interface_port ext onewire_i export Input  1
 
 proc elaboration_callback {} {
   # Add software defines
-  set_module_assignment embeddedsw.CMacro.OWN [get_parameter_value OWN]
+  set_module_assignment embeddedsw.CMacro.OWN   [get_parameter_value OWN]
+  set_module_assignment embeddedsw.CMacro.OVD_E [get_parameter_value OVD_E]
 }
