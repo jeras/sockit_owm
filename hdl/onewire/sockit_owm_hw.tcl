@@ -8,7 +8,7 @@ package require -exact sopc 9.1
 # module sockit_owm
 set_module_property DESCRIPTION "1-wire (onewire) master"
 set_module_property NAME sockit_owm
-set_module_property VERSION 1.0
+set_module_property VERSION 1.1
 set_module_property INTERNAL false
 set_module_property GROUP "Interface Protocols/Serial"
 set_module_property AUTHOR "Iztok Jeras"
@@ -19,7 +19,8 @@ set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 set_module_property ANALYZE_HDL TRUE
 
-set_module_property VALIDATION_CALLBACK  validation_callback
+set_module_property      EDITOR_CALLBACK      editor_callback
+set_module_property  VALIDATION_CALLBACK  validation_callback
 set_module_property ELABORATION_CALLBACK elaboration_callback
 
 # TODO add_documentation_link
@@ -60,8 +61,8 @@ add_parameter BTP_N STRING
 set_parameter_property BTP_N DESCRIPTION "Base time period for normal mode"
 #set_parameter_property BTP_N DISPLAY_NAME BTP_N
 set_parameter_property BTP_N DISPLAY_HINT "radio"
-set_parameter_property BTP_N DEFAULT_VALUE "7.5"
-set_parameter_property BTP_N ALLOWED_RANGES {"7.5" "5.0" "6.0"}
+set_parameter_property BTP_N DEFAULT_VALUE "5.0"
+set_parameter_property BTP_N ALLOWED_RANGES {"5.0" "7.5" "6.0"}
 set_parameter_property BTP_N UNITS microseconds
 set_parameter_property BTP_N AFFECTS_GENERATION false
 set_parameter_property BTP_N HDL_PARAMETER true
@@ -90,17 +91,16 @@ set_parameter_property F_CLK UNITS megahertz
 add_parameter CDR_N INTEGER
 set_parameter_property CDR_N DESCRIPTION "Clock divider ratio for normal mode"
 set_parameter_property CDR_N DISPLAY_NAME CDR_N
-set_parameter_property CDR_N DEFAULT_VALUE 15
-set_parameter_property CDR_N ALLOWED_RANGES 1:2048
+set_parameter_property CDR_N DEFAULT_VALUE 5
 set_parameter_property CDR_N UNITS None
 set_parameter_property CDR_N AFFECTS_GENERATION false
 set_parameter_property CDR_N HDL_PARAMETER true
 
 add_parameter CDR_O INTEGER
+set_parameter_property CDR_O DERIVED true
 set_parameter_property CDR_O DESCRIPTION "Clock divider ratio for overdrive mode"
 set_parameter_property CDR_O DISPLAY_NAME CDR_O
-set_parameter_property CDR_O DEFAULT_VALUE 2
-set_parameter_property CDR_O ALLOWED_RANGES 1:2048
+set_parameter_property CDR_O DEFAULT_VALUE 1
 set_parameter_property CDR_O AFFECTS_GENERATION false
 set_parameter_property CDR_O HDL_PARAMETER true
 
@@ -166,14 +166,43 @@ add_interface_port ext onewire_e export Output 1
 add_interface_port ext onewire_i export Input  1
 
 proc validation_callback {} {
-  # disable editing od dividers if automatic computation is enabled
+  # check if automatic computation is enabled
   set auto [get_parameter_value AUTO_CDR]
+  # check if overdrive is enabled
+  set ovd [get_parameter_value OVD_E]
+  #
+#  set_parameter_property CDR_N DERIVED [expr {$auto         ? "true" : "false"}]
+#  set_parameter_property CDR_O DERIVED [expr {$auto && $ovd ? "true" : "false"}]
+}
+
+proc editor_callback {} {
+  # check if automatic computation is enabled
+  set auto [get_parameter_value AUTO_CDR]
+  # check if overdrive is enabled
+  set ovd [get_parameter_value OVD_E]
+  send_message info "DEBUG: the OVD_E value is $ovd."
+  # get clock frequency
+  set f [get_parameter_value F_CLK]
+  # get base time periods
+  set t_n [get_parameter_value BTP_N]
+  set t_o [get_parameter_value BTP_O]
+  send_message info "DEBUG: the BTP_N value is $t_n, BTP_O value is $t_o."
+  # disable editing od dividers
+  set_parameter_property CDR_N ENABLED [expr {$auto         ? "true" : "false"}]
+  set_parameter_property CDR_O ENABLED [expr {$auto && $ovd ? "true" : "false"}]
+  set_parameter_property BTP_O ENABLED [expr {         $ovd ? "true" : "false"}]
+  # perform velidation tasks
   if {$auto} {
-    set_parameter_property CDR_N ENABLED false
-    set_parameter_property CDR_O ENABLED false
-  } else {
-    set_parameter_property CDR_N ENABLED true
-    set_parameter_property CDR_O ENABLED true
+    if {$ovd} {
+      # compute overdrive mode divider
+      if {$t_o=="1.0"} {
+        set d_o [expr {$f/1000000}]
+        set_parameter_value CDR_O $d_o
+        send_message info "DEBUG: the CDR_O value is $d_o."
+#        set_parameter_property CDR_O DEFAULT_VALUE $d_o
+      } elseif {$t_o=="0.5"} {
+      }
+    }
   }
 }
 
