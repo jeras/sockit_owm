@@ -62,7 +62,7 @@ set_parameter_property BTP_N DESCRIPTION "Base time period for normal mode"
 #set_parameter_property BTP_N DISPLAY_NAME BTP_N
 set_parameter_property BTP_N DISPLAY_HINT "radio"
 set_parameter_property BTP_N DEFAULT_VALUE "5.0"
-set_parameter_property BTP_N ALLOWED_RANGES {"5.0:5.0us (prefered)" "7.5:7.5us" "6.0:6.0us - 7.5us"}
+set_parameter_property BTP_N ALLOWED_RANGES {"5.0:5.0us (preferred)" "7.5:7.5us" "6.0:6.0us - 7.5us"}
 set_parameter_property BTP_N AFFECTS_GENERATION false
 set_parameter_property BTP_N HDL_PARAMETER true
 
@@ -71,7 +71,7 @@ set_parameter_property BTP_O DESCRIPTION "Base time period for overdrive mode"
 #set_parameter_property BTP_O DISPLAY_NAME BTP_N
 set_parameter_property BTP_O DISPLAY_HINT "radio"
 set_parameter_property BTP_O DEFAULT_VALUE "1.0"
-set_parameter_property BTP_O ALLOWED_RANGES {"1.0:1.0us (prefered)" "0.5:0.5us - 0.66us"}
+set_parameter_property BTP_O ALLOWED_RANGES {"1.0:1.0us (preferred)" "0.5:0.5us - 0.66us"}
 set_parameter_property BTP_O AFFECTS_GENERATION false
 set_parameter_property BTP_O HDL_PARAMETER true
 
@@ -97,8 +97,8 @@ set_parameter_property CDR_O DEFAULT_VALUE 1
 set_parameter_property CDR_O AFFECTS_GENERATION false
 set_parameter_property CDR_O HDL_PARAMETER true
 
-add_display_item "Timing base options" BTP_N parameter
-add_display_item "Timing base options" BTP_O parameter
+add_display_item "Base time period options" BTP_N parameter
+add_display_item "Base time period options" BTP_O parameter
 add_display_item "Clock dividers" F_CLK parameter
 add_display_item "Clock dividers" CDR_N parameter
 add_display_item "Clock dividers" CDR_O parameter
@@ -171,38 +171,49 @@ proc validation_callback {} {
   if {$btp_n=="5.0"} {
     set d_n [expr {$f/200000}]
     set t_n [expr {1000000.0/($f/$d_n)}]
-    set e_n [expr {($t_n-5.0)/5.0}]
+    set e_n [expr {$t_n/5.0-1}]
   } elseif {$btp_n=="7.5"} {
     set d_n [expr {$f/133333}]
     set t_n [expr {1000000.0/($f/$d_n)}]
-    set e_n [expr {($t_n-7.5)/7.5}]
+    set e_n [expr {$t_n/7.5-1}]
   } elseif {$btp_n=="6.0"} {
     set d_n [expr {$f/133333}]
     set t_n [expr {1000000.0/($f/$d_n)}]
-    set e_n [expr {($t_n-7.5)/7.5}]
+    if {(6.0<=$t_n) && ($t_n<=7.5)} {
+      set e_n 0.0
+    } else {
+      set e_n [expr {$t_n/6.0-1}]
+    }
   }
   # compute overdrive mode divider
   if {$btp_o=="1.0"} {
     set d_o [expr {$f/1000000}]
     set t_o [expr {1000000.0/($f/$d_o)}]
-    set e_o [expr {($t_o-1.0)/1.0}]
+    set e_o [expr {$t_o/1.0-1}]
   } elseif {$btp_o=="0.5"} {
-    set d_o [expr {$f/2000000}]
+    set d_o [expr {$f/1500000}]
     set t_o [expr {1000000.0/($f/$d_o)}]
-    set e_o [expr {($t_o-0.5)/0.5}]
+    if {(0.5<=$t_o) && ($t_o<=(2.0/3))} {
+      set e_o 0.0
+    } else {
+      set e_o [expr {$t_o/0.5-1}]
+    }
   }
   # set divider values
              set_parameter_value CDR_N $d_n
   if {$ovd} {set_parameter_value CDR_O $d_o}
-  # report timing error
-  send_message info "DEBUG: the normal    mode 'base time period' is $t_n."
-  send_message info "DEBUG: the overdrive mode 'base time period' is $t_o."
-  send_message info "DEBUG: the normal    mode error is $e_n."
-  send_message info "DEBUG: the overdrive mode error is $e_o."
+  # report BTP values and relative errors
+  send_message info "BTP_N (normal    mode 'base time period') is [format %.2f $t_n], relative error is [format %.1f [expr {$e_n*100}]]%."
+  send_message info "BTP_O (overdrive mode 'base time period') is [format %.2f $t_o], relative error is [format %.1f [expr {$e_o*100}]]%."
+  # repport validatio errors if relative error are outside accepted bounds (2%)
+  if {abs($e_n)>0.02} {send_message error "BTP_N is outside accepted bounds (relative error > 2%). Use a different 'base time period' or system frequency."}
+  if {abs($e_o)>0.02} {send_message error "BTP_O is outside accepted bounds (relative error > 2%). Use a different 'base time period' or system frequency."}
 }
 
 proc elaboration_callback {} {
   # add software defines
   set_module_assignment embeddedsw.CMacro.OWN   [get_parameter_value OWN]
   set_module_assignment embeddedsw.CMacro.OVD_E [get_parameter_value OVD_E]
+  set_module_assignment embeddedsw.CMacro.BTP_N [get_parameter_value BTP_N]
+  set_module_assignment embeddedsw.CMacro.BTP_O [get_parameter_value BTP_O]
 }
