@@ -415,7 +415,7 @@ SMALLINT owHasPowerDelivery(int portnum)
 //
 SMALLINT owHasOverDrive(int portnum)
 {
-   return TRUE;
+   return sockit_owm.ovd_e;
 }
 
 //--------------------------------------------------------------------------

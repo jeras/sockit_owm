@@ -83,6 +83,7 @@ typedef struct sockit_owm_state_s
   // constants
   void*            base;            // The base address of the device
   alt_u32          own;             // Number of onewire ports
+  alt_u32          ovd_e;           // Overdrive mode implementation enable
   // status
   alt_u32          ena;             // interrupt enable status
   alt_u32          use;             // Aquire status
@@ -101,7 +102,7 @@ typedef struct sockit_owm_state_s
  */
 
 #define SOCKIT_OWM_INSTANCE(name, state) \
-  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, 0, 0, 0, 0}; \
+  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, name##_OVD_E, 0, 0, 0, 0}; \
   void* state = (void*) name##_BASE
 /*
  * sockit_owm_init() is called by the auto-generated function
