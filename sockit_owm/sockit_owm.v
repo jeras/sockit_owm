@@ -52,9 +52,6 @@ module sockit_owm #(
   parameter OWN   =    1,  // number of 1-wire ports
   // implementation of overdrive enable
   parameter OVD_E =    1,  // overdrive functionality is implemented by default
-  // clock divider ratios (defaults are for a 2MHz clock)
-  parameter CDR_N =   15,  // normal    mode
-  parameter CDR_O =    2,  // overdrive mode
   // base time period
   parameter BTP_N = "7.5", // normal    mode (7.5us, options are "7.5", "5.0" and "6.0")
   parameter BTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
@@ -66,16 +63,19 @@ module sockit_owm #(
   parameter T_DAT1_N = (BTP_N == "7.5") ?   1 : (BTP_N == "5.0") ?   1 :  1,  // bit 1 low
   parameter T_BITS_N = (BTP_N == "7.5") ?   2 : (BTP_N == "5.0") ?   3 :  2,  // bit sample
   parameter T_RCVR_N = (BTP_N == "7.5") ?   1 : (BTP_N == "5.0") ?   1 :  1,  // recovery
-  parameter T_IDLE_N = (BTP_N == "7.5") ?  64 : (BTP_N == "5.0") ? 104 :  1,  // recovery
+  parameter T_IDLE_N = (BTP_N == "7.5") ? 128 : (BTP_N == "5.0") ? 200 :  1,  // idle timer
   // overdrive mode timing
-  parameter T_RSTH_O = (BTP_N == "1.0") ?  48 :  96,  // reset high
-  parameter T_RSTL_O = (BTP_N == "1.0") ?  48 :  96,  // reset low
-  parameter T_RSTP_O = (BTP_N == "1.0") ?  10 :  15,  // reset presence pulse
-  parameter T_DAT0_O = (BTP_N == "1.0") ?   6 :  12,  // bit 0 low
-  parameter T_DAT1_O = (BTP_N == "1.0") ?   1 :   2,  // bit 1 low
-  parameter T_BITS_O = (BTP_N == "1.0") ?   2 :   3,  // bit sample
-  parameter T_RCVR_O = (BTP_N == "1.0") ?   1 :   2,  // recovery
-  parameter T_IDLE_O = (BTP_N == "1.0") ?  48 :  96   // recovery
+  parameter T_RSTH_O = (BTP_O == "1.0") ?  48 :  96,  // reset high
+  parameter T_RSTL_O = (BTP_O == "1.0") ?  48 :  96,  // reset low
+  parameter T_RSTP_O = (BTP_O == "1.0") ?  10 :  15,  // reset presence pulse
+  parameter T_DAT0_O = (BTP_O == "1.0") ?   6 :  12,  // bit 0 low
+  parameter T_DAT1_O = (BTP_O == "1.0") ?   1 :   2,  // bit 1 low
+  parameter T_BITS_O = (BTP_O == "1.0") ?   2 :   3,  // bit sample
+  parameter T_RCVR_O = (BTP_O == "1.0") ?   1 :   2,  // recovery
+  parameter T_IDLE_O = (BTP_O == "1.0") ?  96 : 192,  // idle timer
+  // clock divider ratios (defaults are for a 2MHz clock)
+  parameter CDR_N =   15,  // normal    mode
+  parameter CDR_O =    2   // overdrive mode
 )(
   // system signals
   input            clk,
@@ -125,6 +125,9 @@ reg  [TDW-1:0] cnt;      // transfer counter
 reg  [SDW-1:0] owr_sel;
 //end endgenerate
 
+// modified input data for overdrive
+wire           req_ovd;
+
 // onewire signals
 reg  [OWN-1:0] owr_pwr;  // power
 reg            owr_ovd;  // overdrive
@@ -158,11 +161,11 @@ wire [TDW-1:0] t_zero;   // end of               cycle    time
 //////////////////////////////////////////////////////////////////////////////
 
 // idle time
-assign t_idl  = owr_ovd ? T_IDLE_O                       : T_IDLE_N                      ;
+assign t_idl  = req_ovd ? T_IDLE_O                       : T_IDLE_N                      ;
 // reset cycle time (reset low + reset hight)
-assign t_rst  = owr_ovd ? T_RSTL_O + T_RSTH_O            : T_RSTL_N + T_RSTH_N           ;
+assign t_rst  = req_ovd ? T_RSTL_O + T_RSTH_O            : T_RSTL_N + T_RSTH_N           ;
 // data bit transfer cycle time (write 0 + recovery)
-assign t_bit  = owr_ovd ? T_DAT0_O +          + T_RCVR_N : T_DAT0_N +            T_RCVR_O;
+assign t_bit  = req_ovd ? T_DAT0_O +          + T_RCVR_N : T_DAT0_N +            T_RCVR_O;
 
 // reset presence pulse sampling time (reset high - reset presence)
 assign t_rstp = owr_ovd ? T_RSTH_O - T_RSTP_O            : T_RSTH_N - T_RSTP_N           ;
@@ -265,16 +268,17 @@ end
 // onewire state machine
 //////////////////////////////////////////////////////////////////////////////
 
+assign req_ovd = OVD_E ? bus_write & bus_writedata[2] : 1'b0; 
+
+// overdrive
+always @ (posedge clk, posedge rst)
+if (rst)             owr_ovd <= 1'b0;     
+else if (bus_write)  owr_ovd <= req_ovd; 
+
 // transmit data, reset, overdrive
-generate if (OVD_E) begin : ctrl_writedata
-  always @ (posedge clk, posedge rst)
-  if (rst)             {owr_ovd, owr_rst, owr_dtx} <= 3'b000;     
-  else if (bus_write)  {owr_ovd, owr_rst, owr_dtx} <= bus_writedata[2:0]; 
-end else begin
-  always @ (posedge clk, posedge rst)
-  if (rst)             {owr_ovd, owr_rst, owr_dtx} <= 3'b000;     
-  else if (bus_write)  {         owr_rst, owr_dtx} <= bus_writedata[1:0]; 
-end endgenerate
+always @ (posedge clk, posedge rst)
+if (rst)             {owr_rst, owr_dtx} <= 2'b000;     
+else if (bus_write)  {owr_rst, owr_dtx} <= bus_writedata[1:0];
 
 // onewire transfer status
 always @ (posedge clk, posedge rst)

@@ -27,11 +27,11 @@
 module onewire_tb;
 
 // system clock parameters
-localparam real FRQ   =  4_000_000;     // 24MHz // realistic option
+localparam real FRQ   = 2_000_000;      // 2MHz
 localparam real CP    = 1*(10**9)/FRQ;  // clock period
 
 localparam      MTP_N = 7500;           // divider number normal mode
-localparam      MTP_O =  750;           // divider number overdrive mode
+localparam      MTP_O = 1000;           // divider number overdrive mode
 
 localparam      CDR_N = MTP_N / CP;     // divider number normal mode
 localparam      CDR_O = MTP_O / CP;     // divider number overdrive mode
@@ -67,6 +67,11 @@ wire [OWN-1:0] owr_p;   // output power enable from master
 wire [OWN-1:0] owr_e;   // output pull down enable from master
 wire [OWN-1:0] owr_i;   // input into master
 
+// slave conviguration
+reg  [OWN-1:0] slave_ena;
+reg  [OWN-1:0] slave_ovd;
+reg  [OWN-1:0] slave_dat;
+
 // request for a dumpfile
 initial begin
   $dumpfile("onewire.vcd");
@@ -97,8 +102,15 @@ initial begin
   avalon_read  = 1'b0;
   avalon_write = 1'b0;
 
+  // initial values for onewire slave
+  slave_ena = 1'b1;
+  slave_dat = 1'b0;
+
   // long delay to skip presence pulse
   #1000_000;
+
+  // test normal mode
+  slave_ovd = 1'b0;
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00000010, data);
@@ -110,7 +122,8 @@ initial begin
   avalon_cycle (1, 0, 4'hf, 32'b00000001, data);
   avalon_pulling (8);
 
-  // switch to overdrive mode
+  // test overdrive mode
+  slave_ovd = 1'b1;
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00000110, data);
@@ -191,9 +204,9 @@ assign avalon_waitrequest = 1'b0;
 //////////////////////////////////////////////////////////////////////////////
 
 sockit_owm #(
+  .OWN            (OWN),
   .CDR_N          (CDR_N),
-  .CDR_O          (CDR_O),
-  .OWN            (OWN)
+  .CDR_O          (CDR_O)
 ) onewire_master (
   // system
   .clk            (clk),
@@ -224,7 +237,13 @@ end endgenerate
 //////////////////////////////////////////////////////////////////////////////
 
 onewire_slave_model #(
+  .TSN  (30)
 ) onewire_slave (
+  // configuration
+  .ena  (slave_ena[0]),
+  .ovd  (slave_ovd[0]),
+  .dat  (slave_dat[0]),
+  // 1-wire signal
   .owr  (owr[0])
 );
 

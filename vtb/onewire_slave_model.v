@@ -24,163 +24,94 @@
 `timescale 1us / 1ns
 
 module onewire_slave_model #(
-  // identification
-  parameter FAMILY_CODE   =  8'h01,
-  parameter SERIAL_NUMBER = 48'hba98_7654_3210,
-  parameter CRC_CODE      =  8'hff,
-  // time slot (min=15, typ=30, max=60)
-  parameter TS = 30
+  // time slot (min=15.0, typ=30.0, max=60.0)
+  parameter TS = 30.0
 )(
+  // configuration
+  input wire ena,  // response enable
+  input wire ovd,  // overdrive mode select
+  input wire dat,  // read data
+  // 1-wire
   inout wire owr
 );
 
-// commands
-localparam Read_ROM           = 8'h33;
-localparam Search_ROM         = 8'hf0;
-localparam Overdrive_Skip_ROM = 8'h3C;
-
 // IO
-reg pull;
-
-// status registers
-reg [23:0] state;      // chip state in ASCII
-reg [23:0] cycle;      // cycle status in ASCII
-reg  [7:0] cmd;        // received command
-reg        od;         // overdrive mode status
-integer    cnt;        // transfer bit counter
-
-// data registers
-reg [7:0] drx;
-reg [7:0] dtx;
+reg pul;
 
 // events
-event transfer;
-event clock;
-event sample;
-event reset;
+event sample_dat;
+event sample_rst;
 
 //////////////////////////////////////////////////////////////////////////////
 // IO
 //////////////////////////////////////////////////////////////////////////////
 
-assign owr = pull ? 1'b0 : 1'bz;
+assign owr = pul * ena ? 1'b0 : 1'bz;
 
 //////////////////////////////////////////////////////////////////////////////
 // events inside a cycle
 //////////////////////////////////////////////////////////////////////////////
 
-always @ (negedge owr) begin
+// power up state
+initial pul  <= 1'b0;
+
+always @ (negedge owr)  if (ena)  transfer (ovd, dat);
+
+integer dbg;
+
+task automatic transfer (
+  input ovd,
+  input dat
+); begin
+  dbg = 0;
+  // provide data response
+  pul = ~dat;
+  dbg = 1;
+  // wait 1 time slot
+  if (ovd)  #(1*TS/8);
+  else      #(1*TS);
+  dbg = 2;
+  // release the wire
+  pul = 1'b0;
+  // fork into data or reset cycle
   fork
-    begin : slot_data
-      #((od?TS/10:TS)*1)  -> sample;
+    // transfer data
+    begin : transfer_dat
+      // read data is sampled here
+      -> sample_dat;
+      // it cycle ends before reset is detected
+      @ (posedge owr);
+      // disable reset path
+      disable transfer_rst;
     end
-    begin : slot_reset
-      #((od?TS/10:TS)*8)  -> reset;
-    end
-    begin : slot_reset_all
-      #((od?TS/10:TS)*8*8) begin
-      od = 1'b0;
-      -> reset;
-      end
-    end
-    begin : slot_end
-      @ (posedge owr) begin
-        disable slot_data;
-        disable slot_reset;
-        disable slot_reset_all;
-      end
+    // transfer reset
+    begin : transfer_rst
+      // wait 7 time slots
+      if (ovd)  #(7*TS/8);
+      else      #(7*TS);
+      dbg = 3;
+      // reset is sampled here
+      -> sample_rst;
+      // if reset is detected disable data path
+      if (~owr) disable transfer_dat;
+      // wait for reset low to end
+      @ (posedge owr)
+      dbg = 5;
+      // wait 1 time slot
+      if (ovd)  #(1*TS/8);
+      else      #(1*TS);
+      dbg = 6;
+      // provide presence pulse
+      pul = 1'b1;
+      // wait 4 time slot
+      if (ovd)  #(4*TS/8);
+      else      #(4*TS);
+      dbg = 7;
+      // release the wire
+      pul = 1'b0;
     end
   join
-end
-
-// // bit transfer
-// always @ (negedge owr) begin
-// //task trn (); begin
-//   -> transfer;
-//   cycle <=  dtx[0] ? "OPN" : "PUL";
-//   pull  <= ~dtx[0];
-//   cnt   <= cnt + 1;
-//   fork
-//     // transmit
-//     begin : trn_tx
-//       #(TS*1);
-//       pull <= 1'b0;
-//     end
-//     // receive
-//     begin : trn_rx
-//       #(TS*1);
-//       drx = {owr, drx[7:1]};
-//       -> sample;
-//     end
-//     // reset
-//     begin : trn_rst
-//       #(TS*16)
-//       state <= "RST";
-//       cnt   <= 0;
-//     end
-//     // wait for owr posedge
-//     begin : trn_pdg
-//       @ (posedge owr)
-//       disable trn_rst;
-//     end
-//   join
-//   cycle <= "IDL";
-// end
-// //endtask
-
-//////////////////////////////////////////////////////////////////////////////
-// logic
-//////////////////////////////////////////////////////////////////////////////
-
-// power up state
-initial begin
-  pull  <= 1'b0;
-  #1 -> reset;
-end
-
-// reset event
-always @ (reset) begin
-  // IO state
-  pull  <= 1'b0;
-  dtx   <= 0;
-  cnt   <= 0;
-  cycle <= "OPN";
-  // power-up chip state
-  state <= "RST";
-  od    <= 1'b0;
-  if (~owr) @ (posedge owr);
-  // issue presence pulse
-  #((od?TS/10:TS)*1);
-  state <= "PRS";
-  pull  <= 1'b1;
-  #((od?TS/10:TS)*4);
-  pull  <= 1'b0;
-  state <= "IDL";
-end
-
-// // reset
-// always @ (negedge owr)
-// if (state == "RST") begin
-//   trn (); 
-//   state <= "IDL";
-// end
-
-// // bit transfer
-// always @ (negedge owr)
-// case (state)
-//   "IDL": begin
-//     state <= "CMD";
-//     trn (); 
-//   end
-//   "CMD": begin
-//     trn ();
-//     if (cnt == 8)
-//     cmd   <= drx;
-//     if (cmd == Read_ROM)
-//     state <= "DTX";
-//     dtx   <= FAMILY_CODE;
-//   end
-// endcase
-
+  dbg = 8;
+end endtask
 
 endmodule
