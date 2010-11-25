@@ -5,7 +5,8 @@ erase onewire.out
 erase onewire.vcd
 
 :: compile the verilog sources (testbench and RTL)
-iverilog -o onewire.out onewire_tb.v sockit_owm.v onewire_slave_model.v
+iverilog -o onewire.out onewire_tb.v onewire_slave_model.v ..\sockit_owm\sockit_owm.v 
+
 :: run the simulation
 vvp onewire.out
 
