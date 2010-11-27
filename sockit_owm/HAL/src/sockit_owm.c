@@ -81,7 +81,6 @@ void sockit_owm_init (alt_u32 irq)
 {
   int error;
   // initialize semaphore for transfer locking
-  // TODO there is a warning to fix here
   error = ALT_FLAG_CREATE (sockit_owm.irq, 0) ||
           ALT_SEM_CREATE  (sockit_owm.trn, 1);
 
