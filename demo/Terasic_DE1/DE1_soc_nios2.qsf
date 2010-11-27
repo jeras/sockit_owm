@@ -477,15 +477,15 @@ set_location_assignment PIN_AB15 -to FL_CE_N
 # file list
 
 
-set_global_assignment -name VERILOG_FILE DE1_soc_nios2.v
-set_global_assignment -name VERILOG_FILE ../../hdl/debouncer/debouncer.v
 
 
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
-set_global_assignment -name QIP_FILE soc.qip
 
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name VERILOG_FILE DE1_soc_nios2.v
+set_global_assignment -name VERILOG_FILE debouncer.v
+set_global_assignment -name QIP_FILE soc.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
