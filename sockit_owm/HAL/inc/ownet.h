@@ -43,63 +43,18 @@
 // Common Includes to ownet applications
 //--------------------------------------------------------------//
 #include <stdlib.h>
-
+#include <stdio.h>
 
 //--------------------------------------------------------------//
 // Target Specific Information
 //--------------------------------------------------------------//
-//--------------------------------------------------------------//
-// Handhelds (PalmOS, WinCE)
-//--------------------------------------------------------------//
-#ifdef __MC68K__
-   //MC68K is the type of processor in the PILOT
-   //Metrowerk's CodeWarrior defines this symbol
-   #include <string.h>
-   #ifndef strcmp
-      #include <StringMgr.h>
-      #define strcmp StrCompare
-   #endif
-   #include <file_struc.h>
-#endif
 
-#ifdef _WIN32_WCE
-   //All of our projects had this flag defined by default (_WIN32_WCE),
-   //but I'm not 100% positive that this is _the_ definitive
-   //flag to use to identify a WinCE system.
-   #include "WinCElnk.h"
-   #ifndef FILE
-      #define FILE int
-      extern int sprintf(char *buffer, char *format,...);
-      extern void fprintf(FILE *fp, char *format,...);
-      extern void printf(char *format,...);
-   #endif
+// Altera Nios II + uCOS II
+// configuration options available in: sockit_owm_sw.tcl
+#ifdef SOCKIT_OWM_SMALL_MEM
+#define SMALL_MEMORY_TARGET
 #endif
-
-#if !defined(_WIN32_WCE) && !defined(__MC68K__)
-   #include <stdio.h>
-#endif
-
-#ifdef __C51__
-   #define FILE int
-   #define exit(c) return
-   typedef unsigned int ushort;
-   typedef unsigned long ulong;
-   #define SMALLINT uchar
-#endif
-
-#ifdef __ICCMAXQ__
-   #define FILE int
-   #define stdout 0
-   #define stdin  1
-   #define stderr 2
-   typedef unsigned int ushort;
-   typedef unsigned long ulong;
-   #define SMALLINT short
-   #define main micro_main
-   #define real_main main
-   #define SMALL_MEMORY_TARGET
-#endif
-
+//#define SOCKIT_OWM_NOERRORS
 
 //--------------------------------------------------------------//
 // Typedefs
@@ -126,15 +81,6 @@
    // common place you'll see smallint is for boolean return types.
    //
    #define SMALLINT int
-#endif
-
-// setting max baud
-#ifdef _WINDOWS
-   // 0x02 = PARAMSET_19200
-#define MAX_BAUD 0x02
-#else
-   // 0x06 = PARMSET_115200
-#define MAX_BAUD 0x06
 #endif
 
 #ifndef OW_UCHAR
@@ -197,6 +143,15 @@
 //--------------------------------------------------------------//
 // Error handling
 //--------------------------------------------------------------//
+
+#ifdef SOCKIT_OWM_NOERRORS
+
+#define OWERROR_CLEAR()       /*no-op*/;
+#define OWERROR(err)          /*no-op*/;
+#define OWERROR_DUMP(fileno)  /*no-op*/;
+
+#else
+
 extern int owGetErrorNum(void);
 extern int owHasErrors(void);
 
@@ -223,6 +178,8 @@ extern int owHasErrors(void);
    extern void owPrintErrorMsg(FILE *);
    extern void owPrintErrorMsgStd();
    extern char *owGetErrorMsg(int);
+#endif
+
 #endif
 
 #define OWERROR_NO_ERROR_SET                    0

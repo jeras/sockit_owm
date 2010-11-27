@@ -33,13 +33,11 @@ set_sw_property bsp_subdirectory drivers
 #
 
 # C/C++ source files
-add_sw_property c_source HAL/src/ownet.c
-add_sw_property c_source HAL/src/owtran.c
-add_sw_property c_source HAL/src/owlnk.c
-add_sw_property c_source HAL/src/owses.c
-add_sw_property c_source HAL/src/owerr.c
-add_sw_property c_source HAL/src/crcutil.c
-add_sw_property c_source HAL/src/sockit_owm.c
+add_sw_property       c_source HAL/src/ownet.c
+add_sw_property       c_source HAL/src/owtran.c
+add_sw_property       c_source HAL/src/owlnk.c
+add_sw_property       c_source HAL/src/owses.c
+add_sw_property       c_source HAL/src/sockit_owm.c
 
 # Include files
 add_sw_property include_source HAL/inc/ownet.h
@@ -47,6 +45,8 @@ add_sw_property include_source HAL/inc/sockit_owm.h
 add_sw_property include_source inc/sockit_owm_regs.h
 
 # Common files
+add_sw_property       c_source HAL/src/owerr.c
+add_sw_property       c_source HAL/src/crcutil.c
 add_sw_property include_source HAL/inc/findtype.h
 add_sw_property       c_source HAL/src/findtype.c
 
@@ -55,8 +55,10 @@ add_sw_property supported_bsp_type HAL
 add_sw_property supported_bsp_type UCOSII
 
 # Driver configuration options
-add_sw_setting boolean_define_only public_mk_define enable_polling_driver SOCKIT_OWM_POLLING false "Small-footprint (polled mode) driver"
-add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_HW_DLY  false "Mili second delay implemented in hardware"
+add_sw_setting boolean_define_only public_mk_define enable_polling_driver SOCKIT_OWM_POLLING  false "Small-footprint (polled mode) driver"
+add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_HW_DLY   false "Mili second delay implemented in hardware"
+add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_NOERRORS false "Do not implement error detection support"
+add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_SMALL_MEM true "Reduced memory consumption for error detection"
 
 # Enable application layer code
 #add_sw_setting boolean_define_only public_mk_define enable_A SOCKIT_OWM_A false "Enable driver A"
