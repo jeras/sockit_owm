@@ -50,9 +50,11 @@ int main()
   if (!owAcquire(portnum,NULL))
   {
      printf("Acquire failed\r\n");
+#ifdef SOCKIT_OWM_ERR_ENABLE
      while(owHasErrors())
         printf("  - Error %d\r\n", owGetErrorNum());
      return 1;
+#endif
   }
 
   do
@@ -80,8 +82,10 @@ int main()
               if(!owVerify(portnum, FALSE))
                  printf(" not");
               printf(" present.\r\n");
+#ifdef SOCKIT_OWM_ERR_ENABLE
               while(owHasErrors())
                  printf("  - Error %d\r\n", owGetErrorNum());
+#endif
            }
 
         }

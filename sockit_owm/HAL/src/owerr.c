@@ -30,17 +30,12 @@
 //
 
 #include <string.h>
-#ifndef _WIN32_WCE
 #include <stdio.h>
-#endif
-#ifdef _WIN64
-#include <stdio.h>
-#endif
 #include "ownet.h"
 
 #ifndef SIZE_OWERROR_STACK
-   #ifdef SMALL_MEMORY_TARGET
-      //for small memory, only hole 1 error
+   #ifdef SOCKIT_OWM_ERR_SMALL
+      //for small memory, only hold 1 error
       #define SIZE_OWERROR_STACK 1
    #else
       #define SIZE_OWERROR_STACK 10
@@ -81,7 +76,7 @@ int owHasErrors(void);
 #else
    void owRaiseError(int);
 #endif
-#ifndef SMALL_MEMORY_TARGET
+#ifndef SOCKIT_OWM_ERR_SMALL
    void owPrintErrorMsg(FILE *);
    void owPrintErrorMsgStd();
    char *owGetErrorMsg(int);
@@ -163,9 +158,9 @@ int owHasErrors(void)
 #endif
 
 
-// SMALL_MEMORY_TARGET - embedded microcontrollers, where these
+// SOCKIT_OWM_ERR_SMALL - embedded microcontrollers, where these
 // messaging functions might not make any sense.
-#ifndef SMALL_MEMORY_TARGET
+#ifndef SOCKIT_OWM_ERR_SMALL
    //Array of meaningful error messages to associate with codes.
    //Not used on targets with low memory (i.e. PIC).
    static char *owErrorMsg[125] =
@@ -302,7 +297,6 @@ int owHasErrors(void)
       return owErrorMsg[err];
    }
 
-#ifndef __C51__
    //--------------------------------------------------------------------------
    // The 'owPrintErrorMsg' is the method for printing an error from the stack.
    // The destination for the print is specified by the argument, fileno, which
@@ -329,7 +323,6 @@ int owHasErrors(void)
       fprintf(filenum,"Error %d: %s\r\n",err,owErrorMsg[err]);
    #endif
    }
-#endif //__C51__
 
    // Same as above, except uses default printf output
    void owPrintErrorMsgStd()

@@ -12,7 +12,7 @@ set_sw_property hw_class_name sockit_owm
 set_sw_property version 1.1
 
 # This driver is proclaimed to be compatible with sockit_owm hardware
-# as old as version "1.0". If the hardware component  version number is not
+# as old as version "1.1". If the hardware component  version number is not
 # equal or greater than the min_compatable_hw_version number, the driver 
 # source files will not be copied over to the BSP drivers subdirectory
 set_sw_property min_compatible_hw_version 1.1
@@ -55,10 +55,10 @@ add_sw_property supported_bsp_type HAL
 add_sw_property supported_bsp_type UCOSII
 
 # Driver configuration options
-add_sw_setting boolean_define_only public_mk_define enable_polling_driver SOCKIT_OWM_POLLING  false "Small-footprint (polled mode) driver"
-add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_HW_DLY   false "Mili second delay implemented in hardware"
-add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_NOERRORS false "Do not implement error detection support"
-add_sw_setting boolean_define_only public_mk_define enable_hardware_delay SOCKIT_OWM_SMALL_MEM true "Reduced memory consumption for error detection"
+add_sw_setting boolean_define_only public_mk_define polling_driver_enable  SOCKIT_OWM_POLLING    false "Small-footprint (polled mode) driver"
+add_sw_setting boolean_define_only public_mk_define hardware_delay_enable  SOCKIT_OWM_HW_DLY     false "Mili second delay implemented in hardware"
+add_sw_setting boolean_define_only public_mk_define error_detection_enable SOCKIT_OWM_ERR_ENABLE true  "Implement error detection support"
+add_sw_setting boolean_define_only public_mk_define error_detection_small  SOCKIT_OWM_ERR_SMALL  true  "Reduced memory consumption for error detection"
 
 # Enable application layer code
 #add_sw_setting boolean_define_only public_mk_define enable_A SOCKIT_OWM_A false "Enable driver A"

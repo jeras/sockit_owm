@@ -51,10 +51,8 @@
 
 // Altera Nios II + uCOS II
 // configuration options available in: sockit_owm_sw.tcl
-#ifdef SOCKIT_OWM_SMALL_MEM
-#define SMALL_MEMORY_TARGET
-#endif
-//#define SOCKIT_OWM_NOERRORS
+//#define SOCKIT_OWM_ERR_ENABLE
+//#define SOCKIT_OWM_ERR_SMALL
 
 //--------------------------------------------------------------//
 // Typedefs
@@ -144,13 +142,7 @@
 // Error handling
 //--------------------------------------------------------------//
 
-#ifdef SOCKIT_OWM_NOERRORS
-
-#define OWERROR_CLEAR()       /*no-op*/;
-#define OWERROR(err)          /*no-op*/;
-#define OWERROR_DUMP(fileno)  /*no-op*/;
-
-#else
+#ifdef SOCKIT_OWM_ERR_ENABLE
 
 extern int owGetErrorNum(void);
 extern int owHasErrors(void);
@@ -170,7 +162,7 @@ extern int owHasErrors(void);
    #define OWASSERT(s,err,ret) if(!(s)){owRaiseError((err));return (ret);}
 #endif
 
-#ifdef SMALL_MEMORY_TARGET
+#ifdef SOCKIT_OWM_ERR_SMALL
    #define OWERROR_DUMP(fileno) /*no-op*/;
 #else
    //Prints the stack out to the given file.
@@ -179,6 +171,12 @@ extern int owHasErrors(void);
    extern void owPrintErrorMsgStd();
    extern char *owGetErrorMsg(int);
 #endif
+
+#else
+
+#define OWERROR_CLEAR()       /*no-op*/;
+#define OWERROR(err)          /*no-op*/;
+#define OWERROR_DUMP(fileno)  /*no-op*/;
 
 #endif
 
