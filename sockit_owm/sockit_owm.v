@@ -277,7 +277,7 @@ else if (bus_write)  owr_ovd <= req_ovd;
 
 // transmit data, reset, overdrive
 always @ (posedge clk, posedge rst)
-if (rst)             {owr_rst, owr_dtx} <= 2'b000;     
+if (rst)             {owr_rst, owr_dtx} <= 2'b00;     
 else if (bus_write)  {owr_rst, owr_dtx} <= bus_writedata[1:0];
 
 // onewire transfer status
