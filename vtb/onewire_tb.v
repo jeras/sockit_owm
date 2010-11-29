@@ -26,9 +26,11 @@
 
 module onewire_tb;
 
+localparam DEBUG = 1'b0;
+
 // system clock parameters
 localparam real FRQ   = 2_000_000;      // 2MHz
-localparam real CP    = 1*(10**9)/FRQ;  // clock period
+localparam real CP    = 1*(10**9)/FRQ;  // clock period in ns
 
 localparam      MTP_N = 7500;           // divider number normal mode
 localparam      MTP_O = 1000;           // divider number overdrive mode
@@ -68,9 +70,13 @@ wire [OWN-1:0] owr_e;   // output pull down enable from master
 wire [OWN-1:0] owr_i;   // input into master
 
 // slave conviguration
-reg  [OWN-1:0] slave_ena;
-reg  [OWN-1:0] slave_ovd;
-reg  [OWN-1:0] slave_dat;
+reg  [OWN-1:0] slave_ena;    // slave enable (connect/disconnect from wire)
+reg  [OWN-1:0] slave_ovd;    // overdrive mode enable
+reg  [OWN-1:0] slave_dat_r;  // read  data
+wire [OWN-1:0] slave_dat_w;  // write data
+
+// timing check variable
+real           t_trn;     // transfer cycle time
 
 // request for a dumpfile
 initial begin
@@ -102,15 +108,15 @@ initial begin
   avalon_read  = 1'b0;
   avalon_write = 1'b0;
 
-  // initial values for onewire slave
-  slave_ena = 1'b1;
-  slave_dat = 1'b0;
+  // initial values for onewire slaves
+  slave_ena   = 3'b111;
+  slave_dat_r = 3'b000;
 
   // long delay to skip presence pulse
   #1000_000;
 
   // test normal mode
-  slave_ovd = 1'b0;
+  slave_ovd = 3'b000;
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00000010, data);
@@ -123,7 +129,7 @@ initial begin
   avalon_pulling (8);
 
   // test overdrive mode
-  slave_ovd = 1'b1;
+  slave_ovd = 3'b111;
 
   // generate a reset pulse
   avalon_cycle (1, 0, 4'hf, 32'b00000110, data);
@@ -156,12 +162,18 @@ end
 
 // wait for the onewire cycle completion
 task avalon_pulling (input integer d);
+  real t_tmp;
 begin
+  // remember the start time
+  t_tmp = $time;
+  // pool till owr_trn ends
   data = 32'h02;
   while (data & 32'h02) begin
     repeat (d) @ (posedge clk);
     avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
   end
+  // set the transfer length time in us
+  t_trn = ($time - t_tmp) / 1000;
 end endtask
 
 //////////////////////////////////////////////////////////////////////////////
@@ -176,7 +188,7 @@ task automatic avalon_cycle (
   output [ADW-1:0] rdt
 );
 begin
-  $display ("Avalon MM cycle start: T=%10tns, %s address=%08x byteenable=%04b writedata=%08x", $time/1000.0, r_w?"write":"read ", adr, ben, wdt);
+  if (DEBUG) $display ("Avalon MM cycle start: T=%10tns, %s address=%08x byteenable=%04b writedata=%08x", $time/1000.0, r_w?"write":"read ", adr, ben, wdt);
   // start an Avalon cycle
   avalon_read       <= ~r_w;
   avalon_write      <=  r_w;
@@ -190,7 +202,7 @@ begin
   avalon_write      <= 1'b0;
   // read data
   rdt = avalon_readdata;
-  $display ("Avalon MM cycle end  : T=%10tns, readdata=%08x", $time/1000.0, rdt);
+  if (DEBUG) $display ("Avalon MM cycle end  : T=%10tns, readdata=%08x", $time/1000.0, rdt);
 end
 endtask
 
@@ -236,15 +248,42 @@ end endgenerate
 // Verilog onewire slave model
 //////////////////////////////////////////////////////////////////////////////
 
+// fast slave device
 onewire_slave_model #(
-  .TSN  (30)
-) onewire_slave (
+  .TS     (15 + 0.1)
+) onewire_slave_min (
   // configuration
-  .ena  (slave_ena[0]),
-  .ovd  (slave_ovd[0]),
-  .dat  (slave_dat[0]),
+  .ena    (slave_ena  [0]),
+  .ovd    (slave_ovd  [0]),
+  .dat_r  (slave_dat_r[0]),
+  .dat_w  (slave_dat_w[0]),
   // 1-wire signal
-  .owr  (owr[0])
+  .owr    (owr[0])
+);
+
+// typical slave device
+onewire_slave_model #(
+  .TS     (30)
+) onewire_slave_typ (
+  // configuration
+  .ena    (slave_ena  [1]),
+  .ovd    (slave_ovd  [1]),
+  .dat_r  (slave_dat_r[1]),
+  .dat_w  (slave_dat_w[1]),
+  // 1-wire signal
+  .owr    (owr[1])
+);
+
+onewire_slave_model #(
+  .TS     (60 - 0.1)
+) onewire_slave_max (
+  // configuration
+  .ena    (slave_ena  [2]),
+  .ovd    (slave_ovd  [2]),
+  .dat_r  (slave_dat_r[2]),
+  .dat_w  (slave_dat_w[2]),
+  // 1-wire signal
+  .owr    (owr[2])
 );
 
 endmodule

@@ -28,9 +28,10 @@ module onewire_slave_model #(
   parameter TS = 30.0
 )(
   // configuration
-  input wire ena,  // response enable
-  input wire ovd,  // overdrive mode select
-  input wire dat,  // read data
+  input wire ena,    // response enable
+  input wire ovd,    // overdrive mode select
+  input wire dat_r,  // read data
+  output reg dat_w,  // write data
   // 1-wire
   inout wire owr
 );
@@ -55,30 +56,27 @@ assign owr = pul * ena ? 1'b0 : 1'bz;
 // power up state
 initial pul  <= 1'b0;
 
-always @ (negedge owr)  if (ena)  transfer (ovd, dat);
-
-integer dbg;
+always @ (negedge owr)  if (ena)  transfer (ovd, dat_r, dat_w);
 
 task automatic transfer (
   input ovd,
-  input dat
+  input dat_r,
+  input dat_w
 ); begin
-  dbg = 0;
-  // provide data response
-  pul = ~dat;
-  dbg = 1;
+  // provide read data response
+  pul = ~dat_r;
   // wait 1 time slot
   if (ovd)  #(1*TS/8);
   else      #(1*TS);
-  dbg = 2;
   // release the wire
   pul = 1'b0;
   // fork into data or reset cycle
   fork
     // transfer data
     begin : transfer_dat
-      // read data is sampled here
+      // write data is sampled here
       -> sample_dat;
+      dat_w = owr;
       // it cycle ends before reset is detected
       @ (posedge owr);
       // disable reset path
@@ -89,29 +87,24 @@ task automatic transfer (
       // wait 7 time slots
       if (ovd)  #(7*TS/8);
       else      #(7*TS);
-      dbg = 3;
       // reset is sampled here
       -> sample_rst;
       // if reset is detected disable data path
       if (~owr) disable transfer_dat;
       // wait for reset low to end
       @ (posedge owr)
-      dbg = 5;
       // wait 1 time slot
       if (ovd)  #(1*TS/8);
       else      #(1*TS);
-      dbg = 6;
       // provide presence pulse
       pul = 1'b1;
       // wait 4 time slot
       if (ovd)  #(4*TS/8);
       else      #(4*TS);
-      dbg = 7;
       // release the wire
       pul = 1'b0;
     end
   join
-  dbg = 8;
 end endtask
 
 endmodule
