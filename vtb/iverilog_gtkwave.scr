@@ -11,4 +11,4 @@ iverilog -o onewire.out onewire_tb.v onewire_slave_model.v ../sockit_owm/sockit_
 vvp onewire.out
 
 # open the waveform and detach it
-#gtkwave onewire.vcd gtkwave.sav &
+gtkwave onewire.vcd gtkwave.sav &
