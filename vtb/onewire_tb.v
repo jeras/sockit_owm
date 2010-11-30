@@ -70,13 +70,19 @@ wire [OWN-1:0] owr_e;   // output pull down enable from master
 wire [OWN-1:0] owr_i;   // input into master
 
 // slave conviguration
-reg  [OWN-1:0] slave_ena;    // slave enable (connect/disconnect from wire)
-reg  [OWN-1:0] slave_ovd;    // overdrive mode enable
+reg            slave_ena;    // slave enable (connect/disconnect from wire)
+reg            slave_ovd;    // overdrive mode enable
 reg  [OWN-1:0] slave_dat_r;  // read  data
 wire [OWN-1:0] slave_dat_w;  // write data
 
-// timing check variable
+// error checking
 real           t_trn;     // transfer cycle time
+integer        error;
+
+// loop indexes
+integer        i;  // base time period
+integer        j;  // slave timing
+integer        k;  // overdrive option
 
 // request for a dumpfile
 initial begin
@@ -104,42 +110,55 @@ end
 //////////////////////////////////////////////////////////////////////////////
 
 initial begin
+  // reset error counter
+  error = 0;
+
   // Avalon MM interface is idle
   avalon_read  = 1'b0;
   avalon_write = 1'b0;
 
   // initial values for onewire slaves
-  slave_ena   = 3'b111;
-  slave_dat_r = 3'b000;
+  slave_dat_r = 3'b111;
 
   // long delay to skip presence pulse
   #1000_000;
 
-  // test normal mode
-  slave_ovd = 3'b000;
+  i = 0;
+  j = 0;
 
-  // generate a reset pulse
-  avalon_cycle (1, 0, 4'hf, 32'b00000010, data);
-  avalon_pulling (8);
-  // write '0'
-  avalon_cycle (1, 0, 4'hf, 32'b00000000, data);
-  avalon_pulling (8);
-  // write '1'
-  avalon_cycle (1, 0, 4'hf, 32'b00000001, data);
-  avalon_pulling (8);
+  // test with slaves with different timing (each slave one one of the wires)
+  for (j=0; j<3; j=j+1) begin
+    // test reset and data cycles
+    for (k=0; k<2; k=k+1) begin
+      // select normal/overdrive mode
+      if (k==0)  slave_ovd = 1'b0;  // normal    mode
+      if (k==1)  slave_ovd = 1'b1;  // overdrive mode
+  
+      // generate a reset pulse and check if presence response was received
+      slave_ena = 1'b1;
+      avalon_cycle (1, 0, 4'hf, {j, 5'b00000, slave_ovd, 2'b10}, data);
+      avalon_pulling (8);
+      if (data[0] != 1'b0) begin
+        error = error+1;
+        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong presence detect response", $time, "7.5", j, slave_ovd);
+     end
+      // write '0' and check
+      avalon_cycle (1, 0, 4'hf, {j, 5'b00000, slave_ovd, 2'b00}, data);
+      avalon_pulling (8);
+      if (data[0] != 1'b0) begin
+        error = error+1;
+        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '0'", $time, "7.5", j, slave_ovd);
+      end
+      // write '1' and check
+      avalon_cycle (1, 0, 4'hf, {j, 5'b00000, slave_ovd, 2'b01}, data);
+      avalon_pulling (8);
+      if (data[0] != 1'b1) begin
+        error = error+1;
+        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '1'", $time, "7.5", j, slave_ovd);
+      end
 
-  // test overdrive mode
-  slave_ovd = 3'b111;
-
-  // generate a reset pulse
-  avalon_cycle (1, 0, 4'hf, 32'b00000110, data);
-  avalon_pulling (8);
-  // write '0'
-  avalon_cycle (1, 0, 4'hf, 32'b00000100, data);
-  avalon_pulling (8);
-  // write '1'
-  avalon_cycle (1, 0, 4'hf, 32'b00000101, data);
-  avalon_pulling (8);
+    end  // k
+  end  // j
 
   // test power supply
 
@@ -161,7 +180,7 @@ initial begin
 end
 
 // wait for the onewire cycle completion
-task avalon_pulling (input integer d);
+task avalon_pulling (input integer dly);
   real t_tmp;
 begin
   // remember the start time
@@ -169,7 +188,7 @@ begin
   // pool till owr_trn ends
   data = 32'h02;
   while (data & 32'h02) begin
-    repeat (d) @ (posedge clk);
+    repeat (dly) @ (posedge clk);
     avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
   end
   // set the transfer length time in us
@@ -238,10 +257,10 @@ sockit_owm #(
 // onewire
 pullup onewire_pullup [OWN-1:0] (owr);
 
-genvar i;
-generate for (i=0; i<OWN; i=i+1) begin : owr_loop
-  assign owr   [i] = owr_e [i] | owr_p ? owr_p [i] : 1'bz;
-  assign owr_i [i] = owr   [i];
+genvar g;
+generate for (g=0; g<OWN; g=g+1) begin : owr_loop
+  assign owr   [g] = owr_e [g] | owr_p ? owr_p [g] : 1'bz;
+  assign owr_i [g] = owr   [g];
 end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
@@ -250,11 +269,12 @@ end endgenerate
 
 // fast slave device
 onewire_slave_model #(
-  .TS     (15 + 0.1)
+//  .TS     (15 + 0.1)
+  .TS     (16)
 ) onewire_slave_min (
   // configuration
-  .ena    (slave_ena  [0]),
-  .ovd    (slave_ovd  [0]),
+  .ena    (slave_ena     ),
+  .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r[0]),
   .dat_w  (slave_dat_w[0]),
   // 1-wire signal
@@ -266,8 +286,8 @@ onewire_slave_model #(
   .TS     (30)
 ) onewire_slave_typ (
   // configuration
-  .ena    (slave_ena  [1]),
-  .ovd    (slave_ovd  [1]),
+  .ena    (slave_ena     ),
+  .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r[1]),
   .dat_w  (slave_dat_w[1]),
   // 1-wire signal
@@ -275,11 +295,12 @@ onewire_slave_model #(
 );
 
 onewire_slave_model #(
-  .TS     (60 - 0.1)
+//  .TS     (60 - 0.1)
+  .TS     (47)
 ) onewire_slave_max (
   // configuration
-  .ena    (slave_ena  [2]),
-  .ovd    (slave_ovd  [2]),
+  .ena    (slave_ena     ),
+  .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r[2]),
   .dat_w  (slave_dat_w[2]),
   // 1-wire signal
