@@ -32,11 +32,8 @@ localparam DEBUG = 1'b0;
 localparam real FRQ   = 2_000_000;      // 2MHz
 localparam real CP    = 1*(10**9)/FRQ;  // clock period in ns
 
-localparam      MTP_N = 7500;           // divider number normal mode
-localparam      MTP_O = 1000;           // divider number overdrive mode
-
-localparam      CDR_N = MTP_N / CP;     // divider number normal mode
-localparam      CDR_O = MTP_O / CP;     // divider number overdrive mode
+localparam      CDR_N = 1000*7.5 / CP;  // divider number normal mode
+localparam      CDR_O = 1000*1.0 / CP;  // divider number overdrive mode
 
 // onewire parameters
 localparam OWN = 3;      // number of ports
@@ -80,9 +77,8 @@ real           t_trn;     // transfer cycle time
 integer        error;
 
 // loop indexes
-integer        i;  // base time period
-integer        j;  // slave timing
-integer        k;  // overdrive option
+integer        i;  // slave timing
+integer        j;  // overdrive option
 
 // request for a dumpfile
 initial begin
@@ -123,42 +119,41 @@ initial begin
   // long delay to skip presence pulse
   #1000_000;
 
-  i = 0;
-  j = 0;
-
   // test with slaves with different timing (each slave one one of the wires)
-  for (j=0; j<3; j=j+1) begin
+  for (i=0; i<3; i=i+1) begin
+
     // test reset and data cycles
-    for (k=0; k<2; k=k+1) begin
+    for (j=0; j<2; j=j+1) begin
+
       // select normal/overdrive mode
-      if (k==0)  slave_ovd = 1'b0;  // normal    mode
-      if (k==1)  slave_ovd = 1'b1;  // overdrive mode
+      if (j==0)  slave_ovd = 1'b0;  // normal    mode
+      if (j==1)  slave_ovd = 1'b1;  // overdrive mode
   
       // generate a reset pulse and check if presence response was received
       slave_ena = 1'b1;
-      avalon_cycle (1, 0, 4'hf, {j, 5'b00000, slave_ovd, 2'b10}, data);
+      avalon_cycle (1, 0, 4'hf, {i, 5'b00000, slave_ovd, 2'b10}, data);
       avalon_pulling (8);
       if (data[0] != 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong presence detect response", $time, "7.5", j, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong presence detect response", $time, "7.5", i, slave_ovd);
      end
       // write '0' and check
-      avalon_cycle (1, 0, 4'hf, {j, 5'b00000, slave_ovd, 2'b00}, data);
+      avalon_cycle (1, 0, 4'hf, {i, 5'b00000, slave_ovd, 2'b00}, data);
       avalon_pulling (8);
       if (data[0] != 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '0'", $time, "7.5", j, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '0'", $time, "7.5", i, slave_ovd);
       end
       // write '1' and check
-      avalon_cycle (1, 0, 4'hf, {j, 5'b00000, slave_ovd, 2'b01}, data);
+      avalon_cycle (1, 0, 4'hf, {i, 5'b00000, slave_ovd, 2'b01}, data);
       avalon_pulling (8);
       if (data[0] != 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '1'", $time, "7.5", j, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '1'", $time, "7.5", i, slave_ovd);
       end
 
-    end  // k
-  end  // j
+    end  // j
+  end  // i
 
   // test power supply
 
