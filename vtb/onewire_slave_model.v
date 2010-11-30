@@ -68,17 +68,17 @@ task automatic transfer (
   // wait 1 time slot
   if (ovd)  #(1*TS/8);
   else      #(1*TS);
+  // write data is sampled here
+  -> sample_dat;
+  dat_w = owr;
   // release the wire
   pul = 1'b0;
   // fork into data or reset cycle
   fork
     // transfer data
     begin : transfer_dat
-      // write data is sampled here
-      -> sample_dat;
-      dat_w = owr;
-      // it cycle ends before reset is detected
-      @ (posedge owr);
+      // if cycle ends before reset is detected
+      if (~owr) @ (posedge owr);
       // disable reset path
       disable transfer_rst;
     end
