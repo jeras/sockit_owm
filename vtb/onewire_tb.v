@@ -24,19 +24,30 @@
 
 `timescale 1ns / 1ps
 
+// RTL module parameterization defines
+`define ONEWIRE_BDW      32  // bus data width
+`define ONEWIRE_OVD_E     1  // overdrive functionality enable
+`define ONEWIRE_BTP_N "7.5"  // normal    mode
+`define ONEWIRE_BTP_O "1.0"  // overdrive mode
+
 module onewire_tb;
 
 localparam DEBUG = 1'b0;
 
 // system clock parameters
 localparam real FRQ   = 2_000_000;      // 2MHz
-localparam real CP    = 1*(10**9)/FRQ;  // clock period in ns
-
-localparam      CDR_N = 1000*7.5 / CP;  // divider number normal mode
-localparam      CDR_O = 1000*1.0 / CP;  // divider number overdrive mode
+localparam real CP    = (10.0**9)/FRQ;  // clock period in ns
 
 // onewire parameters
-localparam OWN = 2*3;    // number of ports
+localparam BDW   = `ONEWIRE_BDW;    // bus data width
+localparam OWN   = 2*3;             // number of wires
+localparam OVD_E = `ONEWIRE_OVD_E;  // overdrive functionality enable
+localparam BTP_N = `ONEWIRE_BTP_N;  // normal    mode
+localparam BTP_O = `ONEWIRE_BTP_O;  // overdrive mode
+
+// clock dividers for normal and overdrive mode
+localparam CDR_N = ((BTP_N == "5.0") ?  5.0 : 7.5) * FRQ / 1_000_000;
+localparam CDR_O = ((BTP_O == "1.0") ?  1.0 : 0.5) * FRQ / 1_000_000;
 
 // Avalon MM parameters
 localparam AAW = 1;      // address width
@@ -278,7 +289,11 @@ assign avalon_waitrequest = 1'b0;
 //////////////////////////////////////////////////////////////////////////////
 
 sockit_owm #(
-  .OWN            (OWN),
+  .BDW            (BDW  ),
+  .OWN            (OWN  ),
+  .OVD_E          (OVD_E),
+  .BTP_N          (BTP_N),
+  .BTP_O          (BTP_O),
   .CDR_N          (CDR_N),
   .CDR_O          (CDR_O)
 ) onewire_master (
