@@ -36,7 +36,7 @@ localparam      CDR_N = 1000*7.5 / CP;  // divider number normal mode
 localparam      CDR_O = 1000*1.0 / CP;  // divider number overdrive mode
 
 // onewire parameters
-localparam OWN = 3;      // number of ports
+localparam OWN = 2*3;    // number of ports
 
 // Avalon MM parameters
 localparam AAW = 1;      // address width
@@ -123,8 +123,8 @@ initial begin
    // test reset and data cycles
     for (j=0; j<2; j=j+1) begin
 
-      // select onewire slave 
-      slave_sel = i;
+      // select onewire slave (a different set of slaves for overdrive mode)
+      slave_sel = i + 3*j;
 
        // select normal/overdrive mode
       if (j==0)  slave_ovd = 1'b0;  // normal    mode
@@ -307,14 +307,13 @@ generate for (g=0; g<OWN; g=g+1) begin : owr_loop
 end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
-// Verilog onewire slave model
+// Verilog onewire slave models for normal mode
 //////////////////////////////////////////////////////////////////////////////
 
 // fast slave device
 onewire_slave_model #(
-//  .TS     (15 + 0.1)
-  .TS     (16)
-) onewire_slave_min (
+  .TS     (15 + 0.1)
+) onewire_slave_n_min (
   // configuration
   .ena    (slave_ena     ),
   .ovd    (slave_ovd     ),
@@ -327,7 +326,7 @@ onewire_slave_model #(
 // typical slave device
 onewire_slave_model #(
   .TS     (30)
-) onewire_slave_typ (
+) onewire_slave_n_typ (
   // configuration
   .ena    (slave_ena     ),
   .ovd    (slave_ovd     ),
@@ -338,9 +337,8 @@ onewire_slave_model #(
 );
 
 onewire_slave_model #(
-//  .TS     (60 - 0.1)
-  .TS     (47)
-) onewire_slave_max (
+  .TS     (60 - 0.1)
+) onewire_slave_n_max (
   // configuration
   .ena    (slave_ena     ),
   .ovd    (slave_ovd     ),
@@ -348,6 +346,48 @@ onewire_slave_model #(
   .dat_w  (slave_dat_w[2]),
   // 1-wire signal
   .owr    (owr[2])
+);
+
+//////////////////////////////////////////////////////////////////////////////
+// Verilog onewire slave models for overdrive mode
+//////////////////////////////////////////////////////////////////////////////
+
+// fast slave device
+onewire_slave_model #(
+  .TS     (16)
+) onewire_slave_o_min (
+  // configuration
+  .ena    (slave_ena     ),
+  .ovd    (slave_ovd     ),
+  .dat_r  (slave_dat_r   ),
+  .dat_w  (slave_dat_w[0+3]),
+  // 1-wire signal
+  .owr    (owr[0+3])
+);
+
+// typical slave device
+onewire_slave_model #(
+  .TS     (30)
+) onewire_slave_o_typ (
+  // configuration
+  .ena    (slave_ena     ),
+  .ovd    (slave_ovd     ),
+  .dat_r  (slave_dat_r   ),
+  .dat_w  (slave_dat_w[1+3]),
+  // 1-wire signal
+  .owr    (owr[1+3])
+);
+
+onewire_slave_model #(
+  .TS     (47)
+) onewire_slave_o_max (
+  // configuration
+  .ena    (slave_ena     ),
+  .ovd    (slave_ovd     ),
+  .dat_r  (slave_dat_r   ),
+  .dat_w  (slave_dat_w[2+3]),
+  // 1-wire signal
+  .owr    (owr[2+3])
 );
 
 endmodule
