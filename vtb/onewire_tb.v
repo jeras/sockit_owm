@@ -130,63 +130,71 @@ initial begin
       if (j==0)  slave_ovd = 1'b0;  // normal    mode
       if (j==1)  slave_ovd = 1'b1;  // overdrive mode
   
-      // generate a reset pulse and expect no response
+      // generate a reset pulse
       slave_ena   = 1'b0;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
       avalon_pulling (8);
+      // expect no response
       if (data[0] != 1'b1) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong presence detect response ('1' expected)", $time, "7.5", i, slave_ovd);
      end
 
-      // generate a reset pulse and expect presence response
+      // generate a reset pulse
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
       avalon_pulling (8);
+      // expect presence response
       if (data[0] != 1'b0) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong presence detect response ('0' expected)", $time, "7.5", i, slave_ovd);
      end
 
-      // write '0', read '0' and check
+      // write '0'
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b00}, data);
       avalon_pulling (8);
+      // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] != 1'b0) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '0'", $time, "7.5", i, slave_ovd);
       end
+      // check if '0' was read from the slave
       if (data[0] != 1'b0) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong read  data '0'", $time, "7.5", i, slave_ovd);
       end
 
-      // write '1', read '1' and check
+      // write '1', read '1'
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
       avalon_pulling (8);
+      // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] != 1'b1) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '1'", $time, "7.5", i, slave_ovd);
       end
+      // check if '1' was read from the slave
       if (data[0] != 1'b1) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong read  data '1'", $time, "7.5", i, slave_ovd);
       end
 
-      // write '1', read '0' and check
+      // write '1', read '0'
       slave_ena   = 1'b1;
       slave_dat_r = 1'b0;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
       avalon_pulling (8);
+      // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] != 1'b0) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '0'", $time, "7.5", i, slave_ovd);
       end
+      // check if '0' was read from the slave
       if (data[0] != 1'b0) begin
         error = error+1;
         $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong read  data '0'", $time, "7.5", i, slave_ovd);
