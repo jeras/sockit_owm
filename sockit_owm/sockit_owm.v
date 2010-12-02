@@ -165,7 +165,7 @@ assign t_idl  = req_ovd ? T_IDLE_O                       : T_IDLE_N             
 // reset cycle time (reset low + reset hight)
 assign t_rst  = req_ovd ? T_RSTL_O + T_RSTH_O            : T_RSTL_N + T_RSTH_N           ;
 // data bit transfer cycle time (write 0 + recovery)
-assign t_bit  = req_ovd ? T_DAT0_O +          + T_RCVR_N : T_DAT0_N +            T_RCVR_O;
+assign t_bit  = req_ovd ? T_DAT0_O +          + T_RCVR_O : T_DAT0_N +            T_RCVR_N;
 
 // reset presence pulse sampling time (reset high - reset presence)
 assign t_rstp = owr_ovd ? T_RSTH_O - T_RSTP_O            : T_RSTH_N - T_RSTP_N           ;
