@@ -24,30 +24,42 @@
 
 `timescale 1ns / 1ps
 
-// RTL module parameterization defines
-`define ONEWIRE_BDW      32  // bus data width
-`define ONEWIRE_OVD_E     1  // overdrive functionality enable
-`define ONEWIRE_BTP_N "7.5"  // normal    mode
-`define ONEWIRE_BTP_O "1.0"  // overdrive mode
-
 module onewire_tb;
 
 localparam DEBUG = 1'b0;
 
 // system clock parameters
-localparam real FRQ   = 2_000_000;      // 2MHz
+localparam real FRQ   = 6_000_000;      // 6MHz
 localparam real CP    = (10.0**9)/FRQ;  // clock period in ns
 
-// onewire parameters
-localparam BDW   = `ONEWIRE_BDW;    // bus data width
+// fixed onewire parameters
+localparam BDW   = 32;              // bus data width
 localparam OWN   = 2*3;             // number of wires
-localparam OVD_E = `ONEWIRE_OVD_E;  // overdrive functionality enable
-localparam BTP_N = `ONEWIRE_BTP_N;  // normal    mode
-localparam BTP_O = `ONEWIRE_BTP_O;  // overdrive mode
+
+`ifdef PRESET_50_10
+localparam OVD_E = 1'b1;   // overdrive functionality enable
+localparam BTP_N = "5.0";  // normal    mode
+localparam BTP_O = "1.0";  // overdrive mode
+`elsif PRESET_60_05
+localparam OVD_E = 1'b1;   // overdrive functionality enable
+localparam BTP_N = "6.0";  // normal    mode
+localparam BTP_O = "0.5";  // overdrive mode
+`else // PRESET_75
+localparam OVD_E = 1'b0;   // overdrive functionality enable
+localparam BTP_N = "7.5";  // normal    mode
+localparam BTP_O = "1.0";  // overdrive mode
+`endif
 
 // clock dividers for normal and overdrive mode
-localparam CDR_N = ((BTP_N == "5.0") ?  5.0 : 7.5) * FRQ / 1_000_000;
-localparam CDR_O = ((BTP_O == "1.0") ?  1.0 : 0.5) * FRQ / 1_000_000;
+// NOTE! must be round integer values
+`ifdef PRESET_60_05
+// there is no way to cast a real value into an integer
+localparam integer CDR_N = 45;
+localparam integer CDR_O =  4;
+`else
+localparam integer CDR_N = ((BTP_N == "5.0") ?  5.0 : 7.5 ) * FRQ / 1_000_000;
+localparam integer CDR_O = ((BTP_O == "1.0") ?  1.0 : 0.67) * FRQ / 1_000_000;
+`endif
 
 // Avalon MM parameters
 localparam AAW = 1;      // address width
@@ -92,6 +104,16 @@ integer        error;
 integer        i;  // slave timing
 integer        j;  // overdrive option
 
+//////////////////////////////////////////////////////////////////////////////
+// configuration printout and waveforms
+//////////////////////////////////////////////////////////////////////////////
+
+// print configuration
+initial begin
+  $display ("NOTE: OVD_E=%0b, CDR_N=%0d, CDR_O=%0d, BTP_N=%f, BTP_O=%f",
+                   OVD_E,     CDR_N,     CDR_O, CDR_N*CP/1000, CDR_O*CP/1000);
+end
+
 // request for a dumpfile
 initial begin
   $dumpfile("onewire.vcd");
@@ -126,13 +148,14 @@ initial begin
   avalon_write = 1'b0;
 
   // long delay to skip presence pulse
+  slave_ena = 1'b0;
   #1000_000;
 
   // test with slaves with different timing (each slave one one of the wires)
   for (i=0; i<3; i=i+1) begin
 
    // test reset and data cycles
-    for (j=0; j<2; j=j+1) begin
+    for (j=0; j<(OVD_E?2:1); j=j+1) begin
 
       // select onewire slave (a different set of slaves for overdrive mode)
       slave_sel = i + 3*j;

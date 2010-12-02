@@ -4,10 +4,21 @@
 rm onewire.out
 rm onewire.vcd
 
-# compile the verilog sources (testbench and RTL)
-iverilog -o onewire.out onewire_tb.v onewire_slave_model.v ../sockit_owm/sockit_owm.v
+# list of source files
+sources="onewire_tb.v onewire_slave_model.v ../sockit_owm/sockit_owm.v"
 
-# run the simulation
+# compile a verilog source configuration (testbench and RTL) and run simulation
+
+# exact timing
+iverilog -o onewire.out $sources -DPRESET_50_10
+vvp onewire.out
+
+# approximate timing
+iverilog -o onewire.out $sources -DPRESET_60_05
+vvp onewire.out
+
+# small implementation
+iverilog -o onewire.out $sources -DPRESET_75
 vvp onewire.out
 
 # open the waveform and detach it
