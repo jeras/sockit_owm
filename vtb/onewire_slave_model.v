@@ -59,9 +59,9 @@ initial pul  <= 1'b0;
 always @ (negedge owr)  if (ena)  transfer (ovd, dat_r, dat_w);
 
 task automatic transfer (
-  input ovd,
-  input dat_r,
-  input dat_w
+  input  ovd,
+  input  dat_r,
+  output dat_w
 ); begin
   // provide read data response
   pul = ~dat_r;
