@@ -1,11 +1,8 @@
 [timestart] 0
-[size] 1366 693
+[size] 1366 691
 [pos] -1 -1
-*-29.164242 2197250000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-30.546629 995000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] onewire_tb.
-[treeopen] onewire_tb.onewire_slave.
-@200
--System signals
 @28
 onewire_tb.clk
 onewire_tb.rst
@@ -30,11 +27,8 @@ onewire_tb.onewire_master.irq_etx
 onewire_tb.onewire_master.irq_erx
 onewire_tb.onewire_master.irq_stx
 onewire_tb.onewire_master.irq_srx
-@22
-onewire_tb.onewire_master.div[4:0]
-@28
 onewire_tb.onewire_master.pls
-@24
+@22
 onewire_tb.onewire_master.cnt[6:0]
 @28
 onewire_tb.onewire_master.owr_trn
@@ -42,43 +36,47 @@ onewire_tb.onewire_master.owr_drx
 onewire_tb.onewire_master.owr_dtx
 onewire_tb.onewire_master.owr_rst
 onewire_tb.onewire_master.owr_ovd
-onewire_tb.onewire_master.owr_pwr[2:0]
-onewire_tb.onewire_master.owr_sel[1:0]
 onewire_tb.onewire_master.owr_i
-onewire_tb.onewire_master.onewire_p[2:0]
-@c00028
-onewire_tb.onewire_master.onewire_e[2:0]
-@28
-(0)onewire_tb.onewire_master.onewire_e[2:0]
-(1)onewire_tb.onewire_master.onewire_e[2:0]
-(2)onewire_tb.onewire_master.onewire_e[2:0]
-@1401200
--group_end
-@28
-onewire_tb.onewire_master.onewire_i[2:0]
 @1000200
 -1-wire master
-@800028
-onewire_tb.owr[2:0]
+@22
+onewire_tb.owr_e[5:0]
+@800022
+onewire_tb.owr_i[5:0]
 @28
-(0)onewire_tb.owr[2:0]
-(1)onewire_tb.owr[2:0]
-@29
-(2)onewire_tb.owr[2:0]
+(0)onewire_tb.owr_i[5:0]
+(1)onewire_tb.owr_i[5:0]
+(2)onewire_tb.owr_i[5:0]
+(3)onewire_tb.owr_i[5:0]
+(4)onewire_tb.owr_i[5:0]
+(5)onewire_tb.owr_i[5:0]
 @1001200
+-group_end
+@22
+onewire_tb.owr_p[5:0]
+@800023
+onewire_tb.slave_dat_w[5:0]
+@29
+(0)onewire_tb.slave_dat_w[5:0]
+(1)onewire_tb.slave_dat_w[5:0]
+(2)onewire_tb.slave_dat_w[5:0]
+(3)onewire_tb.slave_dat_w[5:0]
+(4)onewire_tb.slave_dat_w[5:0]
+(5)onewire_tb.slave_dat_w[5:0]
+@1001201
 -group_end
 @800200
 -1-wire slave
-@820
-onewire_tb.onewire_slave.state[23:0]
-onewire_tb.onewire_slave.cycle[23:0]
-@22
-onewire_tb.onewire_slave.dtx[7:0]
-onewire_tb.onewire_slave.cnt[31:0]
 @28
-onewire_tb.onewire_slave.od
-onewire_tb.onewire_slave.pull
-onewire_tb.onewire_slave.sample
-onewire_tb.onewire_slave.reset
+onewire_tb.onewire_slave_n_min.dat_r
+onewire_tb.onewire_slave_n_min.dat_w
+onewire_tb.onewire_slave_n_min.ena
+onewire_tb.onewire_slave_n_min.ovd
+onewire_tb.onewire_slave_n_min.owr
+onewire_tb.onewire_slave_n_min.pul
+onewire_tb.onewire_slave_n_min.sample_dat
+onewire_tb.onewire_slave_n_min.sample_rst
 @1000200
 -1-wire slave
+[pattern_trace] 1
+[pattern_trace] 0
