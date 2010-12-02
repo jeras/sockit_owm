@@ -224,8 +224,8 @@ generate if (OWN>1) begin : sel_implementation
 
   // power delivery
   always @ (posedge clk, posedge rst)
-  if (rst)             owr_pwr <= {SDW{1'b0}};
-  else if (bus_write)  owr_pwr <= bus_writedata[16+:SDW];
+  if (rst)             owr_pwr <= {OWN{1'b0}};
+  else if (bus_write)  owr_pwr <= bus_writedata[16+:OWN];
 end else begin
   // port select
   always @ (*)         owr_sel <= {SDW{1'b0}}; 
