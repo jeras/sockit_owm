@@ -154,13 +154,13 @@ initial begin
   // test with slaves with different timing (each slave one one of the wires)
   for (i=0; i<3; i=i+1) begin
 
-   // test reset and data cycles
+    // test reset and data cycles
     for (j=0; j<(OVD_E?2:1); j=j+1) begin
 
       // select onewire slave (a different set of slaves for overdrive mode)
       slave_sel = i + 3*j;
 
-       // select normal/overdrive mode
+      // select normal/overdrive mode
       if (j==0)  slave_ovd = 1'b0;  // normal    mode
       if (j==1)  slave_ovd = 1'b1;  // overdrive mode
   
@@ -170,9 +170,9 @@ initial begin
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
       avalon_pulling (8);
       // expect no response
-      if (data[0] != 1'b1) begin
+      if (data[0] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong presence detect response ('1' expected)", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong presence ('1' expected)", $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
      end
 
       // generate a reset pulse
@@ -181,9 +181,9 @@ initial begin
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
       avalon_pulling (8);
       // expect presence response
-      if (data[0] != 1'b0) begin
+      if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong presence detect response ('0' expected)", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong presence ('0' expected)", $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
      end
 
       // write '0'
@@ -192,14 +192,14 @@ initial begin
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b00}, data);
       avalon_pulling (8);
       // check if '0' was written into the slave
-      if (slave_dat_w[slave_sel] != 1'b0) begin
+      if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '0'", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong write data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
       end
       // check if '0' was read from the slave
-      if (data[0] != 1'b0) begin
+      if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong read  data '0'", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong read  data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
       end
 
       // write '1', read '1'
@@ -208,14 +208,14 @@ initial begin
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
       avalon_pulling (8);
       // check if '0' was written into the slave
-      if (slave_dat_w[slave_sel] != 1'b1) begin
+      if (slave_dat_w[slave_sel] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '1'", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong write data '1'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
       end
       // check if '1' was read from the slave
-      if (data[0] != 1'b1) begin
+      if (data[0] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong read  data '1'", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong read  data '1'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
       end
 
       // write '1', read '0'
@@ -224,24 +224,34 @@ initial begin
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
       avalon_pulling (8);
       // check if '0' was written into the slave
-      if (slave_dat_w[slave_sel] != 1'b0) begin
+      if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong write data '0'", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong write data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
       end
       // check if '0' was read from the slave
-      if (data[0] != 1'b0) begin
+      if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=%s, spd=%0d, ovd=%b)  Wrong read  data '0'", $time, "7.5", i, slave_ovd);
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong read  data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+      end
+
+      // generate a delay/zero pulse with power supply enabled
+      avalon_cycle (1, 0, 4'hf, {16'h01<<slave_sel, 4'h0, slave_sel, 5'b00000, slave_ovd, 2'b11}, data);
+      avalon_pulling (8);
+      // check if power is present
+      if ((data[0] !== 1'b1) & ~slave_ovd) begin
+        error = error+1;
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong presence (pwr expected)", $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+      end
+      if (owr_p[slave_sel] !== 1'b1) begin
+        error = error+1;
+        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong power state"            , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
       end
 
     end  // j
+
   end  // i
 
   // test power supply
-
-  // generate a delay pulse with power supply enabled
-  avalon_cycle (1, 0, 4'hf, 32'h00010003, data);
-  avalon_pulling (8);
 
   // test breaking a delay sequence with an idle transfer
 
@@ -340,7 +350,7 @@ pullup onewire_pullup [OWN-1:0] (owr);
 
 genvar g;
 generate for (g=0; g<OWN; g=g+1) begin : owr_loop
-  assign owr   [g] = owr_e [g] | owr_p ? owr_p [g] : 1'bz;
+  assign owr   [g] = owr_e [g] | owr_p [g] ? owr_p [g] : 1'bz;
   assign owr_i [g] = owr   [g];
 end endgenerate
 
