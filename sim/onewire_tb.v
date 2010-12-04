@@ -29,8 +29,8 @@ module onewire_tb;
 localparam DEBUG = 1'b0;
 
 // system clock parameters
-localparam real FRQ   = 6_000_000;      // 6MHz
-localparam real CP    = (10.0**9)/FRQ;  // clock period in ns
+localparam real FRQ = 6_000_000;      // frequency 6MHz
+localparam real TCP = (10.0**9)/FRQ;  // time clock period in ns
 
 // fixed onewire parameters
 localparam BDW   = 32;              // bus data width
@@ -116,8 +116,9 @@ end
 
 // print configuration
 initial begin
-  $display ("NOTE: Config: OVD_E=%0b, CDR_N=%0d, CDR_O=%0d, BTP_N=%f, BTP_O=%f",
-                           OVD_E,     CDR_N,     CDR_O, CDR_N*CP/1000, CDR_O*CP/1000);
+  $display ("NOTE: Clock: FRQ=%3.2fMHz, TCP=%3.2fns", FRQ/1_000_000.0, TCP);
+  $display ("NOTE: Config: OVD_E=%0b, CDR_N=%0d, CDR_O=%0d, BTP_N=%1.2fus, BTP_O=%1.2fus",
+                           OVD_E,     CDR_N,     CDR_O, CDR_N*1_000_000/FRQ, CDR_O*1_000_000/FRQ);
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -125,8 +126,8 @@ end
 //////////////////////////////////////////////////////////////////////////////
 
 // clock generation
-initial        clk = 1'b1;
-always #(CP/2) clk = ~clk;
+initial         clk = 1'b1;
+always #(TCP/2) clk = ~clk;
 
 // reset generation
 initial begin
@@ -175,7 +176,7 @@ initial begin
       // expect no response
       if (data[0] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong presence detect responce ('1' expected)", $time);
+        $display("ERROR: (t=%0t)  Wrong presence detect responce ('1' expected).", $time);
      end
 
       // generate a reset pulse
@@ -186,7 +187,7 @@ initial begin
       // expect presence response
       if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong presence detect response ('0' expected)", $time);
+        $display("ERROR: (t=%0t)  Wrong presence detect response ('0' expected).", $time);
      end
 
       // write '0'
@@ -197,12 +198,12 @@ initial begin
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong write data for write '0'", $time);
+        $display("ERROR: (t=%0t)  Wrong write data for write '0'.", $time);
       end
       // check if '0' was read from the slave
       if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong read  data for write '0'", $time);
+        $display("ERROR: (t=%0t)  Wrong read  data for write '0'.", $time);
       end
 
       // write '1', read '1'
@@ -213,12 +214,12 @@ initial begin
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong write data for write '1', read '1'", $time);
+        $display("ERROR: (t=%0t)  Wrong write data for write '1', read '1'.", $time);
       end
       // check if '1' was read from the slave
       if (data[0] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong read  data for write '1', read '1'", $time);
+        $display("ERROR: (t=%0t)  Wrong read  data for write '1', read '1'.", $time);
       end
 
       // write '1', read '0'
@@ -229,36 +230,53 @@ initial begin
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong write data for write '1', read '0'", $time);
+        $display("ERROR: (t=%0t)  Wrong write data for write '1', read '0'.", $time);
       end
       // check if '0' was read from the slave
       if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t)  Wrong read  data for write '1', read '0'", $time);
-      end
-
-      // generate a delay/zero pulse with power supply enabled
-      avalon_cycle (1, 0, 4'hf, {16'h01<<slave_sel, 4'h0, slave_sel, 5'b00000, slave_ovd, 2'b11}, data);
-      avalon_pulling (8, n);
-      // check if power is present
-      if ((data[0] !== 1'b1) & ~slave_ovd) begin
-        error = error+1;
-        $display("ERROR: (t=%0t)  Wrong presence detect response (power expected)", $time);
-      end
-      if (owr_p[slave_sel] !== 1'b1) begin
-        error = error+1;
-        $display("ERROR: (t=%0t)  Wrong line power state", $time);
+        $display("ERROR: (t=%0t)  Wrong read  data for write '1', read '0'.", $time);
       end
 
     end  // j
 
   end  // i
 
-  // test power supply
+  // test power supply on a typical normal mode slave
+  slave_sel = 1;
 
-  // test breaking a delay sequence with an idle transfer
+  // generate a delay pulse (1ms) with power supply enabled
+  avalon_cycle (1, 0, 4'hf, {16'h01<<slave_sel, 4'h0, slave_sel, 5'b00000, 3'b011}, data);
+  avalon_pulling (1, n);
+  // check if '1' was read from the slave
+  if ((data[0] !== 1'b1) & ~slave_ovd) begin
+    error = error+1;
+    $display("ERROR: (t=%0t)  Wrong presence detect response (power expected).", $time);
+  end
+  // check if power is present
+  if (owr_p[slave_sel] !== 1'b1) begin
+    error = error+1;
+    $display("ERROR: (t=%0t)  Wrong line power state", $time);
+  end
+  // check the time to run a delay cycle
+  if ((n-1)*2 != FRQ/1000) begin
+    $display("WARNING: (t=%0t)  Non ideal cycle time (%0dus), should be around 1ms.", $time, 2*(n-1)*1_000_000/FRQ);
+  end
 
-  // generate a delay pulse and break it, before it finishes
+  // generate a idle pulse (0ms) with power supply enabled
+  avalon_cycle (1, 0, 4'hf, {16'h01<<slave_sel, 4'h0, slave_sel, 5'b00000, 3'b111}, data);
+  avalon_pulling (1, n);
+  // check if power is present
+  if (owr_p[slave_sel] !== 1'b1) begin
+    error = error+1;
+    $display("ERROR: (t=%0t)  Wrong line power state", $time);
+  end
+  // check the time to run an idle cycle
+  if (n>1) begin
+    $display("ERROR: (t=%0t)  Non ideal idle cycle time, should be around zero.", $time);
+  end
+
+  // generate a delay pulse and break it with an idle pulse, before it finishes
   repeat (10) @(posedge clk);
   avalon_cycle (1, 0, 4'hf, 32'h00000003, data);
   repeat (10) @(posedge clk);

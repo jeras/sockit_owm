@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 691
 [pos] -1 -1
-*-30.546629 995000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-30.546513 1000162666 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] onewire_tb.
 @28
 onewire_tb.clk
@@ -12,7 +12,7 @@ onewire_tb.rst
 onewire_tb.avalon_write
 @22
 onewire_tb.avalon_writedata[31:0]
-@28
+@29
 onewire_tb.avalon_read
 @22
 onewire_tb.avalon_readdata[31:0]
@@ -41,7 +41,7 @@ onewire_tb.onewire_master.owr_i
 -1-wire master
 @22
 onewire_tb.owr_e[5:0]
-@800022
+@c00022
 onewire_tb.owr_i[5:0]
 @28
 (0)onewire_tb.owr_i[5:0]
@@ -50,32 +50,21 @@ onewire_tb.owr_i[5:0]
 (3)onewire_tb.owr_i[5:0]
 (4)onewire_tb.owr_i[5:0]
 (5)onewire_tb.owr_i[5:0]
-@1001200
+@1401200
 -group_end
 @22
 onewire_tb.owr_p[5:0]
-@800023
-onewire_tb.slave_dat_w[5:0]
-@29
-(0)onewire_tb.slave_dat_w[5:0]
-(1)onewire_tb.slave_dat_w[5:0]
-(2)onewire_tb.slave_dat_w[5:0]
-(3)onewire_tb.slave_dat_w[5:0]
-(4)onewire_tb.slave_dat_w[5:0]
-(5)onewire_tb.slave_dat_w[5:0]
-@1001201
--group_end
 @800200
 -1-wire slave
 @28
-onewire_tb.onewire_slave_n_min.dat_r
-onewire_tb.onewire_slave_n_min.dat_w
-onewire_tb.onewire_slave_n_min.ena
-onewire_tb.onewire_slave_n_min.ovd
-onewire_tb.onewire_slave_n_min.owr
-onewire_tb.onewire_slave_n_min.pul
-onewire_tb.onewire_slave_n_min.sample_dat
-onewire_tb.onewire_slave_n_min.sample_rst
+onewire_tb.onewire_slave_n_typ.dat_r
+onewire_tb.onewire_slave_n_typ.dat_w
+onewire_tb.onewire_slave_n_typ.ena
+onewire_tb.onewire_slave_n_typ.ovd
+onewire_tb.onewire_slave_n_typ.owr
+onewire_tb.onewire_slave_n_typ.pul
+onewire_tb.onewire_slave_n_typ.sample_dat
+onewire_tb.onewire_slave_n_typ.sample_rst
 @1000200
 -1-wire slave
 [pattern_trace] 1
