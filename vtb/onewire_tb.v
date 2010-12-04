@@ -108,16 +108,16 @@ integer        j;  // overdrive option
 // configuration printout and waveforms
 //////////////////////////////////////////////////////////////////////////////
 
-// print configuration
-initial begin
-  $display ("NOTE: OVD_E=%0b, CDR_N=%0d, CDR_O=%0d, BTP_N=%f, BTP_O=%f",
-                   OVD_E,     CDR_N,     CDR_O, CDR_N*CP/1000, CDR_O*CP/1000);
-end
-
 // request for a dumpfile
 initial begin
   $dumpfile("onewire.vcd");
   $dumpvars(0, onewire_tb);
+end
+
+// print configuration
+initial begin
+  $display ("NOTE: Config: OVD_E=%0b, CDR_N=%0d, CDR_O=%0d, BTP_N=%f, BTP_O=%f",
+                           OVD_E,     CDR_N,     CDR_O, CDR_N*CP/1000, CDR_O*CP/1000);
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -163,7 +163,10 @@ initial begin
       // select normal/overdrive mode
       if (j==0)  slave_ovd = 1'b0;  // normal    mode
       if (j==1)  slave_ovd = 1'b1;  // overdrive mode
-  
+ 
+      // testbench status message 
+      $display("NOTE: Loop: speed=%s, ovd=%b, BTP=\"%s\")", (i==0) ? "min" : (i==2) ? "max" : "typ", slave_ovd, slave_ovd ? BTP_O : BTP_N);
+
       // generate a reset pulse
       slave_ena   = 1'b0;
       slave_dat_r = 1'b1;
@@ -172,7 +175,7 @@ initial begin
       // expect no response
       if (data[0] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong presence ('1' expected)", $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong presence detect responce ('1' expected)", $time);
      end
 
       // generate a reset pulse
@@ -183,7 +186,7 @@ initial begin
       // expect presence response
       if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong presence ('0' expected)", $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong presence detect response ('0' expected)", $time);
      end
 
       // write '0'
@@ -194,12 +197,12 @@ initial begin
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong write data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong write data for write '0'", $time);
       end
       // check if '0' was read from the slave
       if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong read  data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong read  data for write '0'", $time);
       end
 
       // write '1', read '1'
@@ -210,12 +213,12 @@ initial begin
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong write data '1'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong write data for write '1', read '1'", $time);
       end
       // check if '1' was read from the slave
       if (data[0] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong read  data '1'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong read  data for write '1', read '1'", $time);
       end
 
       // write '1', read '0'
@@ -226,12 +229,12 @@ initial begin
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong write data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong write data for write '1', read '0'", $time);
       end
       // check if '0' was read from the slave
       if (data[0] !== 1'b0) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong read  data '0'"         , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong read  data for write '1', read '0'", $time);
       end
 
       // generate a delay/zero pulse with power supply enabled
@@ -240,11 +243,11 @@ initial begin
       // check if power is present
       if ((data[0] !== 1'b1) & ~slave_ovd) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong presence (pwr expected)", $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong presence detect response (power expected)", $time);
       end
       if (owr_p[slave_sel] !== 1'b1) begin
         error = error+1;
-        $display("ERROR: (t=%0t, BTP=\"%s\", spd=%0d, ovd=%b)  Wrong power state"            , $time, slave_ovd ? BTP_N : BTP_O, i, slave_ovd);
+        $display("ERROR: (t=%0t)  Wrong line power state", $time);
       end
 
     end  // j
