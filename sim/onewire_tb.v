@@ -97,8 +97,8 @@ reg            slave_dat_r;  // read  data
 wire [OWN-1:0] slave_dat_w;  // write data
 
 // error checking
-real           t_trn;     // transfer cycle time
 integer        error;
+integer        n;
 
 // loop indexes
 integer        i;  // slave timing
@@ -171,7 +171,7 @@ initial begin
       slave_ena   = 1'b0;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
-      avalon_pulling (8);
+      avalon_pulling (8, n);
       // expect no response
       if (data[0] !== 1'b1) begin
         error = error+1;
@@ -182,7 +182,7 @@ initial begin
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
-      avalon_pulling (8);
+      avalon_pulling (8, n);
       // expect presence response
       if (data[0] !== 1'b0) begin
         error = error+1;
@@ -193,7 +193,7 @@ initial begin
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b00}, data);
-      avalon_pulling (8);
+      avalon_pulling (8, n);
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
@@ -209,7 +209,7 @@ initial begin
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
-      avalon_pulling (8);
+      avalon_pulling (8, n);
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b1) begin
         error = error+1;
@@ -225,7 +225,7 @@ initial begin
       slave_ena   = 1'b1;
       slave_dat_r = 1'b0;
       avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
-      avalon_pulling (8);
+      avalon_pulling (8, n);
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
@@ -239,7 +239,7 @@ initial begin
 
       // generate a delay/zero pulse with power supply enabled
       avalon_cycle (1, 0, 4'hf, {16'h01<<slave_sel, 4'h0, slave_sel, 5'b00000, slave_ovd, 2'b11}, data);
-      avalon_pulling (8);
+      avalon_pulling (8, n);
       // check if power is present
       if ((data[0] !== 1'b1) & ~slave_ovd) begin
         error = error+1;
@@ -270,19 +270,19 @@ initial begin
 end
 
 // wait for the onewire cycle completion
-task avalon_pulling (input integer dly);
-  real t_tmp;
-begin
-  // remember the start time
-  t_tmp = $time;
+task avalon_pulling (
+  input  integer dly,
+  output integer n
+); begin
+  // set cycle counter to zero
+  n = 0;
   // pool till owr_trn ends
   data = 32'h02;
   while (data & 32'h02) begin
     repeat (dly) @ (posedge clk);
     avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
+    n = n + 1;
   end
-  // set the transfer length time in us
-  t_trn = ($time - t_tmp) / 1000;
 end endtask
 
 //////////////////////////////////////////////////////////////////////////////
