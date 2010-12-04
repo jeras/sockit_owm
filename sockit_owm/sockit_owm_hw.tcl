@@ -99,16 +99,16 @@ set_parameter_property CDR_O HDL_PARAMETER true
 
 add_display_item "Base time period options" BTP_N parameter
 add_display_item "Base time period options" BTP_O parameter
-add_display_item "Clock dividers" F_CLK parameter
-add_display_item "Clock dividers" CDR_N parameter
-add_display_item "Clock dividers" CDR_O parameter
+add_display_item "Clock dividers"           F_CLK parameter
+add_display_item "Clock dividers"           CDR_N parameter
+add_display_item "Clock dividers"           CDR_O parameter
 
 # connection point clock_reset
 add_interface clock_reset clock end
 
 set_interface_property clock_reset ENABLED true
 
-add_interface_port clock_reset clk clk Input 1
+add_interface_port clock_reset clk clk   Input 1
 add_interface_port clock_reset rst reset Input 1
 
 # connection point s1
@@ -133,10 +133,10 @@ set_interface_property s1 writeWaitTime 0
 set_interface_property s1 ASSOCIATED_CLOCK clock_reset
 set_interface_property s1 ENABLED true
 
-add_interface_port s1 bus_read read Input 1
-add_interface_port s1 bus_write write Input 1
-add_interface_port s1 bus_writedata writedata Input BDW
-add_interface_port s1 bus_readdata readdata Output BDW
+add_interface_port s1 bus_ren read      Input  1
+add_interface_port s1 bus_wen write     Input  1
+add_interface_port s1 bus_wdt writedata Input  BDW
+add_interface_port s1 bus_rdt readdata  Output BDW
 
 # connection point irq
 add_interface irq interrupt end
@@ -146,16 +146,16 @@ set_interface_property irq associatedAddressablePoint s1
 set_interface_property irq ASSOCIATED_CLOCK clock_reset
 set_interface_property irq ENABLED true
 
-add_interface_port irq bus_interrupt irq Output 1
+add_interface_port irq bus_irq irq Output 1
 
 # connection point conduit
 add_interface ext conduit end
 
 set_interface_property ext ENABLED true
 
-add_interface_port ext onewire_p export Output 1
-add_interface_port ext onewire_e export Output 1
-add_interface_port ext onewire_i export Input  1
+add_interface_port ext wire_p export Output 1
+add_interface_port ext wire_e export Output 1
+add_interface_port ext wire_i export Input  1
 
 proc validation_callback {} {
   # check if overdrive is enabled

@@ -343,27 +343,27 @@ assign avalon_waitrequest = 1'b0;
 //////////////////////////////////////////////////////////////////////////////
 
 sockit_owm #(
-  .BDW            (BDW  ),
-  .OWN            (OWN  ),
-  .OVD_E          (OVD_E),
-  .BTP_N          (BTP_N),
-  .BTP_O          (BTP_O),
-  .CDR_N          (CDR_N),
-  .CDR_O          (CDR_O)
+  .BDW      (BDW  ),
+  .OWN      (OWN  ),
+  .OVD_E    (OVD_E),
+  .BTP_N    (BTP_N),
+  .BTP_O    (BTP_O),
+  .CDR_N    (CDR_N),
+  .CDR_O    (CDR_O)
 ) onewire_master (
   // system
-  .clk            (clk),
-  .rst            (rst),
+  .clk      (clk),
+  .rst      (rst),
   // Avalon
-  .bus_read       (avalon_read),
-  .bus_write      (avalon_write),
-  .bus_writedata  (avalon_writedata),
-  .bus_readdata   (avalon_readdata),
-  .bus_interrupt  (avalon_interrupt),
+  .bus_ren  (avalon_read),
+  .bus_wen  (avalon_write),
+  .bus_wdt  (avalon_writedata),
+  .bus_rdt  (avalon_readdata),
+  .bus_irq  (avalon_interrupt),
   // onewire
-  .onewire_p      (owr_p),
-  .onewire_e      (owr_e),
-  .onewire_i      (owr_i)
+  .wire_p   (owr_p),
+  .wire_e   (owr_e),
+  .wire_i   (owr_i)
 );
 
 // pullup

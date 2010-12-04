@@ -80,16 +80,16 @@ module sockit_owm #(
   // system signals
   input            clk,
   input            rst,
-  // bus interface
-  input            bus_read,
-  input            bus_write,
-  input  [BDW-1:0] bus_writedata,
-  output [BDW-1:0] bus_readdata,
-  output           bus_interrupt,
-  // onewire
-  output [OWN-1:0] onewire_p,   // output power enable
-  output [OWN-1:0] onewire_e,   // output pull down enable
-  input  [OWN-1:0] onewire_i    // input from bidirectional wire
+  // CPU bus interface
+  input            bus_ren,  // read  enable
+  input            bus_wen,  // write enable
+  input  [BDW-1:0] bus_wdt,  // write data
+  output [BDW-1:0] bus_rdt,  // read  data
+  output           bus_irq,  // interrupt request
+  // 1-wire interface
+  output [OWN-1:0] wire_p,   // output power enable
+  output [OWN-1:0] wire_e,   // output pull down enable
+  input  [OWN-1:0] wire_i    // input from bidirectional wire
 );
 
 //////////////////////////////////////////////////////////////////////////////
@@ -190,10 +190,10 @@ assign t_zero = 'd0;
 generate if ((CDR_N>1) | (CDR_O>1)) begin : div_implementation
   // clock divider
   always @ (posedge clk, posedge rst)
-  if (rst)          div <= 'd0;
+  if (rst)        div <= 'd0;
   else begin
-    if (bus_write)  div <= 'd0;
-    else            div <= pls ? 'd0 : div + owr_trn;
+    if (bus_wen)  div <= 'd0;
+    else          div <= pls ? 'd0 : div + owr_trn;
   end
   // divided clock pulse
   assign pls = (div == (owr_ovd ? CDR_O : CDR_N) - 1);
@@ -208,92 +208,92 @@ end endgenerate
 
 // bus read data
 generate if (OWN>1) begin : sel_readdata
-  assign bus_readdata = {{BDW-OWN-16{1'b0}}, owr_pwr, {8-SDW{1'b0}}, owr_sel,
-                         irq_erx, irq_etx, irq_srx, irq_stx,
-                         owr_i  , owr_ovd, owr_trn, owr_drx};
+  assign bus_rdt = {{BDW-OWN-16{1'b0}}, owr_pwr, {8-SDW{1'b0}}, owr_sel,
+                    irq_erx, irq_etx, irq_srx, irq_stx,
+                    owr_i  , owr_ovd, owr_trn, owr_drx};
 end else begin
-  assign bus_readdata = {irq_erx, irq_etx, irq_srx, irq_stx,
-                         owr_i  , owr_ovd, owr_trn, owr_drx};
+  assign bus_rdt = {irq_erx, irq_etx, irq_srx, irq_stx,
+                    owr_i  , owr_ovd, owr_trn, owr_drx};
 end endgenerate
 
 generate if (OWN>1) begin : sel_implementation
   // port select
   always @ (posedge clk, posedge rst)
-  if (rst)             owr_sel <= {SDW{1'b0}};
-  else if (bus_write)  owr_sel <= bus_writedata[8+:SDW];
+  if (rst)           owr_sel <= {SDW{1'b0}};
+  else if (bus_wen)  owr_sel <= bus_wdt[8+:SDW];
 
   // power delivery
   always @ (posedge clk, posedge rst)
-  if (rst)             owr_pwr <= {OWN{1'b0}};
-  else if (bus_write)  owr_pwr <= bus_writedata[16+:OWN];
+  if (rst)           owr_pwr <= {OWN{1'b0}};
+  else if (bus_wen)  owr_pwr <= bus_wdt[16+:OWN];
 end else begin
   // port select
-  always @ (*)         owr_sel <= {SDW{1'b0}}; 
+  always @ (*)       owr_sel <= {SDW{1'b0}}; 
   // power delivery
   always @ (posedge clk, posedge rst)
-  if (rst)             owr_pwr <= 1'b0;
-  else if (bus_write)  owr_pwr <= bus_writedata[3];
+  if (rst)           owr_pwr <= 1'b0;
+  else if (bus_wen)  owr_pwr <= bus_wdt[3];
 end endgenerate
 
 // bus interrupt
-assign bus_interrupt = irq_erx & irq_srx
-                     | irq_etx & irq_stx;
+assign bus_irq = irq_erx & irq_srx
+               | irq_etx & irq_stx;
 
 // interrupt enable
 always @ (posedge clk, posedge rst)
-if (rst)             {irq_erx, irq_etx} <= 2'b00;     
-else if (bus_write)  {irq_erx, irq_etx} <= bus_writedata[7:6]; 
+if (rst)           {irq_erx, irq_etx} <= 2'b00;     
+else if (bus_wen)  {irq_erx, irq_etx} <= bus_wdt[7:6]; 
 
 // transmit status (active after onewire transfer cycle ends)
 always @ (posedge clk, posedge rst)
 if (rst)                           irq_stx <= 1'b0;
 else begin
-  if (bus_write)                   irq_stx <= 1'b0;
+  if (bus_wen)                     irq_stx <= 1'b0;
   else if (pls & (cnt == t_zero))  irq_stx <= 1'b1;
-  else if (bus_read)               irq_stx <= 1'b0;
+  else if (bus_ren)                irq_stx <= 1'b0;
 end
 
 // receive status (active after wire sampling point inside the transfer cycle)
 always @ (posedge clk, posedge rst)
 if (rst)                     irq_srx <= 1'b0;
 else begin
-  if (bus_write)             irq_srx <= 1'b0;
+  if (bus_wen)               irq_srx <= 1'b0;
   else if (pls) begin
     if      (cnt == t_rstp)  irq_srx <=  owr_rst & ~owr_dtx;  // presence detect
     else if (cnt == t_bits)  irq_srx <= ~owr_rst &  owr_dtx;  // read data bit
-  end else if (bus_read)     irq_srx <= 1'b0;
+  end else if (bus_ren)      irq_srx <= 1'b0;
 end
 
 //////////////////////////////////////////////////////////////////////////////
 // onewire state machine
 //////////////////////////////////////////////////////////////////////////////
 
-assign req_ovd = OVD_E ? bus_write & bus_writedata[2] : 1'b0; 
+assign req_ovd = OVD_E ? bus_wen & bus_wdt[2] : 1'b0; 
 
 // overdrive
 always @ (posedge clk, posedge rst)
-if (rst)             owr_ovd <= 1'b0;     
-else if (bus_write)  owr_ovd <= req_ovd; 
+if (rst)           owr_ovd <= 1'b0;     
+else if (bus_wen)  owr_ovd <= req_ovd; 
 
 // transmit data, reset, overdrive
 always @ (posedge clk, posedge rst)
-if (rst)             {owr_rst, owr_dtx} <= 2'b00;     
-else if (bus_write)  {owr_rst, owr_dtx} <= bus_writedata[1:0];
+if (rst)           {owr_rst, owr_dtx} <= 2'b00;     
+else if (bus_wen)  {owr_rst, owr_dtx} <= bus_wdt[1:0];
 
 // onewire transfer status
 always @ (posedge clk, posedge rst)
 if (rst)                           owr_trn <= 1'b0;
 else begin
-  if (bus_write)                   owr_trn <= ~&bus_writedata[2:0];
+  if (bus_wen)                     owr_trn <= ~&bus_wdt[2:0];
   else if (pls & (cnt == t_zero))  owr_trn <= 1'b0;
 end
 
 // state counter (initial value depends whether the cycle is reset or data)
 always @ (posedge clk, posedge rst)
-if (rst)          cnt <= 0;
+if (rst)         cnt <= 0;
 else begin
-  if (bus_write)  cnt <= (&bus_writedata[1:0] ? t_idl : bus_writedata[1] ? t_rst : t_bit) - 'd1;
-  else if (pls)   cnt <= cnt - 'd1;
+  if (bus_wen)   cnt <= (&bus_wdt[1:0] ? t_idl : bus_wdt[1] ? t_rst : t_bit) - 'd1;
+  else if (pls)  cnt <= cnt - 'd1;
 end
 
 // receive data (sampling point depends whether the cycle is reset or data)
@@ -307,7 +307,7 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)                                owr_oen <= 1'b0;
 else begin
-  if (bus_write)                        owr_oen <= ~&bus_writedata[1:0];
+  if (bus_wen)                          owr_oen <= ~&bus_wdt[1:0];
   else if (pls) begin
     if      (owr_rst & (cnt == t_rsth)) owr_oen <= 1'b0;  // reset
     else if (owr_dtx & (cnt == t_dat1)) owr_oen <= 1'b0;  // write 1, read
@@ -320,12 +320,12 @@ end
 //////////////////////////////////////////////////////////////////////////////
 
 // only one 1-wire line cn be accessed at the same time
-assign onewire_e = owr_oen << owr_sel;
+assign wire_e = owr_oen << owr_sel;
 // all 1-wire lines can be powered independently
-assign onewire_p = owr_pwr;
+assign wire_p = owr_pwr;
 
 // 1-wire line status read multiplexer
-assign owr_i = onewire_i [owr_sel];
-assign owr_p = onewire_p [owr_sel];
+assign owr_i = wire_i [owr_sel];
+assign owr_p = wire_p [owr_sel];
 
 endmodule
