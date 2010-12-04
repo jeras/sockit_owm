@@ -348,14 +348,14 @@ sockit_owm #(
   .onewire_i      (owr_i)
 );
 
-// onewire
+// pullup
 pullup onewire_pullup [OWN-1:0] (owr);
 
-genvar g;
-generate for (g=0; g<OWN; g=g+1) begin : owr_loop
-  assign owr   [g] = owr_e [g] | owr_p [g] ? owr_p [g] : 1'bz;
-  assign owr_i [g] = owr   [g];
-end endgenerate
+// tristate buffers
+bufif1 onewire_buffer [OWN-1:0] (owr, owr_p, owr_e | owr_p);
+
+// read back
+assign owr_i = owr;
 
 //////////////////////////////////////////////////////////////////////////////
 // Verilog onewire slave models for normal mode
