@@ -32,9 +32,11 @@ localparam DEBUG = 1'b0;
 localparam real FRQ = 6_000_000;      // frequency 6MHz
 localparam real TCP = (10.0**9)/FRQ;  // time clock period in ns
 
-// fixed onewire parameters
-localparam BDW   = 32;              // bus data width
-localparam OWN   = 2*3;             // number of wires
+`ifdef CDR_E
+localparam CDR_E = 1;
+`else
+localparam CDR_E = 0;
+`endif
 
 `ifdef PRESET_50_10
 localparam OVD_E = 1'b1;   // overdrive functionality enable
@@ -50,6 +52,13 @@ localparam BTP_N = "7.5";  // normal    mode
 localparam BTP_O = "1.0";  // overdrive mode
 `endif
 
+// port width parameters
+localparam BDW   = 32;     // bus data width
+localparam OWN   = 2*3;    // number of wires
+// computed bus address port width
+localparam BAW   = (CDR_E==0) ? ((BDW==32) ? 0 : (OWN==1) ? 0 : 1)
+                              : ((BDW==32) ? 1 : 2);
+
 // clock dividers for normal and overdrive mode
 // NOTE! must be round integer values
 `ifdef PRESET_60_05
@@ -62,8 +71,8 @@ localparam integer CDR_O = ((BTP_O == "1.0") ?  1.0 : 0.67) * FRQ / 1_000_000;
 `endif
 
 // Avalon MM parameters
-localparam AAW = 1;      // address width
-localparam ADW = 32;     // data width
+localparam AAW = BAW;      // address width
+localparam ADW = BDW;    // data width
 localparam ABW = ADW/8;  // byte enable width
 
 // system_signals
@@ -81,7 +90,7 @@ wire           avalon_interrupt;
 
 // Avalon MM local signals
 wire           avalon_transfer;
-reg  [ADW-1:0] data;
+reg  [BDW-1:0] data;
 
 // onewire
 wire [OWN-1:0] owr;     // bidirectional
@@ -116,7 +125,8 @@ end
 
 // print configuration
 initial begin
-  $display ("NOTE: Clock: FRQ=%3.2fMHz, TCP=%3.2fns", FRQ/1_000_000.0, TCP);
+  $display ("NOTE: Ports : BDW=%0d, BAW=%0d", BDW, BAW);
+  $display ("NOTE: Clock : FRQ=%3.2fMHz, TCP=%3.2fns", FRQ/1_000_000.0, TCP);
   $display ("NOTE: Config: OVD_E=%0b, CDR_N=%0d, CDR_O=%0d, BTP_N=%1.2fus, BTP_O=%1.2fus",
                            OVD_E,     CDR_N,     CDR_O, CDR_N*1_000_000/FRQ, CDR_O*1_000_000/FRQ);
 end
@@ -357,6 +367,7 @@ sockit_owm #(
   // Avalon
   .bus_ren  (avalon_read),
   .bus_wen  (avalon_write),
+  .bus_adr  (avalon_address),
   .bus_wdt  (avalon_writedata),
   .bus_rdt  (avalon_readdata),
   .bus_irq  (avalon_interrupt),

@@ -28,9 +28,22 @@ set_module_property ELABORATION_CALLBACK elaboration_callback
 add_file sockit_owm.v {SYNTHESIS SIMULATION}
 
 # parameters
+add_parameter OVD_E BOOLEAN
+set_parameter_property OVD_E DESCRIPTION "Implementation of overdrive enable, disabling it can spare a small amount of logic."
+set_parameter_property OVD_E DEFAULT_VALUE 1
+set_parameter_property OVD_E UNITS None
+set_parameter_property OVD_E AFFECTS_GENERATION false
+set_parameter_property OVD_E HDL_PARAMETER true
+
+add_parameter CDR_E BOOLEAN
+set_parameter_property CDR_E DESCRIPTION "Implementation of overdrive enable, disabling it can spare a small amount of logic."
+set_parameter_property CDR_E DEFAULT_VALUE 0
+set_parameter_property CDR_E UNITS None
+set_parameter_property CDR_E AFFECTS_GENERATION false
+set_parameter_property CDR_E HDL_PARAMETER true
+
 add_parameter BDW INTEGER
 set_parameter_property BDW DESCRIPTION "CPU interface data bus width"
-#set_parameter_property BDW DISPLAY_NAME BDW
 set_parameter_property BDW DISPLAY_HINT "radio"
 set_parameter_property BDW DEFAULT_VALUE 32
 set_parameter_property BDW ALLOWED_RANGES {8 32}
@@ -39,13 +52,14 @@ set_parameter_property BDW ENABLED false
 set_parameter_property BDW AFFECTS_GENERATION false
 set_parameter_property BDW HDL_PARAMETER true
 
-add_parameter OVD_E BOOLEAN
-set_parameter_property OVD_E DESCRIPTION "Implementation of overdrive enable, disabling it can spare a small amount of logic."
-#set_parameter_property OVD_E DISPLAY_NAME OVD_E
-set_parameter_property OVD_E DEFAULT_VALUE 1
-set_parameter_property OVD_E UNITS None
-set_parameter_property OVD_E AFFECTS_GENERATION false
-set_parameter_property OVD_E HDL_PARAMETER true
+add_parameter BAW INTEGER
+set_parameter_property CDR_O DERIVED true
+set_parameter_property BAW DESCRIPTION "CPU interface address bus width"
+set_parameter_property BAW DEFAULT_VALUE 0
+set_parameter_property BAW ALLOWED_RANGES {0 1}
+set_parameter_property BAW UNITS bits
+set_parameter_property BAW AFFECTS_GENERATION false
+set_parameter_property BAW HDL_PARAMETER true
 
 add_parameter OWN INTEGER
 set_parameter_property OWN DESCRIPTION "Nummber of 1-wire channels"
@@ -135,6 +149,7 @@ set_interface_property s1 ENABLED true
 
 add_interface_port s1 bus_ren read      Input  1
 add_interface_port s1 bus_wen write     Input  1
+add_interface_port s1 bus_adr address   Input  BAW
 add_interface_port s1 bus_wdt writedata Input  BDW
 add_interface_port s1 bus_rdt readdata  Output BDW
 
@@ -158,15 +173,19 @@ add_interface_port ext wire_e export Output 1
 add_interface_port ext wire_i export Input  1
 
 proc validation_callback {} {
+  # compute the proper address bus width
+  set cdr_e [get_parameter_value CDR_E]
+  set bdw   [get_parameter_value BDW]
+  set baw   [expr {($cdr_e==0) ? (($own>1) ? 1 : 0) : }]
   # check if overdrive is enabled
-  set ovd [get_parameter_value OVD_E]
+  set ovd_e [get_parameter_value OVD_E]
   # get clock frequency in Hz
-  set f [get_parameter_value F_CLK]
+  set f     [get_parameter_value F_CLK]
   # get base time periods
   set btp_n [get_parameter_value BTP_N]
   set btp_o [get_parameter_value BTP_O]
   # disable editing od dividers
-  set_parameter_property BTP_O ENABLED [expr {$ovd ? "true" : "false"}]
+  set_parameter_property BTP_O ENABLED [expr {$ovd_e ? "true" : "false"}]
   # compute normal mode divider
   if {$btp_n=="5.0"} {
     set d_n [expr {$f/200000}]
@@ -200,8 +219,8 @@ proc validation_callback {} {
     }
   }
   # set divider values
-             set_parameter_value CDR_N $d_n
-  if {$ovd} {set_parameter_value CDR_O $d_o}
+               set_parameter_value CDR_N $d_n
+  if {$ovd_e} {set_parameter_value CDR_O $d_o}
   # report BTP values and relative errors
   send_message info "BTP_N (normal    mode 'base time period') is [format %.2f $t_n], relative error is [format %.1f [expr {$e_n*100}]]%."
   send_message info "BTP_O (overdrive mode 'base time period') is [format %.2f $t_o], relative error is [format %.1f [expr {$e_o*100}]]%."

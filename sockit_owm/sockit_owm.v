@@ -47,13 +47,17 @@
 //////////////////////////////////////////////////////////////////////////////
 
 module sockit_owm #(
+  // enable implementation of optional functionality
+  parameter OVD_E =    1,  // overdrive functionality is implemented by default
+  parameter CDR_E =    0,  // clock divider register is implemented by default
   // interface parameters
   parameter BDW   =   32,  // bus data width
   parameter OWN   =    1,  // number of 1-wire ports
-  // implementation of overdrive enable
-  parameter OVD_E =    1,  // overdrive functionality is implemented by default
+  // computed bus address port width
+  parameter BAW   = (CDR_E==0) ? ((BDW==32) ? 0 : (OWN==1) ? 0 : 1)
+                               : ((BDW==32) ? 1 : 2),
   // base time period
-  parameter BTP_N = "7.5", // normal    mode (7.5us, options are "7.5", "5.0" and "6.0")
+  parameter BTP_N = "5.0", // normal    mode (5.0us, options are "7.5", "5.0" and "6.0")
   parameter BTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
   // normal mode timing
   parameter T_RSTH_N = (BTP_N == "7.5") ?  64 : (BTP_N == "5.0") ?  96 :  80,  // reset high
@@ -83,6 +87,7 @@ module sockit_owm #(
   // CPU bus interface
   input            bus_ren,  // read  enable
   input            bus_wen,  // write enable
+  input  [BAW-1:0] bus_adr,  // address
   input  [BDW-1:0] bus_wdt,  // write data
   output [BDW-1:0] bus_rdt,  // read  data
   output           bus_irq,  // interrupt request
@@ -97,7 +102,7 @@ module sockit_owm #(
 //////////////////////////////////////////////////////////////////////////////
 
 // size of boudrate generator counter (divider for normal mode is largest)
-localparam CDW = $clog2(CDR_N);
+localparam CDW = (CDR_E==0) ? $clog2(CDR_N) : (BDW==32) ? 16 : 8;
 
 // size of port select signal
 localparam SDW = $clog2(OWN);
@@ -111,9 +116,9 @@ localparam TDW =       (T_RSTH_O+T_RSTL_O) >       (T_RSTH_N+T_RSTL_N)
 //////////////////////////////////////////////////////////////////////////////
 
 // clock divider
-//generate if (CDR>1) begin : div_declaration
 reg  [CDW-1:0] div;
-//end endgenerate
+reg  [CDW-1:0] cdr_n;
+reg  [CDW-1:0] cdr_o;
 wire           pls;
 
 // transfer control
@@ -206,14 +211,47 @@ end endgenerate
 // bus logic
 //////////////////////////////////////////////////////////////////////////////
 
+localparam PDW = (BDW==32) ? 24 : 8;
+
+// read data bus segments
+wire     [7:0] bus_rdt_ctl_sts;
+wire [PDW-1:0] bus_rdt_pwr_sel;
+
+// bus segnemt - controll status register
+assign bus_rdt_ctl_sts = {irq_erx, irq_etx, irq_srx, irq_stx,
+                          owr_i  , owr_ovd, owr_trn, owr_drx};
+
+// bus segnemt - power and select register
+generate if (BDW==32) begin
+  generate if (OWN>1) begin
+    assign bus_rdt_pwr_sel = {{16-OWN{1'b0}}, owr_pwr, 4'h0, {4-SDW{1'b0}}, owr_sel};
+  end else begin
+    assign bus_rdt_pwr_sel = 24'h0000_00;
+  end endgenerate
+end else if (BDW==8) begin
+  generate if (OWN>1) begin
+    assign bus_rdt_pwr_sel = {{ 4-OWN{1'b0}}, owr_pwr,       {4-SDW{1'b0}}, owr_sel};
+  end else begin
+    assign bus_rdt_pwr_sel = 8'hxx;
+  end endgenerate
+end endgenerate
+
 // bus read data
-generate if (OWN>1) begin : sel_readdata
-  assign bus_rdt = {{BDW-OWN-16{1'b0}}, owr_pwr, {8-SDW{1'b0}}, owr_sel,
-                    irq_erx, irq_etx, irq_srx, irq_stx,
-                    owr_i  , owr_ovd, owr_trn, owr_drx};
-end else begin
-  assign bus_rdt = {irq_erx, irq_etx, irq_srx, irq_stx,
-                    owr_i  , owr_ovd, owr_trn, owr_drx};
+generate if (BDW==32) begin
+  generate if (CDR_E) begin
+    assign bus_rdt = (bus_adr[2]==1'b0) ? {bus_rdt_pwr_sel, bus_rdt_ctl_sts} : {cdr_o, cdr_e};
+  end else begin
+    assign bus_rdt =                      {bus_rdt_pwr_sel, bus_rdt_ctl_sts};
+  end endgenerate
+end else if (BDW==8) begin
+  generate if (CDR_E) begin
+    assign bus_rdt = (bus_adr[1]==1'b0) ? ((bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
+                                                              : bus_rdt_pwr_sel)
+                                        : ((bus_adr[0]==1'b0) ? cdr_e : cdr_o);
+  end else begin
+    assign bus_rdt =                       (bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
+                                                              : bus_rdt_pwr_sel;
+  end endgenerate
 end endgenerate
 
 generate if (OWN>1) begin : sel_implementation
@@ -234,6 +272,10 @@ end else begin
   if (rst)           owr_pwr <= 1'b0;
   else if (bus_wen)  owr_pwr <= bus_wdt[3];
 end endgenerate
+
+//////////////////////////////////////////////////////////////////////////////
+// interrupt logic
+//////////////////////////////////////////////////////////////////////////////
 
 // bus interrupt
 assign bus_irq = irq_erx & irq_srx
