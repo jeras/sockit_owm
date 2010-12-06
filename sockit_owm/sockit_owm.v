@@ -202,26 +202,6 @@ assign t_bits = owr_ovd ? T_DAT0_O - T_BITS_O + T_RCVR_O : T_DAT0_N - T_BITS_N +
 assign t_zero = 'd0;
 
 //////////////////////////////////////////////////////////////////////////////
-// clock divider
-//////////////////////////////////////////////////////////////////////////////
-
-// clock division ratio depends on overdrive mode status,
-generate if ((CDR_N>1) | (CDR_O>1)) begin : div_implementation
-  // clock divider
-  always @ (posedge clk, posedge rst)
-  if (rst)        div <= 'd0;
-  else begin
-    if (bus_wen)  div <= 'd0;
-    else          div <= pls ? 'd0 : div + owr_trn;
-  end
-  // divided clock pulse
-  assign pls = (div == (owr_ovd ? CDR_O : CDR_N) - 1);
-end else begin
-  // clock period is same as the onewire period
-  assign pls = 1'b1;
-end endgenerate
-
-//////////////////////////////////////////////////////////////////////////////
 // bus read
 //////////////////////////////////////////////////////////////////////////////
 
@@ -247,7 +227,7 @@ end endgenerate
 // bus read data
 generate if (BDW==32) begin
   generate if (CDR_E) begin
-    assign bus_rdt = (bus_adr[2]==1'b0) ? {bus_rdt_pwr_sel, bus_rdt_ctl_sts} : {cdr_o, cdr_e};
+    assign bus_rdt = (bus_adr[2]==1'b0) ? {bus_rdt_pwr_sel, bus_rdt_ctl_sts} : {cdr_o, cdr_n};
   end else begin
     assign bus_rdt =                      {bus_rdt_pwr_sel, bus_rdt_ctl_sts};
   end endgenerate
@@ -255,7 +235,8 @@ end else if (BDW==8) begin
   generate if (CDR_E) begin
     assign bus_rdt = (bus_adr[1]==1'b0) ? ((bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
                                                               : bus_rdt_pwr_sel)
-                                        : ((bus_adr[0]==1'b0) ? cdr_e : cdr_o);
+                                        : ((bus_adr[0]==1'b0) ? cdr_n
+                                                              : cdr_o          );
   end else begin
     assign bus_rdt =                       (bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
                                                               : bus_rdt_pwr_sel;
@@ -295,6 +276,53 @@ end else if (BDW==8) begin
     assign bus_wen_ctl_sts = bus_wen;
   end endgenerate
 end endgenerate
+
+//////////////////////////////////////////////////////////////////////////////
+// clock divider
+//////////////////////////////////////////////////////////////////////////////
+
+// slock divider ration registers
+generate if (CDR_E) begin
+  generate if (BDW==32) begin
+    always @ (posedge clk, posedge rst)
+    if (rst) begin
+      cdr_n <= CDR_N;
+      cdr_o <= CDR_O;
+    end else begin
+      if (bus_wen_cdr_n)  cdr_n <= bus_dat[15: 0];
+      if (bus_wen_cdr_o)  cdr_o <= bus_dat[31:16];
+      else          div <= pls ? 'd0 : div + owr_trn;
+    end
+  end else if (BDW==8) begin
+    always @ (posedge clk, posedge rst)
+    if (rst) begin
+      cdr_n <= CDR_N;
+      cdr_o <= CDR_O;
+    end else begin
+      if (bus_wen_cdr_n)  cdr_n <= bus_dat;
+      if (bus_wen_cdr_o)  cdr_o <= bus_dat;
+    end
+  end endgenerate
+end endgenerate
+
+// clock divider
+always @ (posedge clk, posedge rst)
+if (rst)        div <= 'd0;
+else begin
+  if (bus_wen)  div <= 'd0;
+  else          div <= pls ? 'd0 : div + owr_trn;
+end
+
+// divided clock pulse
+generate if (CDR_E) begin
+  assign pls = (div == (owr_ovd ? cdr_o : cdr_n) - 1);
+end else begin
+  assign pls = (div == (owr_ovd ? CDR_O : CDR_N) - 1);
+end endgenerate
+
+//////////////////////////////////////////////////////////////////////////////
+// power and select register
+//////////////////////////////////////////////////////////////////////////////
 
 // select and power register implementation
 generate if (OWN>1) begin : sel_implementation
