@@ -7,18 +7,25 @@ rm onewire.vcd
 # list of source files
 sources="onewire_tb.v onewire_slave_model.v ../sockit_owm/sockit_owm.v"
 
-# compile a verilog source configuration (testbench and RTL) and run simulation
+# compile verilog sources (testbench and RTL) and run simulation
 
-# exact timing
-iverilog -o onewire.out $sources -DPRESET_50_10
-vvp onewire.out
+# data bus widths
+for buswdth in "BDW=32" "BDW=8"
+do
+  # clock divider implementation
+  for divider in "CDR_E=0" "CDR_E=1"
+  do
+    # timing options
+    for preset in "PRESET_50_10" "PRESET_60_05" "PRESET_75"
+    do
+      iverilog -o onewire.out $sources -D$preset -D$divider -D$buswdth
+      vvp onewire.out -none
+    done
+  done
+done
 
-# approximate timing
-iverilog -o onewire.out $sources -DPRESET_60_05
-vvp onewire.out
-
-# small implementation
-iverilog -o onewire.out $sources -DPRESET_75
+# this configuration is needed for waveform creation
+iverilog -o onewire.out $sources -DPRESET_75 -DCDR_E=0 -DBDW=32
 vvp onewire.out
 
 # open the waveform and detach it
