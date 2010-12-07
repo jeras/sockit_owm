@@ -36,7 +36,7 @@ set_parameter_property OVD_E AFFECTS_GENERATION false
 set_parameter_property OVD_E HDL_PARAMETER true
 
 add_parameter CDR_E BOOLEAN
-set_parameter_property CDR_E DESCRIPTION "Implementation of overdrive enable, disabling it can spare a small amount of logic."
+set_parameter_property CDR_E DESCRIPTION "Implementation of clock divider ratio registers, disabling it can spare a small amount of logic."
 set_parameter_property CDR_E DEFAULT_VALUE 0
 set_parameter_property CDR_E UNITS None
 set_parameter_property CDR_E AFFECTS_GENERATION false
@@ -53,10 +53,9 @@ set_parameter_property BDW AFFECTS_GENERATION false
 set_parameter_property BDW HDL_PARAMETER true
 
 add_parameter BAW INTEGER
-set_parameter_property CDR_O DERIVED true
 set_parameter_property BAW DESCRIPTION "CPU interface address bus width"
-set_parameter_property BAW DEFAULT_VALUE 0
-set_parameter_property BAW ALLOWED_RANGES {0 1}
+set_parameter_property BAW DEFAULT_VALUE 1
+set_parameter_property BAW ALLOWED_RANGES {1}
 set_parameter_property BAW UNITS bits
 set_parameter_property BAW AFFECTS_GENERATION false
 set_parameter_property BAW HDL_PARAMETER true
@@ -64,7 +63,6 @@ set_parameter_property BAW HDL_PARAMETER true
 add_parameter OWN INTEGER
 set_parameter_property OWN DESCRIPTION "Nummber of 1-wire channels"
 #set_parameter_property OWN DISPLAY_NAME OWN
-#set_parameter_property BTP_N DISPLAY_HINT "drop-down"
 set_parameter_property OWN DEFAULT_VALUE 1
 set_parameter_property OWN ALLOWED_RANGES {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16}
 set_parameter_property OWN AFFECTS_GENERATION false
@@ -95,7 +93,7 @@ set_parameter_property F_CLK DISPLAY_NAME F_CLK
 set_parameter_property F_CLK DESCRIPTION "System clock frequency"
 set_parameter_property F_CLK UNITS megahertz
 
-add_parameter CDR_N POSITIVE
+add_parameter CDR_N NATURAL
 set_parameter_property CDR_N DERIVED true
 set_parameter_property CDR_N DESCRIPTION "Clock divider ratio for normal mode"
 set_parameter_property CDR_N DISPLAY_NAME CDR_N
@@ -103,7 +101,7 @@ set_parameter_property CDR_N DEFAULT_VALUE 5
 set_parameter_property CDR_N AFFECTS_GENERATION false
 set_parameter_property CDR_N HDL_PARAMETER true
 
-add_parameter CDR_O POSITIVE
+add_parameter CDR_O NATURAL
 set_parameter_property CDR_O DERIVED true
 set_parameter_property CDR_O DESCRIPTION "Clock divider ratio for overdrive mode"
 set_parameter_property CDR_O DISPLAY_NAME CDR_O
@@ -149,7 +147,7 @@ set_interface_property s1 ENABLED true
 
 add_interface_port s1 bus_ren read      Input  1
 add_interface_port s1 bus_wen write     Input  1
-add_interface_port s1 bus_adr address   Input  BAW
+add_interface_port s1 bus_adr address   Input  1
 add_interface_port s1 bus_wdt writedata Input  BDW
 add_interface_port s1 bus_rdt readdata  Output BDW
 
@@ -173,10 +171,6 @@ add_interface_port ext wire_e export Output 1
 add_interface_port ext wire_i export Input  1
 
 proc validation_callback {} {
-  # compute the proper address bus width
-  set cdr_e [get_parameter_value CDR_E]
-  set bdw   [get_parameter_value BDW]
-  set baw   [expr {($cdr_e==0) ? (($own>1) ? 1 : 0) : }]
   # check if overdrive is enabled
   set ovd_e [get_parameter_value OVD_E]
   # get clock frequency in Hz
@@ -219,8 +213,8 @@ proc validation_callback {} {
     }
   }
   # set divider values
-               set_parameter_value CDR_N $d_n
-  if {$ovd_e} {set_parameter_value CDR_O $d_o}
+               set_parameter_value CDR_N {expr {$d_n-1}}
+  if {$ovd_e} {set_parameter_value CDR_O {expr {$d_o-1}}}
   # report BTP values and relative errors
   send_message info "BTP_N (normal    mode 'base time period') is [format %.2f $t_n], relative error is [format %.1f [expr {$e_n*100}]]%."
   send_message info "BTP_O (overdrive mode 'base time period') is [format %.2f $t_o], relative error is [format %.1f [expr {$e_o*100}]]%."
@@ -231,8 +225,9 @@ proc validation_callback {} {
 
 proc elaboration_callback {} {
   # add software defines
-  set_module_assignment embeddedsw.CMacro.OWN          [get_parameter_value OWN  ]
-  set_module_assignment embeddedsw.CMacro.OVD_E [expr {[get_parameter_value OVD_E]?1:0}]
-  set_module_assignment embeddedsw.CMacro.BTP_N        [get_parameter_value BTP_N]
-  set_module_assignment embeddedsw.CMacro.BTP_O        [get_parameter_value BTP_O]
+  set_module_assignment embeddedsw.CMacro.OWN   [get_parameter_value OWN  ]
+  set_module_assignment embeddedsw.CMacro.CDR_E [get_parameter_value CDR_E]
+  set_module_assignment embeddedsw.CMacro.OVD_E [get_parameter_value OVD_E]
+  set_module_assignment embeddedsw.CMacro.BTP_N [get_parameter_value BTP_N]
+  set_module_assignment embeddedsw.CMacro.BTP_O [get_parameter_value BTP_O]
 }

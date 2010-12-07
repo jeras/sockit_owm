@@ -10,11 +10,10 @@ onewire_tb.rst
 -Avalon MM bus
 @28
 onewire_tb.avalon_write
+onewire_tb.avalon_read
+onewire_tb.avalon_address
 @22
 onewire_tb.avalon_writedata[31:0]
-@29
-onewire_tb.avalon_read
-@22
 onewire_tb.avalon_readdata[31:0]
 @28
 onewire_tb.avalon_interrupt
@@ -22,15 +21,17 @@ onewire_tb.avalon_interrupt
 -Avalon MM bus
 @800200
 -1-wire master
+@22
+onewire_tb.onewire_master.cdr_n[15:0]
+onewire_tb.onewire_master.cdr_o[15:0]
+onewire_tb.onewire_master.cnt[6:0]
+@29
+onewire_tb.onewire_master.pls
 @28
 onewire_tb.onewire_master.irq_etx
 onewire_tb.onewire_master.irq_erx
 onewire_tb.onewire_master.irq_stx
 onewire_tb.onewire_master.irq_srx
-onewire_tb.onewire_master.pls
-@22
-onewire_tb.onewire_master.cnt[6:0]
-@28
 onewire_tb.onewire_master.owr_trn
 onewire_tb.onewire_master.owr_drx
 onewire_tb.onewire_master.owr_dtx

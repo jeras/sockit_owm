@@ -57,17 +57,17 @@ localparam BDW   = 32;     // bus data width
 localparam OWN   = 2*3;    // number of wires
 // computed bus address port width
 localparam BAW   = (CDR_E==0) ? ((BDW==32) ? 0 : (OWN==1) ? 0 : 1)
-                              : ((BDW==32) ? 1 : 2);
+                              : ((BDW==32) ? 3 : 2);
 
 // clock dividers for normal and overdrive mode
 // NOTE! must be round integer values
 `ifdef PRESET_60_05
 // there is no way to cast a real value into an integer
-localparam integer CDR_N = 45;
-localparam integer CDR_O =  4;
+localparam integer CDR_N = 45 - 1;
+localparam integer CDR_O =  4 - 1;
 `else
-localparam integer CDR_N = ((BTP_N == "5.0") ?  5.0 : 7.5 ) * FRQ / 1_000_000;
-localparam integer CDR_O = ((BTP_O == "1.0") ?  1.0 : 0.67) * FRQ / 1_000_000;
+localparam integer CDR_N = ((BTP_N == "5.0") ?  5.0 : 7.5 ) * FRQ / 1_000_000 - 1;
+localparam integer CDR_O = ((BTP_O == "1.0") ?  1.0 : 0.67) * FRQ / 1_000_000 - 1;
 `endif
 
 // Avalon MM parameters
@@ -127,8 +127,9 @@ end
 initial begin
   $display ("NOTE: Ports : BDW=%0d, BAW=%0d", BDW, BAW);
   $display ("NOTE: Clock : FRQ=%3.2fMHz, TCP=%3.2fns", FRQ/1_000_000.0, TCP);
-  $display ("NOTE: Config: OVD_E=%0b, CDR_N=%0d, CDR_O=%0d, BTP_N=%1.2fus, BTP_O=%1.2fus",
-                           OVD_E,     CDR_N,     CDR_O, CDR_N*1_000_000/FRQ, CDR_O*1_000_000/FRQ);
+  $display ("NOTE: Divide: CDR_E=%0b, CDR_N=%0d, CDR_O=%0d", CDR_E, CDR_N, CDR_O);
+  $display ("NOTE: Config: OVD_E=%0b, BTP_N=%1.2fus, BTP_O=%1.2fus",
+                           OVD_E, (CDR_N+1)*1_000_000/FRQ, (CDR_O+1)*1_000_000/FRQ);
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -161,6 +162,17 @@ initial begin
   // long delay to skip presence pulse
   slave_ena = 1'b0;
   #1000_000;
+
+  // set clock divider ratios
+  if (CDR_E) begin
+    if (BDW==32) begin
+      avalon_cycle (1, 4, 4'hf, {16'h0001, 16'h0001}, data);
+      avalon_cycle (1, 4, 4'hf, CDR_O << 16 | CDR_N, data);
+    end else if (BDW==8) begin
+      avalon_cycle (1, 2, 1'b1, 8'h01, data);
+      avalon_cycle (1, 3, 1'b1, 8'h01, data);
+    end
+  end
 
   // test with slaves with different timing (each slave one one of the wires)
   for (i=0; i<3; i=i+1) begin
@@ -353,9 +365,10 @@ assign avalon_waitrequest = 1'b0;
 //////////////////////////////////////////////////////////////////////////////
 
 sockit_owm #(
+  .OVD_E    (OVD_E),
+  .CDR_E    (CDR_E),
   .BDW      (BDW  ),
   .OWN      (OWN  ),
-  .OVD_E    (OVD_E),
   .BTP_N    (BTP_N),
   .BTP_O    (BTP_O),
   .CDR_N    (CDR_N),
