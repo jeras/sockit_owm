@@ -53,9 +53,10 @@ set_parameter_property BDW AFFECTS_GENERATION false
 set_parameter_property BDW HDL_PARAMETER true
 
 add_parameter BAW INTEGER
+#set_parameter_property BAW DERIVED true
 set_parameter_property BAW DESCRIPTION "CPU interface address bus width"
 set_parameter_property BAW DEFAULT_VALUE 1
-set_parameter_property BAW ALLOWED_RANGES {1}
+set_parameter_property BAW ALLOWED_RANGES {1 3}
 set_parameter_property BAW UNITS bits
 set_parameter_property BAW AFFECTS_GENERATION false
 set_parameter_property BAW HDL_PARAMETER true
@@ -147,7 +148,7 @@ set_interface_property s1 ENABLED true
 
 add_interface_port s1 bus_ren read      Input  1
 add_interface_port s1 bus_wen write     Input  1
-add_interface_port s1 bus_adr address   Input  1
+#add_interface_port s1 bus_adr address   Input  1
 add_interface_port s1 bus_wdt writedata Input  BDW
 add_interface_port s1 bus_rdt readdata  Output BDW
 
@@ -171,6 +172,10 @@ add_interface_port ext wire_e export Output 1
 add_interface_port ext wire_i export Input  1
 
 proc validation_callback {} {
+  # compute the proper address bus width
+  set cdr_e [get_parameter_value CDR_E]
+  set bdw   [get_parameter_value BDW]
+#  set_parameter_value BAW {expr {($cdr_e==0) ? 0 : 3}}
   # check if overdrive is enabled
   set ovd_e [get_parameter_value OVD_E]
   # get clock frequency in Hz
@@ -191,11 +196,13 @@ proc validation_callback {} {
     set e_n [expr {$t_n/7.5-1}]
   } elseif {$btp_n=="6.0"} {
     set d_n [expr {$f/133333}]
-    set t_n [expr {1000000.0/($f/$d_n)}]
-    if {(6.0<=$t_n) && ($t_n<=7.5)} {
-      set e_n 0.0
-    } else {
+    set t_n [expr {$d_n*1000000.0/$f}]
+    if {$t_n>7.5} {
+      set e_n [expr {$t_n/7.5-1}]
+    } elseif {6.0>$t_n} {
       set e_n [expr {$t_n/6.0-1}]
+    } else {
+      set e_n 0.0
     }
   }
   # compute overdrive mode divider
@@ -205,16 +212,18 @@ proc validation_callback {} {
     set e_o [expr {$t_o/1.0-1}]
   } elseif {$btp_o=="0.5"} {
     set d_o [expr {$f/1500000}]
-    set t_o [expr {1000000.0/($f/$d_o)}]
-    if {(0.5<=$t_o) && ($t_o<=(2.0/3))} {
-      set e_o 0.0
-    } else {
+    set t_o [expr {$d_o*1000000.0/$f}]
+    if {$t_o>(2.0/3)} {
+      set e_o [expr {$t_o/(2.0/3)-1}]
+    } elseif {0.5>$t_o} {
       set e_o [expr {$t_o/0.5-1}]
+    } else {
+      set e_o 0.0
     }
   }
   # set divider values
-               set_parameter_value CDR_N {expr {$d_n-1}}
-  if {$ovd_e} {set_parameter_value CDR_O {expr {$d_o-1}}}
+               set_parameter_value CDR_N [expr {$d_n-1}]
+  if {$ovd_e} {set_parameter_value CDR_O [expr {$d_o-1}]}
   # report BTP values and relative errors
   send_message info "BTP_N (normal    mode 'base time period') is [format %.2f $t_n], relative error is [format %.1f [expr {$e_n*100}]]%."
   send_message info "BTP_O (overdrive mode 'base time period') is [format %.2f $t_o], relative error is [format %.1f [expr {$e_o*100}]]%."
