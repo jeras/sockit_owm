@@ -53,11 +53,12 @@ set_parameter_property BDW AFFECTS_GENERATION false
 set_parameter_property BDW HDL_PARAMETER true
 
 add_parameter BAW INTEGER
-#set_parameter_property BAW DERIVED true
 set_parameter_property BAW DESCRIPTION "CPU interface address bus width"
+set_parameter_property BAW DISPLAY_HINT "radio"
 set_parameter_property BAW DEFAULT_VALUE 1
-set_parameter_property BAW ALLOWED_RANGES {1 3}
+set_parameter_property BAW ALLOWED_RANGES {1 2}
 set_parameter_property BAW UNITS bits
+set_parameter_property BAW ENABLED false
 set_parameter_property BAW AFFECTS_GENERATION false
 set_parameter_property BAW HDL_PARAMETER true
 
@@ -148,7 +149,7 @@ set_interface_property s1 ENABLED true
 
 add_interface_port s1 bus_ren read      Input  1
 add_interface_port s1 bus_wen write     Input  1
-#add_interface_port s1 bus_adr address   Input  1
+add_interface_port s1 bus_adr address   Input  BAW
 add_interface_port s1 bus_wdt writedata Input  BDW
 add_interface_port s1 bus_rdt readdata  Output BDW
 
@@ -172,10 +173,6 @@ add_interface_port ext wire_e export Output 1
 add_interface_port ext wire_i export Input  1
 
 proc validation_callback {} {
-  # compute the proper address bus width
-  set cdr_e [get_parameter_value CDR_E]
-  set bdw   [get_parameter_value BDW]
-#  set_parameter_value BAW {expr {($cdr_e==0) ? 0 : 3}}
   # check if overdrive is enabled
   set ovd_e [get_parameter_value OVD_E]
   # get clock frequency in Hz

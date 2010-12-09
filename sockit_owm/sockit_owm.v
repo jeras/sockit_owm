@@ -54,9 +54,8 @@ module sockit_owm #(
   parameter BDW   =   32,  // bus data width
   parameter OWN   =    1,  // number of 1-wire ports
   // computed bus address port width
-  parameter BAW   =    1,
-//  parameter BAW   = (CDR_E==0) ? ((BDW==32) ? 0 : (OWN==1) ? 0 : 1)
-//                               : ((BDW==32) ? 3 : 2),
+//  parameter BAW   = (BDW==32) ? 1 : 2,
+  parameter BAW   = 1,  // TODO, the above is correct, but does not work well with Altera SOPC Builder
   // base time period
   parameter BTP_N = "5.0", // normal    mode (5.0us, options are "7.5", "5.0" and "6.0")
   parameter BTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
@@ -228,61 +227,33 @@ generate
 endgenerate
 
 // bus read data
-generate
-  if (BDW==32) begin
-    if (CDR_E) begin
-      assign bus_rdt = (bus_adr[2]==1'b0) ? {bus_rdt_pwr_sel, bus_rdt_ctl_sts} : {cdr_o, cdr_n};
-    end else begin
-      assign bus_rdt =                      {bus_rdt_pwr_sel, bus_rdt_ctl_sts};
-    end
-  end else if (BDW==8) begin
-    if (CDR_E) begin
-      assign bus_rdt = (bus_adr[1]==1'b0) ? ((bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
-                                                                : bus_rdt_pwr_sel)
-                                          : ((bus_adr[0]==1'b0) ? cdr_n
-                                                                : cdr_o          );
-    end else begin
-      assign bus_rdt =                       (bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
-                                                                : bus_rdt_pwr_sel;
-    end
-  end
-endgenerate
+generate if (BDW==32) begin
+  assign bus_rdt = (bus_adr[0]==1'b0) ? {bus_rdt_pwr_sel, bus_rdt_ctl_sts} : {cdr_o, cdr_n};
+end else if (BDW==8) begin
+  assign bus_rdt = (bus_adr[1]==1'b0) ? ((bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
+                                                            : bus_rdt_pwr_sel)
+                                      : ((bus_adr[0]==1'b0) ? cdr_n
+                                                            : cdr_o          );
+end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
 // bus write
 //////////////////////////////////////////////////////////////////////////////
 
 // combined write/read enable and address decoder
-generate
-  if (BDW==32) begin
-    if (CDR_E) begin
-      assign bus_ren_ctl_sts = bus_ren & bus_adr[2] == 1'b0;
-      assign bus_wen_ctl_sts = bus_wen & bus_adr[2] == 1'b0;
-      assign bus_wen_pwr_sel = bus_wen & bus_adr[2] == 1'b0;
-      assign bus_wen_cdr_n   = bus_wen & bus_adr[2] == 1'b1;
-      assign bus_wen_cdr_o   = bus_wen & bus_adr[2] == 1'b1;
-    end else begin
-      assign bus_ren_ctl_sts = bus_ren;
-      assign bus_wen_ctl_sts = bus_wen;
-      assign bus_wen_pwr_sel = bus_wen;
-    end
-  end else if (BDW==8) begin
-    if (CDR_E) begin
-      assign bus_ren_ctl_sts = bus_ren & bus_adr[1:0] == 2'b00;
-      assign bus_wen_ctl_sts = bus_wen & bus_adr[1:0] == 2'b00;
-      assign bus_wen_pwr_sel = bus_wen & bus_adr[1:0] == 2'b01;
-      assign bus_wen_cdr_n   = bus_wen & bus_adr[1:0] == 2'b10;
-      assign bus_wen_cdr_o   = bus_wen & bus_adr[1:0] == 2'b11;
-    end else if (OWN>1) begin
-      assign bus_ren_ctl_sts = bus_ren & bus_adr[0] == 1'b0;
-      assign bus_wen_ctl_sts = bus_wen & bus_adr[0] == 1'b0;
-      assign bus_wen_pwr_sel = bus_wen & bus_adr[0] == 1'b1;
-    end else begin
-      assign bus_ren_ctl_sts = bus_ren;
-      assign bus_wen_ctl_sts = bus_wen;
-    end
-  end
-endgenerate
+generate if (BDW==32) begin
+  assign bus_ren_ctl_sts = bus_ren & bus_adr[0] == 1'b0;
+  assign bus_wen_ctl_sts = bus_wen & bus_adr[0] == 1'b0;
+  assign bus_wen_pwr_sel = bus_wen & bus_adr[0] == 1'b0;
+  assign bus_wen_cdr_n   = bus_wen & bus_adr[0] == 1'b1;
+  assign bus_wen_cdr_o   = bus_wen & bus_adr[0] == 1'b1;
+end else if (BDW==8) begin
+  assign bus_ren_ctl_sts = bus_ren & bus_adr[1:0] == 2'b00;
+  assign bus_wen_ctl_sts = bus_wen & bus_adr[1:0] == 2'b00;
+  assign bus_wen_pwr_sel = bus_wen & bus_adr[1:0] == 2'b01;
+  assign bus_wen_cdr_n   = bus_wen & bus_adr[1:0] == 2'b10;
+  assign bus_wen_cdr_o   = bus_wen & bus_adr[1:0] == 2'b11;
+end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
 // clock divider
@@ -310,6 +281,11 @@ generate
         if (bus_wen_cdr_o)  cdr_o <= bus_wdt;
       end
     end
+  end else begin
+    initial begin
+      cdr_n = CDR_N;
+      cdr_o = CDR_O;
+    end
   end
 endgenerate
 
@@ -322,39 +298,31 @@ else begin
 end
 
 // divided clock pulse
-generate
-  if (CDR_E) begin
-    assign pls = (div == (owr_ovd ? cdr_o : cdr_n));
-  end else begin
-    assign pls = (div == (owr_ovd ? CDR_O : CDR_N));
-  end
-endgenerate
+assign pls = (div == (owr_ovd ? cdr_o : cdr_n));
 
 //////////////////////////////////////////////////////////////////////////////
 // power and select register
 //////////////////////////////////////////////////////////////////////////////
 
 // select and power register implementation
-generate
-  if (OWN>1) begin : sel_implementation
-    // port select
-    always @ (posedge clk, posedge rst)
-    if (rst)                   owr_sel <= {SDW{1'b0}};
-    else if (bus_wen_pwr_sel)  owr_sel <= bus_wdt[(BDW==32 ?  8 : 0)+:SDW];
+generate if (OWN>1) begin : sel_implementation
+  // port select
+  always @ (posedge clk, posedge rst)
+  if (rst)                   owr_sel <= {SDW{1'b0}};
+  else if (bus_wen_pwr_sel)  owr_sel <= bus_wdt[(BDW==32 ?  8 : 0)+:SDW];
   
-    // power delivery
-    always @ (posedge clk, posedge rst)
-    if (rst)                   owr_pwr <= {OWN{1'b0}};
-    else if (bus_wen_pwr_sel)  owr_pwr <= bus_wdt[(BDW==32 ? 16 : 4)+:OWN];
-  end else begin
-    // port select
-    always @ (*)               owr_sel <= {SDW{1'b0}}; 
-    // power delivery
-    always @ (posedge clk, posedge rst)
-    if (rst)                   owr_pwr <= 1'b0;
-    else if (bus_wen_ctl_sts)  owr_pwr <= bus_wdt[3];
-  end
-endgenerate
+  // power delivery
+  always @ (posedge clk, posedge rst)
+  if (rst)                   owr_pwr <= {OWN{1'b0}};
+  else if (bus_wen_pwr_sel)  owr_pwr <= bus_wdt[(BDW==32 ? 16 : 4)+:OWN];
+end else begin
+  // port select
+  always @ (*)               owr_sel <= {SDW{1'b0}}; 
+  // power delivery
+  always @ (posedge clk, posedge rst)
+  if (rst)                   owr_pwr <= 1'b0;
+  else if (bus_wen_ctl_sts)  owr_pwr <= bus_wdt[3];
+end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////
 // interrupt logic

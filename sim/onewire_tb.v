@@ -56,8 +56,7 @@ localparam BTP_O = "1.0";  // overdrive mode
 localparam BDW   = 32;     // bus data width
 localparam OWN   = 2*3;    // number of wires
 // computed bus address port width
-localparam BAW   = (CDR_E==0) ? ((BDW==32) ? 0 : (OWN==1) ? 0 : 1)
-                              : ((BDW==32) ? 3 : 2);
+localparam BAW   = (BDW==32) ? 1 : 2;
 
 // clock dividers for normal and overdrive mode
 // NOTE! must be round integer values
@@ -71,7 +70,7 @@ localparam integer CDR_O = ((BTP_O == "1.0") ?  1.0 : 0.67) * FRQ / 1_000_000 - 
 `endif
 
 // Avalon MM parameters
-localparam AAW = BAW;      // address width
+localparam AAW = BAW;    // address width
 localparam ADW = BDW;    // data width
 localparam ABW = ADW/8;  // byte enable width
 
@@ -166,8 +165,8 @@ initial begin
   // set clock divider ratios
   if (CDR_E) begin
     if (BDW==32) begin
-      avalon_cycle (1, 4, 4'hf, {16'h0001, 16'h0001}, data);
-      avalon_cycle (1, 4, 4'hf, CDR_O << 16 | CDR_N, data);
+      avalon_cycle (1, 1, 4'hf, {16'h0001, 16'h0001}, data);
+      avalon_cycle (1, 1, 4'hf, CDR_O << 16 | CDR_N, data);
     end else if (BDW==8) begin
       avalon_cycle (1, 2, 1'b1, 8'h01, data);
       avalon_cycle (1, 3, 1'b1, 8'h01, data);
@@ -368,6 +367,7 @@ sockit_owm #(
   .OVD_E    (OVD_E),
   .CDR_E    (CDR_E),
   .BDW      (BDW  ),
+  .BAW      (BAW  ),
   .OWN      (OWN  ),
   .BTP_N    (BTP_N),
   .BTP_O    (BTP_O),
