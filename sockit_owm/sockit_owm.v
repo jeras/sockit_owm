@@ -26,8 +26,8 @@
 //                                                                          //
 // The clock divider parameter is computed with the next formula:           //
 //                                                                          //
-// CDR_N = f_CLK * BTP_N  (example: CDR_N = 2MHz * 7.5us = 15)              //
-// CDR_O = f_CLK * BTP_O  (example: CDR_O = 2MHz * 1.0us =  2)              //
+// CDR_N = f_CLK * BTP_N - 1  (example: CDR_N = 2MHz * 7.5us - 1 = 15-1)    //
+// CDR_O = f_CLK * BTP_O - 1  (example: CDR_O = 2MHz * 1.0us - 1 =  2-1)    //
 //                                                                          //
 // If the dividing factor is not a round integer, than the timing of the    //
 // controller will be slightly off, and would support only a subset of      //
@@ -78,8 +78,8 @@ module sockit_owm #(
   parameter T_RCVR_O = (BTP_O == "1.0") ?   1 :   2,  // recovery
   parameter T_IDLE_O = (BTP_O == "1.0") ?  96 : 192,  // idle timer
   // clock divider ratios (defaults are for a 2MHz clock)
-  parameter CDR_N =   15,  // normal    mode
-  parameter CDR_O =    2   // overdrive mode
+  parameter CDR_N = 15-1,  // normal    mode
+  parameter CDR_O =  2-1   // overdrive mode
 )(
   // system signals
   input            clk,
@@ -154,7 +154,6 @@ reg            owr_rst;  // reset
 reg            owr_dtx;  // data bit transmit
 reg            owr_drx;  // data bit receive
 
-wire           owr_p;    // output
 reg            owr_oen;  // output enable
 wire           owr_i;    // input
 
@@ -419,6 +418,5 @@ assign wire_p = owr_pwr;
 
 // 1-wire line status read multiplexer
 assign owr_i = wire_i [owr_sel];
-assign owr_p = wire_p [owr_sel];
 
 endmodule
