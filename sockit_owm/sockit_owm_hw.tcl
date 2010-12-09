@@ -44,7 +44,7 @@ set_parameter_property CDR_E HDL_PARAMETER true
 
 add_parameter BDW INTEGER
 set_parameter_property BDW DESCRIPTION "CPU interface data bus width"
-set_parameter_property BDW DISPLAY_HINT "radio"
+set_parameter_property BDW VISIBLE false
 set_parameter_property BDW DEFAULT_VALUE 32
 set_parameter_property BDW ALLOWED_RANGES {8 32}
 set_parameter_property BDW UNITS bits
@@ -54,7 +54,7 @@ set_parameter_property BDW HDL_PARAMETER true
 
 add_parameter BAW INTEGER
 set_parameter_property BAW DESCRIPTION "CPU interface address bus width"
-set_parameter_property BAW DISPLAY_HINT "radio"
+set_parameter_property BAW VISIBLE false
 set_parameter_property BAW DEFAULT_VALUE 1
 set_parameter_property BAW ALLOWED_RANGES {1 2}
 set_parameter_property BAW UNITS bits
