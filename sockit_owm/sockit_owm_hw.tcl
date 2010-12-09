@@ -231,9 +231,9 @@ proc validation_callback {} {
 
 proc elaboration_callback {} {
   # add software defines
-  set_module_assignment embeddedsw.CMacro.OWN   [get_parameter_value OWN  ]
-  set_module_assignment embeddedsw.CMacro.CDR_E [get_parameter_value CDR_E]
-  set_module_assignment embeddedsw.CMacro.OVD_E [get_parameter_value OVD_E]
-  set_module_assignment embeddedsw.CMacro.BTP_N [get_parameter_value BTP_N]
-  set_module_assignment embeddedsw.CMacro.BTP_O [get_parameter_value BTP_O]
+  set_module_assignment embeddedsw.CMacro.OWN          [get_parameter_value OWN  ]
+  set_module_assignment embeddedsw.CMacro.CDR_E [expr {[get_parameter_value CDR_E]?1:0}]
+  set_module_assignment embeddedsw.CMacro.OVD_E [expr {[get_parameter_value OVD_E]?1:0}]
+  set_module_assignment embeddedsw.CMacro.BTP_N        [get_parameter_value BTP_N]
+  set_module_assignment embeddedsw.CMacro.BTP_O        [get_parameter_value BTP_O]
 }

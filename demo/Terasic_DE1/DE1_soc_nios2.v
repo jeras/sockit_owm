@@ -147,9 +147,9 @@ soc soc_i (
   .rxd_to_the_uart                 (UART_TXD),
   .txd_from_the_uart               (UART_RXD),
   // onewire
-  .wire_p_from_the_onewire         (wire_p),
-  .wire_e_from_the_onewire         (wire_e),
-  .wire_i_to_the_onewire           (wire_i)
+  .wire_p_from_the_onewire         (onewire_p),
+  .wire_e_from_the_onewire         (onewire_e),
+  .wire_i_to_the_onewire           (onewire_i)
 );
 
 // 1-wire
