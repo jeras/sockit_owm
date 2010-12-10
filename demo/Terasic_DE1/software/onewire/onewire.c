@@ -18,8 +18,9 @@
 #include "system.h"
 
 #include "ownet.h"
-#include "temp10.h"
 #include "findtype.h"
+#include "temp10.h"
+#include "temp28.h"
 
 // defines
 #define MAXDEVICES         20
@@ -44,7 +45,7 @@ int main()
 
   //----------------------------------------
   // Introduction header
-  printf("\r\nTemperature\r\n");
+  printf("\r\nTemperature device demo:\r\n");
 
   // attempt to acquire the 1-Wire Net
   if (!owAcquire(portnum,NULL))
@@ -61,8 +62,9 @@ int main()
   {
      j = 0;
      // Find the device(s)
-     NumDevices = FindDevices(portnum, FamilySN, 0x28, MAXDEVICES);
-     if (NumDevices>0)
+     NumDevices  = FindDevices(portnum,  FamilySN            , 0x10, MAXDEVICES           );
+     NumDevices += FindDevices(portnum, &FamilySN[NumDevices], 0x28, MAXDEVICES-NumDevices);
+     if (NumDevices)
      {
         printf("\r\n");
         // read the temperature and print serial number and temperature
@@ -70,7 +72,10 @@ int main()
         {
            printf("(%d) ", j++);
            DisplaySerialNum(FamilySN[i-1]);
-           didRead = ReadTemperature(portnum, FamilySN[i-1],&current_temp);
+           if (FamilySN[i-1][0] == 0x10)
+              didRead = ReadTemperature10(portnum, FamilySN[i-1],&current_temp);
+           if (FamilySN[i-1][0] == 0x28)
+              didRead = ReadTemperature28(portnum, FamilySN[i-1],&current_temp);
 
            if (didRead)
            {
