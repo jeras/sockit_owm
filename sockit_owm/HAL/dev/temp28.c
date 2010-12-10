@@ -24,7 +24,7 @@
 // Branding Policy.
 // ---------------------------------------------------------------------------
 //
-//  temp10.C - Module to read the DS1920/DS1820 - temperature measurement.
+//  temp10.C - Module to read the DS18B20 - temperature measurement.
 //
 //  Version: 2.00
 //
@@ -32,14 +32,14 @@
 //
 //
 #include "ownet.h"
-#include "temp10.h"
+#include "temp28.h"
 
 //----------------------------------------------------------------------
-// Read the temperature of a DS18B20
+// Read the temperature of a DS18B20 (family code 0x28)
 //
 // 'portnum'     - number 0 to MAX_PORTNUM-1.  This number was provided to
 //                 OpenCOM to indicate the port number.
-// 'SerialNum'   - Serial Number of DS1920/DS1820 to read temperature from
+// 'SerialNum'   - Serial Number of DS18B20 to read temperature from
 // 'Temp '       - pointer to variable where that temperature will be
 //                 returned
 //
@@ -47,7 +47,7 @@
 //          FALSE(0) could not read the temperature, perhaps device is not
 //                   in contact
 //
-int ReadTemperature(int portnum, uchar *SerialNum, float *Temp)
+int ReadTemperature28(int portnum, uchar *SerialNum, float *Temp)
 {
    uchar rt=FALSE;
    uchar send_block[30],lastcrc8;

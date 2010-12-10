@@ -24,10 +24,10 @@
 // Branding Policy.
 // ---------------------------------------------------------------------------
 //
-//  temp10.h - Header to read the DS1920/DS1820 - temperature measurement.
+//  temp10.h - Header to read the DS18B20 - temperature measurement.
 //
 //  Version: 2.00
 //
 // ---------------------------------------------------------------------------
 
-int ReadTemperature(int,uchar *,float *);
+int ReadTemperature28(int,uchar *,float *);

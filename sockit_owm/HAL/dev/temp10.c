@@ -35,7 +35,7 @@
 #include "temp10.h"
 
 //----------------------------------------------------------------------
-// Read the temperature of a DS1920/DS1820
+// Read the temperature of a DS1920/DS1820 (family code 0x10)
 //
 // 'portnum'     - number 0 to MAX_PORTNUM-1.  This number was provided to
 //                 OpenCOM to indicate the port number.
@@ -47,7 +47,7 @@
 //          FALSE(0) could not read the temperature, perhaps device is not
 //                   in contact
 //
-int ReadTemperature(int portnum, uchar *SerialNum, float *Temp)
+int ReadTemperature10(int portnum, uchar *SerialNum, float *Temp)
 {
    uchar rt=FALSE;
    uchar send_block[30],lastcrc8;
