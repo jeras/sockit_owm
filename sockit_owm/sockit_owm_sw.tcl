@@ -51,10 +51,10 @@ add_sw_property include_source HAL/inc/findtype.h
 add_sw_property       c_source HAL/src/findtype.c
 
 # device files (thermometer)
-add_sw_property include_source HAL/dev/temp10.h
-add_sw_property       c_source HAL/dev/temp10.c
-add_sw_property include_source HAL/dev/temp28.h
-add_sw_property       c_source HAL/dev/temp28.c
+add_sw_property include_source HAL/inc/temp10.h
+add_sw_property       c_source HAL/src/temp10.c
+add_sw_property include_source HAL/inc/temp28.h
+add_sw_property       c_source HAL/src/temp28.c
 
 # This driver supports HAL & UCOSII BSP (OS) types
 add_sw_property supported_bsp_type HAL
