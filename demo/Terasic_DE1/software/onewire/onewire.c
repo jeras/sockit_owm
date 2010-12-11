@@ -31,8 +31,6 @@ void DisplaySerialNum(uchar sn[8]);
 
 int main()
 {
-  printf("Hello from Nios II!\n");
-
   uchar FamilySN[MAXDEVICES][8];
   float current_temp;
   int i = 0;

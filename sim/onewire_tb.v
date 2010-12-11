@@ -385,9 +385,9 @@ sockit_owm #(
   .bus_rdt  (avalon_readdata),
   .bus_irq  (avalon_interrupt),
   // onewire
-  .wire_p   (owr_p),
-  .wire_e   (owr_e),
-  .wire_i   (owr_i)
+  .owr_p    (owr_p),
+  .owr_e    (owr_e),
+  .owr_i    (owr_i)
 );
 
 // pullup

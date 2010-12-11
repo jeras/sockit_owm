@@ -92,9 +92,9 @@ module sockit_owm #(
   output [BDW-1:0] bus_rdt,  // read  data
   output           bus_irq,  // interrupt request
   // 1-wire interface
-  output [OWN-1:0] wire_p,   // output power enable
-  output [OWN-1:0] wire_e,   // output pull down enable
-  input  [OWN-1:0] wire_i    // input from bidirectional wire
+  output [OWN-1:0] owr_p,    // output power enable
+  output [OWN-1:0] owr_e,    // output pull down enable
+  input  [OWN-1:0] owr_i     // input from bidirectional wire
 );
 
 //////////////////////////////////////////////////////////////////////////////
@@ -155,7 +155,7 @@ reg            owr_dtx;  // data bit transmit
 reg            owr_drx;  // data bit receive
 
 reg            owr_oen;  // output enable
-wire           owr_i;    // input
+wire           owr_iln;  // input line
 
 // interrupt signals
 reg            irq_etx;  // interrupt enable transmit
@@ -206,7 +206,7 @@ assign t_zero = 'd0;
 
 // bus segnemt - controll status register
 assign bus_rdt_ctl_sts = {irq_erx, irq_etx, irq_srx, irq_stx,
-                          owr_i  , owr_ovd, owr_trn, owr_drx};
+                          owr_iln, owr_ovd, owr_trn, owr_drx};
 
 // bus segnemt - power and select register
 generate
@@ -391,8 +391,8 @@ end
 // receive data (sampling point depends whether the cycle is reset or data)
 always @ (posedge clk)
 if (pls) begin
-  if      ( owr_rst & (cnt == t_rstp))  owr_drx <= owr_i;  // presence detect
-  else if (~owr_rst & (cnt == t_bits))  owr_drx <= owr_i;  // read data bit
+  if      ( owr_rst & (cnt == t_rstp))  owr_drx <= owr_iln;  // presence detect
+  else if (~owr_rst & (cnt == t_bits))  owr_drx <= owr_iln;  // read data bit
 end
 
 // output register (switch point depends whether the cycle is reset or data)
@@ -412,11 +412,11 @@ end
 //////////////////////////////////////////////////////////////////////////////
 
 // only one 1-wire line cn be accessed at the same time
-assign wire_e = owr_oen << owr_sel;
+assign owr_e   = owr_oen << owr_sel;
 // all 1-wire lines can be powered independently
-assign wire_p = owr_pwr;
+assign owr_p   = owr_pwr;
 
 // 1-wire line status read multiplexer
-assign owr_i = wire_i [owr_sel];
+assign owr_iln = owr_i [owr_sel];
 
 endmodule

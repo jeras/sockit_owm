@@ -94,9 +94,9 @@ wire [3:0] btn;
 wire [31:0] seg7;
 
 // 1-wire
-wire [1:0] onewire_p;
-wire [1:0] onewire_e;
-wire [1:0] onewire_i;
+wire [1:0] owr_p;
+wire [1:0] owr_e;
+wire [1:0] owr_i;
 
 // All inout port turn to tri-state
 assign SD_DAT      = 1'bz;
@@ -147,15 +147,15 @@ soc soc_i (
   .rxd_to_the_uart                 (UART_TXD),
   .txd_from_the_uart               (UART_RXD),
   // onewire
-  .wire_p_from_the_onewire         (onewire_p),
-  .wire_e_from_the_onewire         (onewire_e),
-  .wire_i_to_the_onewire           (onewire_i)
+  .owr_p_from_the_onewire          (owr_p),
+  .owr_e_from_the_onewire          (owr_e),
+  .owr_i_to_the_onewire            (owr_i)
 );
 
 // 1-wire
-assign PS2_DAT = (onewire_p [0] | onewire_e [0]) ? onewire_p [0] : 1'bz;
-assign PS2_CLK = (onewire_p [1] | onewire_e [1]) ? onewire_p [1] : 1'bz;
-assign onewire_i = {PS2_CLK, PS2_DAT};
+assign PS2_DAT = (owr_p [0] | owr_e [0]) ? owr_p [0] : 1'bz;
+assign PS2_CLK = (owr_p [1] | owr_e [1]) ? owr_p [1] : 1'bz;
+assign owr_i = {PS2_CLK, PS2_DAT};
 
 // SDRAM Interface
 assign DRAM_CLK = ~clk;  // SDRAM Clock

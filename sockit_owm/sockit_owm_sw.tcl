@@ -62,7 +62,7 @@ add_sw_property supported_bsp_type UCOSII
 
 # Driver configuration options
 add_sw_setting boolean_define_only public_mk_define polling_driver_enable  SOCKIT_OWM_POLLING    false "Small-footprint (polled mode) driver"
-add_sw_setting boolean_define_only public_mk_define hardware_delay_enable  SOCKIT_OWM_HW_DLY     false "Mili second delay implemented in hardware"
+add_sw_setting boolean_define_only public_mk_define hardware_delay_enable  SOCKIT_OWM_HW_DLY     true  "Mili second delay implemented in hardware"
 add_sw_setting boolean_define_only public_mk_define error_detection_enable SOCKIT_OWM_ERR_ENABLE true  "Implement error detection support"
 add_sw_setting boolean_define_only public_mk_define error_detection_small  SOCKIT_OWM_ERR_SMALL  true  "Reduced memory consumption for error detection"
 

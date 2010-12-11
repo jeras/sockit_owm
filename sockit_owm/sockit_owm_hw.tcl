@@ -168,9 +168,9 @@ add_interface ext conduit end
 
 set_interface_property ext ENABLED true
 
-add_interface_port ext wire_p export Output 1
-add_interface_port ext wire_e export Output 1
-add_interface_port ext wire_i export Input  1
+add_interface_port ext owr_p export Output OWN
+add_interface_port ext owr_e export Output OWN
+add_interface_port ext owr_i export Input  OWN
 
 proc validation_callback {} {
   # check if overdrive is enabled
