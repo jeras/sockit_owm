@@ -219,19 +219,6 @@
          type = "boolean";
       }
    }
-   element onchip_ram.s1
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "25182208";
-         type = "long";
-      }
-   }
    element cfi_flash.s1
    {
       datum _lockedAddress
@@ -242,32 +229,6 @@
       datum baseAddress
       {
          value = "20971520";
-         type = "long";
-      }
-   }
-   element uart.s1
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "25206816";
-         type = "long";
-      }
-   }
-   element pio_7seg.s1
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "25206848";
          type = "long";
       }
    }
@@ -297,6 +258,45 @@
          type = "long";
       }
    }
+   element sdram.s1
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "8388608";
+         type = "long";
+      }
+   }
+   element pio_7seg.s1
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "25206848";
+         type = "long";
+      }
+   }
+   element uart.s1
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "25206816";
+         type = "long";
+      }
+   }
    element pio_ledr.s1
    {
       datum _lockedAddress
@@ -323,7 +323,7 @@
          type = "long";
       }
    }
-   element sdram.s1
+   element onchip_ram.s1
    {
       datum _lockedAddress
       {
@@ -332,7 +332,7 @@
       }
       datum baseAddress
       {
-         value = "8388608";
+         value = "25182208";
          type = "long";
       }
    }
@@ -439,7 +439,7 @@
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
  <parameter name="sopcBorderPoints" value="true" />
  <parameter name="systemHash" value="34063942103" />
- <parameter name="timeStamp" value="1292061203368" />
+ <parameter name="timeStamp" value="1292109323934" />
  <module kind="clock_source" version="10.0" enabled="1" name="clk">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />

@@ -32,7 +32,7 @@ onewire_tb.onewire_master.irq_etx
 onewire_tb.onewire_master.irq_erx
 onewire_tb.onewire_master.irq_stx
 onewire_tb.onewire_master.irq_srx
-onewire_tb.onewire_master.owr_trn
+onewire_tb.onewire_master.owr_cyc
 onewire_tb.onewire_master.owr_drx
 onewire_tb.onewire_master.owr_dtx
 onewire_tb.onewire_master.owr_rst

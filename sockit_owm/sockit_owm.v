@@ -135,9 +135,9 @@ reg  [CDW-1:0] cdr_n;
 reg  [CDW-1:0] cdr_o;
 wire           pls;
 
-// transfer control
-reg            owr_trn;  // transfer status
-reg  [TDW-1:0] cnt;      // transfer counter
+// cycle status and control
+reg            owr_cyc;  // cycle status
+reg  [TDW-1:0] cnt;      // cycle counter
 
 // port select
 //generate if (OWN>1) begin : sel_declaration
@@ -166,12 +166,12 @@ reg            irq_srx;  // interrupt status receive
 // timing signals
 wire [TDW-1:0] t_idl ;   // idle                 cycle    time
 wire [TDW-1:0] t_rst ;   // reset                cycle    time
-wire [TDW-1:0] t_bit ;   // data bit transfer    cycle    time
+wire [TDW-1:0] t_bit ;   // data bit             cycle    time
 wire [TDW-1:0] t_rstp;   // reset presence pulse sampling time
 wire [TDW-1:0] t_rsth;   // reset                release  time
 wire [TDW-1:0] t_dat0;   // data bit 0           release  time
 wire [TDW-1:0] t_dat1;   // data bit 1           release  time
-wire [TDW-1:0] t_bits;   // data bit transfer    sampling time
+wire [TDW-1:0] t_bits;   // data bit             sampling time
 wire [TDW-1:0] t_zero;   // end of               cycle    time
 
 //////////////////////////////////////////////////////////////////////////////
@@ -182,7 +182,7 @@ wire [TDW-1:0] t_zero;   // end of               cycle    time
 assign t_idl  = req_ovd ? T_IDLE_O                       : T_IDLE_N                      ;
 // reset cycle time (reset low + reset hight)
 assign t_rst  = req_ovd ? T_RSTL_O + T_RSTH_O            : T_RSTL_N + T_RSTH_N           ;
-// data bit transfer cycle time (write 0 + recovery)
+// data bit cycle time (write 0 + recovery)
 assign t_bit  = req_ovd ? T_DAT0_O +          + T_RCVR_O : T_DAT0_N +            T_RCVR_N;
 
 // reset presence pulse sampling time (reset high - reset presence)
@@ -194,7 +194,7 @@ assign t_rsth = owr_ovd ? T_RSTH_O                       : T_RSTH_N             
 assign t_dat0 = owr_ovd ? T_DAT0_O - T_DAT0_O + T_RCVR_O : T_DAT0_N - T_DAT0_N + T_RCVR_N;
 // data bit 1 release time (write bit 0 - write bit 1 + recovery)
 assign t_dat1 = owr_ovd ? T_DAT0_O - T_DAT1_O + T_RCVR_O : T_DAT0_N - T_DAT1_N + T_RCVR_N;
-// data bit transfer sampling time (write bit 0 - write bit 1 + recovery)
+// data bit sampling time (write bit 0 - write bit 1 + recovery)
 assign t_bits = owr_ovd ? T_DAT0_O - T_BITS_O + T_RCVR_O : T_DAT0_N - T_BITS_N + T_RCVR_N;
 
 // end of cycle time
@@ -206,7 +206,7 @@ assign t_zero = 'd0;
 
 // bus segnemt - controll status register
 assign bus_rdt_ctl_sts = {irq_erx, irq_etx, irq_srx, irq_stx,
-                          owr_iln, owr_ovd, owr_trn, owr_drx};
+                          owr_iln, owr_ovd, owr_cyc, owr_drx};
 
 // bus segnemt - power and select register
 generate
@@ -293,7 +293,7 @@ always @ (posedge clk, posedge rst)
 if (rst)        div <= 'd0;
 else begin
   if (bus_wen)  div <= 'd0;
-  else          div <= pls ? 'd0 : div + owr_trn;
+  else          div <= pls ? 'd0 : div + owr_cyc;
 end
 
 // divided clock pulse
@@ -336,7 +336,7 @@ always @ (posedge clk, posedge rst)
 if (rst)                   {irq_erx, irq_etx} <= 2'b00;     
 else if (bus_wen_ctl_sts)  {irq_erx, irq_etx} <= bus_wdt[7:6]; 
 
-// transmit status (active after onewire transfer cycle ends)
+// transmit status (active after onewire cycle ends)
 always @ (posedge clk, posedge rst)
 if (rst)                           irq_stx <= 1'b0;
 else begin
@@ -345,7 +345,7 @@ else begin
   else if (bus_ren_ctl_sts)        irq_stx <= 1'b0;
 end
 
-// receive status (active after wire sampling point inside the transfer cycle)
+// receive status (active after wire sampling point inside the cycle)
 always @ (posedge clk, posedge rst)
 if (rst)                         irq_srx <= 1'b0;
 else begin
@@ -372,12 +372,12 @@ always @ (posedge clk, posedge rst)
 if (rst)                   {owr_rst, owr_dtx} <= 2'b00;
 else if (bus_wen_ctl_sts)  {owr_rst, owr_dtx} <= bus_wdt[1:0];
 
-// onewire transfer status
+// onewire cycle status
 always @ (posedge clk, posedge rst)
-if (rst)                           owr_trn <= 1'b0;
+if (rst)                           owr_cyc <= 1'b0;
 else begin
-  if (bus_wen_ctl_sts)             owr_trn <= ~&bus_wdt[2:0];
-  else if (pls & (cnt == t_zero))  owr_trn <= 1'b0;
+  if (bus_wen_ctl_sts)             owr_cyc <= ~&bus_wdt[2:0];
+  else if (pls & (cnt == t_zero))  owr_cyc <= 1'b0;
 end
 
 // state counter (initial value depends whether the cycle is reset or data)

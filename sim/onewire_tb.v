@@ -315,7 +315,7 @@ task avalon_pulling (
 ); begin
   // set cycle counter to zero
   n = 0;
-  // pool till owr_trn ends
+  // pool till owr_cyc ends
   data = 32'h02;
   while (data & 32'h02) begin
     repeat (dly) @ (posedge clk);
