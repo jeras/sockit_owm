@@ -1,35 +1,53 @@
-# sockit_owm
-# Iztok Jeras 2010.06.13.18:29:39
-# 1-wire (onewire) master
+###############################################################################
+#                                                                             #
+#  Minimalistic 1-wire (onewire) master with Avalon MM bus interface          #
+#                                                                             #
+#  Copyright (C) 2010  Iztok Jeras                                            #
+#                                                                             #
+###############################################################################
+#                                                                             #
+#  This script is free hardware: you can redistribute it and/or modify        #
+#  it under the terms of the GNU Lesser General Public License                #
+#  as published by the Free Software Foundation, either                       #
+#  version 3 of the License, or (at your option) any later version.           #
+#                                                                             #
+#  This RTL is distributed in the hope that it will be useful,                #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of             #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+#  GNU General Public License for more details.                               #
+#                                                                             #
+#  You should have received a copy of the GNU General Public License          #
+#  along with this program.  If not, see <http:#www.gnu.org/licenses/>.       #
+#                                                                             #
+###############################################################################
 
-# request TCL package from ACDS 9.1
-package require -exact sopc 9.1
+# request TCL package from Altera tools version 10.0
+package require -exact sopc 10.0
 
 # module sockit_owm
-set_module_property DESCRIPTION "1-wire (onewire) master"
-set_module_property NAME sockit_owm
-set_module_property VERSION 1.2
-set_module_property INTERNAL false
-set_module_property GROUP "Interface Protocols/Serial"
-set_module_property AUTHOR "Iztok Jeras"
-set_module_property DISPLAY_NAME "1-wire (onewire)"
-set_module_property TOP_LEVEL_HDL_FILE sockit_owm.v
-set_module_property TOP_LEVEL_HDL_MODULE sockit_owm
-set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
-set_module_property EDITABLE true
-set_module_property ANALYZE_HDL TRUE
+set_module_property NAME         sockit_owm
+set_module_property VERSION      1.2
+set_module_property GROUP        "Interface Protocols/Serial"
+set_module_property DISPLAY_NAME "1-wire (onewire) master"
+set_module_property DESCRIPTION  "1-wire (onewire) master"
+set_module_property AUTHOR       "Iztok Jeras"
 
+set_module_property TOP_LEVEL_HDL_FILE           sockit_owm.v
+set_module_property TOP_LEVEL_HDL_MODULE         sockit_owm
+set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
+set_module_property EDITABLE                     true
+
+# callbacks
+set_module_property  VALIDATION_CALLBACK  validation_callback
+set_module_property ELABORATION_CALLBACK elaboration_callback
+
+# documentation links and files
 add_documentation_link WEBLINK https://github.com/jeras/sockit_owm
 add_documentation_link WEBLINK http://opencores.org/project,sockit_owm
 add_documentation_link DATASHEET doc/sockit_owm.pdf
 
-set_module_property  VALIDATION_CALLBACK  validation_callback
-set_module_property ELABORATION_CALLBACK elaboration_callback
-
-# TODO add_documentation_link
-
 # RTL files
-add_file sockit_owm.v {SYNTHESIS SIMULATION}
+add_file hdl/sockit_owm.v {SYNTHESIS SIMULATION}
 
 # parameters
 add_parameter OVD_E BOOLEAN

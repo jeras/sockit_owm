@@ -1,6 +1,25 @@
-#
-# sockit_owm_sw.tcl
-#
+###############################################################################
+#                                                                             #
+#  Minimalistic 1-wire (onewire) master with Avalon MM bus interface          #
+#                                                                             #
+#  Copyright (C) 2010  Iztok Jeras                                            #
+#                                                                             #
+###############################################################################
+#                                                                             #
+#  This script is free software: you can redistribute it and/or modify        #
+#  it under the terms of the GNU Lesser General Public License                #
+#  as published by the Free Software Foundation, either                       #
+#  version 3 of the License, or (at your option) any later version.           #
+#                                                                             #
+#  This RTL is distributed in the hope that it will be useful,                #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of             #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+#  GNU General Public License for more details.                               #
+#                                                                             #
+#  You should have received a copy of the GNU General Public License          #
+#  along with this program.  If not, see <http:#www.gnu.org/licenses/>.       #
+#                                                                             #
+###############################################################################
 
 # Create a new driver
 create_driver sockit_owm_driver
@@ -12,7 +31,7 @@ set_sw_property hw_class_name sockit_owm
 set_sw_property version 1.2
 
 # This driver is proclaimed to be compatible with sockit_owm hardware
-# as old as version "1.1". If the hardware component  version number is not
+# as old as version "1.2". If the hardware component  version number is not
 # equal or greater than the min_compatable_hw_version number, the driver 
 # source files will not be copied over to the BSP drivers subdirectory
 set_sw_property min_compatible_hw_version 1.2
@@ -28,11 +47,7 @@ set_sw_property auto_initialize true
 # Location in generated BSP that above sources will be copied into
 set_sw_property bsp_subdirectory drivers
 
-#
-# Source file listings...
-#
-
-# C/C++ source files
+# C source files
 add_sw_property       c_source HAL/src/ownet.c
 add_sw_property       c_source HAL/src/owtran.c
 add_sw_property       c_source HAL/src/owlnk.c
@@ -68,5 +83,3 @@ add_sw_setting boolean_define_only public_mk_define error_detection_small  SOCKI
 
 # Enable application layer code
 #add_sw_setting boolean_define_only public_mk_define enable_A SOCKIT_OWM_A false "Enable driver A"
-
-# End of file
