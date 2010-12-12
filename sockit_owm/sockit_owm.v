@@ -54,8 +54,11 @@ module sockit_owm #(
   parameter BDW   =   32,  // bus data width
   parameter OWN   =    1,  // number of 1-wire ports
   // computed bus address port width
-//  parameter BAW   = (BDW==32) ? 1 : 2,
+`ifdef __ICARUS__
+  parameter BAW   = (BDW==32) ? 1 : 2,
+`else
   parameter BAW   = 1,  // TODO, the above is correct, but does not work well with Altera SOPC Builder
+`endif
   // base time period
   parameter BTP_N = "5.0", // normal    mode (5.0us, options are "7.5", "5.0" and "6.0")
   parameter BTP_O = "1.0", // overdrive mode (1.0us, options are "1.0",       and "0.5")
