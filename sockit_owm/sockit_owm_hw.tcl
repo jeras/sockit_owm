@@ -8,7 +8,7 @@ package require -exact sopc 9.1
 # module sockit_owm
 set_module_property DESCRIPTION "1-wire (onewire) master"
 set_module_property NAME sockit_owm
-set_module_property VERSION 1.1
+set_module_property VERSION 1.2
 set_module_property INTERNAL false
 set_module_property GROUP "Interface Protocols/Serial"
 set_module_property AUTHOR "Iztok Jeras"
@@ -18,6 +18,10 @@ set_module_property TOP_LEVEL_HDL_MODULE sockit_owm
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE true
 set_module_property ANALYZE_HDL TRUE
+
+add_documentation_link WEBLINK https://github.com/jeras/sockit_owm
+add_documentation_link WEBLINK http://opencores.org/project,sockit_owm
+add_documentation_link DATASHEET doc/sockit_owm.pdf
 
 set_module_property  VALIDATION_CALLBACK  validation_callback
 set_module_property ELABORATION_CALLBACK elaboration_callback

@@ -9,13 +9,13 @@ create_driver sockit_owm_driver
 set_sw_property hw_class_name sockit_owm
 
 # Driver version
-set_sw_property version 1.1
+set_sw_property version 1.2
 
 # This driver is proclaimed to be compatible with sockit_owm hardware
 # as old as version "1.1". If the hardware component  version number is not
 # equal or greater than the min_compatable_hw_version number, the driver 
 # source files will not be copied over to the BSP drivers subdirectory
-set_sw_property min_compatible_hw_version 1.1
+set_sw_property min_compatible_hw_version 1.2
 
 # Interrupt properties: This driver supports both legacy and enhanced
 # interrupt APIs, as well as ISR preemption.
