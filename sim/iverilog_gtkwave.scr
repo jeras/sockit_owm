@@ -5,7 +5,7 @@ rm onewire.out
 rm onewire.vcd
 
 # list of source files
-sources="onewire_tb.v onewire_slave_model.v ../sockit_owm/sockit_owm.v"
+sources="../hdl/onewire_tb.v ../hdl/onewire_slave_model.v ../hdl/sockit_owm.v"
 
 # compile verilog sources (testbench and RTL) and run simulation
 
