@@ -28,16 +28,17 @@ module onewire_slave_model #(
   parameter TS = 30.0
 )(
   // configuration
-  input wire ena,    // response enable
-  input wire ovd,    // overdrive mode select
-  input wire dat_r,  // read data
-  output reg dat_w,  // write data
+  input  wire ena,    // response enable
+  input  wire ovd,    // overdrive mode select
+  input  wire dat_r,  // read data
+  output wire dat_w,  // write data
   // 1-wire
   inout wire owr
 );
 
 // IO
 reg pul;
+reg dat;
 
 // events
 event sample_dat;
@@ -47,7 +48,11 @@ event sample_rst;
 // IO
 //////////////////////////////////////////////////////////////////////////////
 
+// onewire open collector signal
 assign owr = pul & ena ? 1'b0 : 1'bz;
+
+// read data output
+assign dat_w = ena ? dat : 1'bz;
 
 //////////////////////////////////////////////////////////////////////////////
 // events inside a cycle
@@ -56,7 +61,7 @@ assign owr = pul & ena ? 1'b0 : 1'bz;
 // power up state
 initial pul  <= 1'b0;
 
-always @ (negedge owr)  if (ena)  transfer (ovd, dat_r, dat_w);
+always @ (negedge owr)  if (ena)  transfer (ovd, dat_r, dat);
 
 task automatic transfer (
   input  ovd,

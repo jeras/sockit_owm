@@ -154,17 +154,15 @@ wire           req_ovd;
 reg  [OWN-1:0] owr_pwr;  // power
 reg            owr_ovd;  // overdrive
 reg            owr_rst;  // reset
-reg            owr_dtx;  // data bit transmit
-reg            owr_drx;  // data bit receive
+reg            owr_dat;  // data bit
+reg            owr_smp;  // sample bit
 
 reg            owr_oen;  // output enable
 wire           owr_iln;  // input line
 
 // interrupt signals
-reg            irq_etx;  // interrupt enable transmit
-reg            irq_erx;  // interrupt enable receive
-reg            irq_stx;  // interrupt status transmit
-reg            irq_srx;  // interrupt status receive
+reg            irq_ena;  // interrupt enable
+reg            irq_sts;  // interrupt status
 
 // timing signals
 wire [TDW-1:0] t_idl ;   // idle                 cycle    time
@@ -208,8 +206,7 @@ assign t_zero = 'd0;
 //////////////////////////////////////////////////////////////////////////////
 
 // bus segnemt - controll status register
-assign bus_rdt_ctl_sts = {irq_erx, irq_etx, irq_srx, irq_stx,
-                          owr_iln, owr_ovd, owr_cyc, owr_drx};
+assign bus_rdt_ctl_sts = {irq_ena, irq_sts, 1'b0, owr_pwr[0], owr_cyc, owr_ovd, owr_rst, owr_dat};
 
 // bus segnemt - power and select register
 generate
@@ -331,32 +328,20 @@ end endgenerate
 //////////////////////////////////////////////////////////////////////////////
 
 // bus interrupt
-assign bus_irq = irq_erx & irq_srx
-               | irq_etx & irq_stx;
+assign bus_irq = irq_ena & irq_sts;
 
 // interrupt enable
 always @ (posedge clk, posedge rst)
-if (rst)                   {irq_erx, irq_etx} <= 2'b00;     
-else if (bus_wen_ctl_sts)  {irq_erx, irq_etx} <= bus_wdt[7:6]; 
+if (rst)                   irq_ena <= 1'b0;     
+else if (bus_wen_ctl_sts)  irq_ena <= bus_wdt[7]; 
 
 // transmit status (active after onewire cycle ends)
 always @ (posedge clk, posedge rst)
-if (rst)                           irq_stx <= 1'b0;
+if (rst)                           irq_sts <= 1'b0;
 else begin
-  if (bus_wen_ctl_sts)             irq_stx <= 1'b0;
-  else if (pls & (cnt == t_zero))  irq_stx <= 1'b1;
-  else if (bus_ren_ctl_sts)        irq_stx <= 1'b0;
-end
-
-// receive status (active after wire sampling point inside the cycle)
-always @ (posedge clk, posedge rst)
-if (rst)                         irq_srx <= 1'b0;
-else begin
-  if (bus_wen_ctl_sts)           irq_srx <= 1'b0;
-  else if (pls) begin
-    if      (cnt == t_rstp)      irq_srx <=  owr_rst & ~owr_dtx;  // presence detect
-    else if (cnt == t_bits)      irq_srx <= ~owr_rst &  owr_dtx;  // read data bit
-  end else if (bus_ren_ctl_sts)  irq_srx <= 1'b0;
+  if (bus_wen_ctl_sts)             irq_sts <= 1'b0;
+  else if (pls & (cnt == t_zero))  irq_sts <= 1'b1;
+  else if (bus_ren_ctl_sts)        irq_sts <= 1'b0;
 end
 
 //////////////////////////////////////////////////////////////////////////////
@@ -370,10 +355,18 @@ always @ (posedge clk, posedge rst)
 if (rst)                   owr_ovd <= 1'b0;
 else if (bus_wen_ctl_sts)  owr_ovd <= req_ovd;
 
+// reset
+always @ (posedge clk, posedge rst)
+if (rst)                   owr_rst <= 1'b0;
+else if (bus_wen_ctl_sts)  owr_rst <= bus_wdt[1];
+
 // transmit data, reset, overdrive
 always @ (posedge clk, posedge rst)
-if (rst)                   {owr_rst, owr_dtx} <= 2'b00;
-else if (bus_wen_ctl_sts)  {owr_rst, owr_dtx} <= bus_wdt[1:0];
+if (rst)                           owr_dat <= 1'b0;
+else begin
+  if (bus_wen_ctl_sts)             owr_dat <= bus_wdt[0];
+  else if (pls & (cnt == t_zero))  owr_dat <= owr_smp;
+end
 
 // onewire cycle status
 always @ (posedge clk, posedge rst)
@@ -394,8 +387,8 @@ end
 // receive data (sampling point depends whether the cycle is reset or data)
 always @ (posedge clk)
 if (pls) begin
-  if      ( owr_rst & (cnt == t_rstp))  owr_drx <= owr_iln;  // presence detect
-  else if (~owr_rst & (cnt == t_bits))  owr_drx <= owr_iln;  // read data bit
+  if      ( owr_rst & (cnt == t_rstp))  owr_smp <= owr_iln;  // presence detect
+  else if (~owr_rst & (cnt == t_bits))  owr_smp <= owr_iln;  // read data bit
 end
 
 // output register (switch point depends whether the cycle is reset or data)
@@ -405,7 +398,7 @@ else begin
   if (bus_wen_ctl_sts)                  owr_oen <= ~&bus_wdt[1:0];
   else if (pls) begin
     if      (owr_rst & (cnt == t_rsth)) owr_oen <= 1'b0;  // reset
-    else if (owr_dtx & (cnt == t_dat1)) owr_oen <= 1'b0;  // write 1, read
+    else if (owr_dat & (cnt == t_dat1)) owr_oen <= 1'b0;  // write 1, read
     else if (          (cnt == t_dat0)) owr_oen <= 1'b0;  // write 0
   end
 end

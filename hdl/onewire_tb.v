@@ -46,15 +46,25 @@ localparam BTP_O = "1.0";  // overdrive mode
 localparam OVD_E = 1'b1;   // overdrive functionality enable
 localparam BTP_N = "6.0";  // normal    mode
 localparam BTP_O = "0.5";  // overdrive mode
-`else // PRESET_75
+`elsif PRESET_75
 localparam OVD_E = 1'b0;   // overdrive functionality enable
 localparam BTP_N = "7.5";  // normal    mode
+localparam BTP_O = "1.0";  // overdrive mode
+`else // default
+localparam OVD_E = 1'b1;   // overdrive functionality enable
+localparam BTP_N = "5.0";  // normal    mode
 localparam BTP_O = "1.0";  // overdrive mode
 `endif
 
 // port width parameters
+`ifdef BDW_32
 localparam BDW   = 32;     // bus data width
-localparam OWN   = 2*3;    // number of wires
+`elsif BDW_8
+localparam BDW   =  8;     // bus data width
+`else // default
+localparam BDW   = 32;     // bus data width
+`endif
+localparam OWN   =  3;    // number of wires
 // computed bus address port width
 localparam BAW   = (BDW==32) ? 1 : 2;
 
@@ -108,9 +118,8 @@ wire [OWN-1:0] slave_dat_w;  // write data
 integer        error;
 integer        n;
 
-// loop indexes
-integer        i;  // slave timing
-integer        j;  // overdrive option
+// overdrive enable loop
+integer        i;
 
 //////////////////////////////////////////////////////////////////////////////
 // configuration printout and waveforms
@@ -174,48 +183,44 @@ initial begin
   end
 
   // test with slaves with different timing (each slave one one of the wires)
-  for (i=0; i<3; i=i+1) begin
+  for (slave_sel=0; slave_sel<3; slave_sel=slave_sel+1) begin
 
-    // test reset and data cycles
-    for (j=0; j<(OVD_E?2:1); j=j+1) begin
+    // select normal/overdrive mode
+    //for (slave_ovd=0; slave_ovd<(OVD_E?2:1); slave_ovd=slave_ovd+1) begin
+    for (i=0; i<(OVD_E?2:1); i=i+1) begin
 
-      // select onewire slave (a different set of slaves for overdrive mode)
-      slave_sel = i + 3*j;
+      slave_ovd = i[0];
 
-      // select normal/overdrive mode
-      if (j==0)  slave_ovd = 1'b0;  // normal    mode
-      if (j==1)  slave_ovd = 1'b1;  // overdrive mode
- 
       // testbench status message 
-      $display("NOTE: Loop: speed=%s, ovd=%b, BTP=\"%s\")", (i==0) ? "min" : (i==2) ? "max" : "typ", slave_ovd, slave_ovd ? BTP_O : BTP_N);
+      $display("NOTE: Loop: speed=%s, ovd=%b, BTP=\"%s\")", (slave_sel==0) ? "min" : (slave_sel==2) ? "max" : "typ", slave_ovd, slave_ovd ? BTP_O : BTP_N);
 
       // generate a reset pulse
       slave_ena   = 1'b0;
       slave_dat_r = 1'b1;
-      avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
-      avalon_pulling (8, n);
+      avalon_request (16'd0, slave_sel, {slave_ovd, 2'b10});
+      avalon_polling (8, n);
       // expect no response
       if (data[0] !== 1'b1) begin
         error = error+1;
         $display("ERROR: (t=%0t)  Wrong presence detect responce ('1' expected).", $time);
-     end
+      end
 
       // generate a reset pulse
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
-      avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b10}, data);
-      avalon_pulling (8, n);
+      avalon_request (16'd0, slave_sel, {slave_ovd, 2'b10});
+      avalon_polling (8, n);
       // expect presence response
       if (data[0] !== 1'b0) begin
         error = error+1;
         $display("ERROR: (t=%0t)  Wrong presence detect response ('0' expected).", $time);
-     end
+      end
 
       // write '0'
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
-      avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b00}, data);
-      avalon_pulling (8, n);
+      avalon_request (16'd0, slave_sel, {slave_ovd, 2'b00});
+      avalon_polling (8, n);
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
@@ -230,8 +235,8 @@ initial begin
       // write '1', read '1'
       slave_ena   = 1'b1;
       slave_dat_r = 1'b1;
-      avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
-      avalon_pulling (8, n);
+      avalon_request (16'd0, slave_sel, {slave_ovd, 2'b01});
+      avalon_polling (8, n);
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b1) begin
         error = error+1;
@@ -246,8 +251,8 @@ initial begin
       // write '1', read '0'
       slave_ena   = 1'b1;
       slave_dat_r = 1'b0;
-      avalon_cycle (1, 0, 4'hf, {slave_sel, 5'b00000, slave_ovd, 2'b01}, data);
-      avalon_pulling (8, n);
+      avalon_request (16'd0, slave_sel, {slave_ovd, 2'b01});
+      avalon_polling (8, n);
       // check if '0' was written into the slave
       if (slave_dat_w[slave_sel] !== 1'b0) begin
         error = error+1;
@@ -259,16 +264,16 @@ initial begin
         $display("ERROR: (t=%0t)  Wrong read  data for write '1', read '0'.", $time);
       end
 
-    end  // j
+    end  // slave_ovd
 
-  end  // i
+  end  // slave_sel
 
   // test power supply on a typical normal mode slave
   slave_sel = 1;
 
   // generate a delay pulse (1ms) with power supply enabled
-  avalon_cycle (1, 0, 4'hf, {16'h01<<slave_sel, 4'h0, slave_sel, 5'b00000, 3'b011}, data);
-  avalon_pulling (1, n);
+  avalon_request (16'd1, slave_sel, 3'b011);
+  avalon_polling (1, n);
   // check if '1' was read from the slave
   if ((data[0] !== 1'b1) & ~slave_ovd) begin
     error = error+1;
@@ -285,8 +290,8 @@ initial begin
   end
 
   // generate a idle pulse (0ms) with power supply enabled
-  avalon_cycle (1, 0, 4'hf, {16'h01<<slave_sel, 4'h0, slave_sel, 5'b00000, 3'b111}, data);
-  avalon_pulling (1, n);
+  avalon_request (16'd1, slave_sel, 3'b111);
+  avalon_polling (1, n);
   // check if power is present
   if (owr_p[slave_sel] !== 1'b1) begin
     error = error+1;
@@ -299,28 +304,53 @@ initial begin
 
   // generate a delay pulse and break it with an idle pulse, before it finishes
   repeat (10) @(posedge clk);
-  avalon_cycle (1, 0, 4'hf, 32'h00000003, data);
+  avalon_request (16'd0, 4'h0, 3'b011);
   repeat (10) @(posedge clk);
-  avalon_cycle (1, 0, 4'hf, 32'h00000007, data);
+  avalon_request (16'd0, 4'h0, 3'b111);
 
   // wait a few cycles and finish
   repeat (10) @(posedge clk);
   $finish(); 
 end
 
+// avalon request cycle
+task avalon_request (
+  input [15:0] pwr,  // power enable
+  input  [3:0] sel,  // onewire slave select
+  input  [2:0] cmd   // command {ovd, rst, dat}
+);
+  reg [BDW-1:0] data;  // read data
+begin
+  if (BDW==32) begin
+    avalon_cycle (1, 0, 4'hf, {pwr<<sel, 4'h0, sel, 5'b00000, cmd}, data);  
+  end else begin
+    avalon_cycle (1, 1, 1'b1, {pwr[3:0]<<sel, 2'h0, sel[1:0]}, data);  
+    avalon_cycle (1, 0, 1'b1, {                5'b00000, cmd}, data);  
+  end
+end endtask
+
 // wait for the onewire cycle completion
-task avalon_pulling (
+task avalon_polling (
   input  integer dly,
   output integer n
 ); begin
   // set cycle counter to zero
   n = 0;
   // pool till owr_cyc ends
-  data = 32'h02;
-  while (data & 32'h02) begin
-    repeat (dly) @ (posedge clk);
-    avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
-    n = n + 1;
+  if (BDW==32) begin
+    data = 32'h08;
+    while (data & 32'h08) begin
+      repeat (dly) @ (posedge clk);
+      avalon_cycle (0, 0, 4'hf, 32'hxxxx_xxxx, data);
+      n = n + 1;
+    end
+  end else begin
+    data = 8'h08;
+    while (data & 8'h08) begin
+      repeat (dly) @ (posedge clk);
+      avalon_cycle (0, 0, 1'b1, 8'hxx, data);
+      n = n + 1;
+    end
   end
 end endtask
 
@@ -408,7 +438,7 @@ onewire_slave_model #(
   .TS     (15 + 0.1)
 ) onewire_slave_n_min (
   // configuration
-  .ena    (slave_ena     ),
+  .ena    (slave_ena & (slave_ovd==0)),
   .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r   ),
   .dat_w  (slave_dat_w[0]),
@@ -421,7 +451,7 @@ onewire_slave_model #(
   .TS     (30)
 ) onewire_slave_n_typ (
   // configuration
-  .ena    (slave_ena     ),
+  .ena    (slave_ena & (slave_ovd==0)),
   .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r   ),
   .dat_w  (slave_dat_w[1]),
@@ -433,7 +463,7 @@ onewire_slave_model #(
   .TS     (60 - 0.1)
 ) onewire_slave_n_max (
   // configuration
-  .ena    (slave_ena     ),
+  .ena    (slave_ena & (slave_ovd==0)),
   .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r   ),
   .dat_w  (slave_dat_w[2]),
@@ -450,12 +480,12 @@ onewire_slave_model #(
   .TS     (16)
 ) onewire_slave_o_min (
   // configuration
-  .ena    (slave_ena     ),
+  .ena    (slave_ena & (slave_ovd==1)),
   .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r   ),
-  .dat_w  (slave_dat_w[0+3]),
+  .dat_w  (slave_dat_w[0]),
   // 1-wire signal
-  .owr    (owr[0+3])
+  .owr    (owr[0])
 );
 
 // typical slave device
@@ -463,24 +493,24 @@ onewire_slave_model #(
   .TS     (30)
 ) onewire_slave_o_typ (
   // configuration
-  .ena    (slave_ena     ),
+  .ena    (slave_ena & (slave_ovd==1)),
   .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r   ),
-  .dat_w  (slave_dat_w[1+3]),
+  .dat_w  (slave_dat_w[1]),
   // 1-wire signal
-  .owr    (owr[1+3])
+  .owr    (owr[1])
 );
 
 onewire_slave_model #(
   .TS     (47)
 ) onewire_slave_o_max (
   // configuration
-  .ena    (slave_ena     ),
+  .ena    (slave_ena & (slave_ovd==1)),
   .ovd    (slave_ovd     ),
   .dat_r  (slave_dat_r   ),
-  .dat_w  (slave_dat_w[2+3]),
+  .dat_w  (slave_dat_w[2]),
   // 1-wire signal
-  .owr    (owr[2+3])
+  .owr    (owr[2])
 );
 
 endmodule
