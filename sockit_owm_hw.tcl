@@ -26,7 +26,7 @@ package require -exact sopc 10.0
 
 # module sockit_owm
 set_module_property NAME         sockit_owm
-set_module_property VERSION      1.2
+set_module_property VERSION      1.3
 set_module_property GROUP        "Interface Protocols/Serial"
 set_module_property DISPLAY_NAME "1-wire (onewire) master"
 set_module_property DESCRIPTION  "1-wire (onewire) master"
