@@ -300,6 +300,14 @@ set_instance_assignment -name IO_STANDARD LVTTL -to CLOCK_24[0]
 set_instance_assignment -name IO_STANDARD LVTTL -to CLOCK_24[1]
 set_instance_assignment -name IO_STANDARD LVTTL -to CLOCK_50
 set_instance_assignment -name IO_STANDARD LVTTL -to EXT_CLOCK
+set_location_assignment PIN_V20 -to SD_CLK
+set_location_assignment PIN_Y20 -to SD_CMD
+set_location_assignment PIN_W20 -to SD_DAT
+set_location_assignment PIN_U20 -to SD_DAT3
+set_instance_assignment -name IO_STANDARD LVTTL -to SD_CLK
+set_instance_assignment -name IO_STANDARD LVTTL -to SD_CMD
+set_instance_assignment -name IO_STANDARD LVTTL -to SD_DAT
+set_instance_assignment -name IO_STANDARD LVTTL -to SD_DAT3
 set_location_assignment PIN_H15 -to PS2_CLK
 set_location_assignment PIN_J14 -to PS2_DAT
 set_location_assignment PIN_F14 -to UART_RXD
