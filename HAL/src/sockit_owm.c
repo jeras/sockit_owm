@@ -82,11 +82,11 @@ void sockit_owm_init (alt_u32 irq)
   int error;
   // initialize semaphore for transfer locking
   error = ALT_FLAG_CREATE (sockit_owm.irq, 0) ||
-          ALT_SEM_CREATE  (sockit_owm.trn, 1);
+          ALT_SEM_CREATE  (sockit_owm.cyc, 1);
 
   if (!error) {
-    // enable TX interrupt, RX is unused
-    sockit_owm.ena = 0x1;
+    // enable interrupt
+    sockit_owm.ien = 0x1;
     // register the interrupt handler
 #ifdef ALT_ENHANCED_INTERRUPT_API_PRESENT
     alt_ic_isr_register (0, irq, sockit_owm_irq, NULL, 0x0);

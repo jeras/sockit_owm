@@ -76,22 +76,23 @@ SMALLINT owTouchReset(int portnum)
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
 
    // lock transfer
-   ALT_SEM_PEND (sockit_owm.trn, 0);
+   ALT_SEM_PEND (sockit_owm.cyc, 0);
 
    // write RST
-   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
-                                   | (portnum        << SOCKIT_OWM_SEL_OFST)
-                                   | (sockit_owm.ena << SOCKIT_OWM_ETX_OFST)
-                                   | (ovd            << SOCKIT_OWM_OVD_OFST)
-                                   |                    SOCKIT_OWM_RST_MSK);
+   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST    )
+                                   | (portnum        << SOCKIT_OWM_SEL_OFST      )
+                                   | (sockit_owm.ien  ? SOCKIT_OWM_IEN_MSK : 0x00)
+                                   | (                  SOCKIT_OWM_CYC_MSK       )
+                                   | (ovd             ? SOCKIT_OWM_OVD_MSK : 0x00)
+                                   | (                  SOCKIT_OWM_RST_MSK       ));
 
    // wait for irq to set the transfer end flag
    ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
    // wait for STX (end of transfer cycle) and read the presence status
-   while ((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_TRN_MSK);
+   while ((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_CYC_MSK);
 
    // release transfer lock
-   ALT_SEM_POST (sockit_owm.trn);
+   ALT_SEM_POST (sockit_owm.cyc);
 
    // return DRX (presence detect)
    return (~reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
@@ -116,25 +117,26 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
    int ovd = (sockit_owm.ovd >> portnum) & 0x1;
 
    // lock transfer
-   ALT_SEM_PEND (sockit_owm.trn, 0);
+   ALT_SEM_PEND (sockit_owm.cyc, 0);
 
    // write RST
-   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr  << SOCKIT_OWM_POWER_OFST)
-      	                           | (portnum         << SOCKIT_OWM_SEL_OFST)
-                                   | (sockit_owm.ena  << SOCKIT_OWM_ETX_OFST)
-                                   | (ovd             << SOCKIT_OWM_OVD_OFST)
-                                   | ((sendbit & 0x1) << SOCKIT_OWM_DAT_OFST));
+   IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST    )
+      	                           | (portnum        << SOCKIT_OWM_SEL_OFST      )
+                                   | (sockit_owm.ien  ? SOCKIT_OWM_IEN_MSK : 0x00)
+                                   | (                  SOCKIT_OWM_CYC_MSK       )
+                                   | (ovd             ? SOCKIT_OWM_OVD_MSK : 0x00)
+                                   | (sendbit         & SOCKIT_OWM_DAT_MSK       ));  // NOTE the shortcut
 
    // wait for irq to set the transfer end flag
    ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
    // wait for STX (end of transfer cycle) and read the read data bit
-   while ((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_TRN_MSK);
+   while ((reg = IORD_SOCKIT_OWM (sockit_owm.base)) & SOCKIT_OWM_CYC_MSK);
 
    // release transfer lock
-   ALT_SEM_POST (sockit_owm.trn);
+   ALT_SEM_POST (sockit_owm.cyc);
 
    // return DRX (read bit)
-   return (reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
+   return (reg & SOCKIT_OWM_DAT_MSK);  // NOTE the shortcut
 }
 
 //--------------------------------------------------------------------------
@@ -230,15 +232,12 @@ SMALLINT owLevel(int portnum, SMALLINT new_level)
    if (new_level == MODE_STRONG5) {
       // set the power bit
       sockit_owm.pwr |=  (1 << portnum);
-      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
-                                      |                    SOCKIT_OWM_PWR_MSK
-                                      |                    SOCKIT_OWM_IDL_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST) | SOCKIT_OWM_PWR_MSK);
    }
    if (new_level == MODE_NORMAL) {
       // clear the power bit
       sockit_owm.pwr &= ~(1 << portnum);
-      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST)
-                                      |                    SOCKIT_OWM_IDL_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST));
    }
    // return the current port state
    return ((sockit_owm.pwr >> portnum) & 0x1) ? MODE_STRONG5 : MODE_NORMAL;
@@ -269,22 +268,23 @@ void msDelay(int len)
    int i;
 
    // lock transfer
-   ALT_SEM_PEND (sockit_owm.trn, 0);
+   ALT_SEM_PEND (sockit_owm.cyc, 0);
 
    for (i=0; i<len; i++) {
       // create a 960us pause
-      IOWR_SOCKIT_OWM (sockit_owm.base, ( sockit_owm.pwr        << SOCKIT_OWM_POWER_OFST)
-                                      | ( sockit_owm.ena        << SOCKIT_OWM_ETX_OFST)
-                                      | ((sockit_owm.pwr & 0x1) << SOCKIT_OWM_PWR_OFST)
-                                      |                            SOCKIT_OWM_DLY_MSK);
+      IOWR_SOCKIT_OWM (sockit_owm.base, ( sockit_owm.pwr        << SOCKIT_OWM_POWER_OFST    )
+                                      | ( sockit_owm.ien         ? SOCKIT_OWM_IEN_MSK : 0x00)
+                                      | ((sockit_owm.pwr & 0x1)  ? SOCKIT_OWM_PWR_MSK : 0x00)
+                                      | (                          SOCKIT_OWM_CYC_MSK       )
+                                      | (                          SOCKIT_OWM_DLY_MSK       ));
 
      // wait for irq to set the transfer end flag
      ALT_FLAG_PEND (sockit_owm.irq, 0x1, OS_FLAG_WAIT_SET_ANY + OS_FLAG_CONSUME, 0);
      // wait for STX (end of transfer cycle)
-     while (IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_TRN_MSK);
+     while (IORD_SOCKIT_OWM (sockit_owm.base) & SOCKIT_OWM_CYC_MSK);
 
      // release transfer lock
-     ALT_SEM_POST (sockit_owm.trn);
+     ALT_SEM_POST (sockit_owm.cyc);
    }
 #else
 #ifdef UCOS_II

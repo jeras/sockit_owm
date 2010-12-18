@@ -80,19 +80,24 @@ extern "C"
 
 typedef struct sockit_owm_state_s
 {
-  // constants
   void*            base;            // The base address of the device
+  // constants
+  alt_u32          ovd_e;           // Overdrive mode               implementation enable
+  alt_u32          cdr_e;           // Clock divider ratio register implementation enable
   alt_u32          own;             // Number of onewire ports
-  alt_u32          ovd_e;           // Overdrive mode implementation enable
+  char             btp_n[3];        // base time period for normal    mode
+  char             btp_o[3];        // base time period for overdrive mode
+  // clock divider ratio
+  alt_u32          cdr_n;           // cdr for normal    mode
+  alt_u32          cdr_o;           // cdr for overdrive mode
   // status
-  alt_u32          ena;             // interrupt enable status
+  alt_u32          ien;             // interrupt enable status
   alt_u32          use;             // Aquire status
   alt_u32          ovd;             // Overdrive status
   alt_u32          pwr;             // Power status
   // OS multitasking features
-//ALT_FLAG_GRP    (srx)             // receive event flag
-  ALT_FLAG_GRP    (irq)             // transmit event flag
-  ALT_SEM         (trn)             // transfer lock semaphore
+  ALT_FLAG_GRP    (irq)             // interrupt event flag
+  ALT_SEM         (cyc)             // transfer lock semaphore
 } sockit_owm_state;
 
 /*
@@ -102,7 +107,15 @@ typedef struct sockit_owm_state_s
  */
 
 #define SOCKIT_OWM_INSTANCE(name, state) \
-  sockit_owm_state sockit_owm = { (void*) name##_BASE, name##_OWN, name##_OVD_E, 0, 0, 0, 0}; \
+  sockit_owm_state sockit_owm = { (void*) name##_BASE,  \
+                                          name##_OVD_E, \
+                                          name##_CDR_E, \
+                                          name##_OWN,   \
+                                          name##_BTP_N, \
+                                          name##_BTP_O, \
+                                          name##_CDR_N, \
+                                          name##_CDR_O, \
+                                          0, 0, 0, 0};  \
   void* state = (void*) name##_BASE
 /*
  * sockit_owm_init() is called by the auto-generated function

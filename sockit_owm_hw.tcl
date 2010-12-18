@@ -258,4 +258,6 @@ proc elaboration_callback {} {
   set_module_assignment embeddedsw.CMacro.OVD_E [expr {[get_parameter_value OVD_E]?1:0}]
   set_module_assignment embeddedsw.CMacro.BTP_N        [get_parameter_value BTP_N]
   set_module_assignment embeddedsw.CMacro.BTP_O        [get_parameter_value BTP_O]
+  set_module_assignment embeddedsw.CMacro.CDR_N        [get_parameter_value CDR_N]
+  set_module_assignment embeddedsw.CMacro.CDR_O        [get_parameter_value CDR_O]
 }

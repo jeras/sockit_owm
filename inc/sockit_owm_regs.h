@@ -34,28 +34,26 @@
 
 #define SOCKIT_OWM_DAT_MSK             (0x01)        // data bit
 #define SOCKIT_OWM_DAT_OFST            (0)
-#define SOCKIT_OWM_RST_MSK             (0x02)        // reset (write only)
+#define SOCKIT_OWM_RST_MSK             (0x02)        // reset
 #define SOCKIT_OWM_RST_OFST            (1)
-#define SOCKIT_OWM_TRN_MSK             (0x02)        // transfer (read only)
-#define SOCKIT_OWM_TRN_OFST            (1)
 #define SOCKIT_OWM_OVD_MSK             (0x04)        // overdrive
 #define SOCKIT_OWM_OVD_OFST            (2)
-#define SOCKIT_OWM_PWR_MSK             (0x08)        // power (strong pull-up)
-#define SOCKIT_OWM_PWR_OFST            (3)           // if there is a single port
-#define SOCKIT_OWM_STX_MSK             (0x10)        // status TX
-#define SOCKIT_OWM_STX_OFST            (4)
-#define SOCKIT_OWM_SRX_MSK             (0x20)        // status RX
-#define SOCKIT_OWM_SRX_OFST            (5)
-#define SOCKIT_OWM_ETX_MSK             (0x40)        // irq enable TX
-#define SOCKIT_OWM_ETX_OFST            (6)
-#define SOCKIT_OWM_ERX_MSK             (0x80)        // irq enable RX
-#define SOCKIT_OWM_ERX_OFST            (7)
+#define SOCKIT_OWM_CYC_MSK             (0x08)        // cycle
+#define SOCKIT_OWM_CYC_OFST            (3)
+#define SOCKIT_OWM_PWR_MSK             (0x10)        // power (strong pull-up), if there is a single 1-wire line
+#define SOCKIT_OWM_PWR_OFST            (5)
+#define SOCKIT_OWM_RSV_MSK             (0x20)        // reserved
+#define SOCKIT_OWM_RSV_OFST            (5)
+#define SOCKIT_OWM_IRQ_MSK             (0x40)        // irq status
+#define SOCKIT_OWM_IRQ_OFST            (6)
+#define SOCKIT_OWM_IEN_MSK             (0x80)        // irq enable
+#define SOCKIT_OWM_IEN_OFST            (7)
 
 #define SOCKIT_OWM_SEL_MSK             (0x0f00)      // port select number
 #define SOCKIT_OWM_SEL_OFST            (8)
 
-#define SOCKIT_OWM_POWER_MSK           (0xffff0000)  // power (strong pull-up)
-#define SOCKIT_OWM_POWER_OFST          (16)          // if there is more than one port
+#define SOCKIT_OWM_POWER_MSK           (0xffff0000)  // power (strong pull-up), if there is more than one 1-wire line
+#define SOCKIT_OWM_POWER_OFST          (16)
 
 // two common commands
 #define SOCKIT_OWM_DLY_MSK             (                     SOCKIT_OWM_RST_MSK | SOCKIT_OWM_DAT_MSK)

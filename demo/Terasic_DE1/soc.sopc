@@ -219,7 +219,7 @@
          type = "boolean";
       }
    }
-   element uart.s1
+   element cfi_flash.s1
    {
       datum _lockedAddress
       {
@@ -228,11 +228,11 @@
       }
       datum baseAddress
       {
-         value = "25206816";
+         value = "20971520";
          type = "long";
       }
    }
-   element onchip_ram.s1
+   element pio_ledr.s1
    {
       datum _lockedAddress
       {
@@ -241,7 +241,7 @@
       }
       datum baseAddress
       {
-         value = "25182208";
+         value = "25206880";
          type = "long";
       }
    }
@@ -271,7 +271,7 @@
          type = "long";
       }
    }
-   element pio_ledr.s1
+   element uart.s1
    {
       datum _lockedAddress
       {
@@ -280,7 +280,20 @@
       }
       datum baseAddress
       {
-         value = "25206880";
+         value = "25206816";
+         type = "long";
+      }
+   }
+   element onchip_ram.s1
+   {
+      datum _lockedAddress
+      {
+         value = "1";
+         type = "boolean";
+      }
+      datum baseAddress
+      {
+         value = "25182208";
          type = "long";
       }
    }
@@ -294,19 +307,6 @@
       datum baseAddress
       {
          value = "8388608";
-         type = "long";
-      }
-   }
-   element cfi_flash.s1
-   {
-      datum _lockedAddress
-      {
-         value = "1";
-         type = "boolean";
-      }
-      datum baseAddress
-      {
-         value = "20971520";
          type = "long";
       }
    }
@@ -426,7 +426,7 @@
  <parameter name="projectName" value="DE1_soc_nios2.qpf" />
  <parameter name="sopcBorderPoints" value="true" />
  <parameter name="systemHash" value="34063863409" />
- <parameter name="timeStamp" value="1292118168937" />
+ <parameter name="timeStamp" value="1292683594652" />
  <module kind="clock_source" version="10.0" enabled="1" name="clk">
   <parameter name="clockFrequency" value="24000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -686,7 +686,7 @@
   <parameter name="timeoutPulseOutput" value="false" />
   <parameter name="timerPreset" value="CUSTOM" />
  </module>
- <module kind="sockit_owm" version="1.2" enabled="1" name="onewire">
+ <module kind="sockit_owm" version="1.3" enabled="1" name="onewire">
   <parameter name="OVD_E" value="true" />
   <parameter name="CDR_E" value="false" />
   <parameter name="BDW" value="32" />
