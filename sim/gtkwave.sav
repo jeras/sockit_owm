@@ -1,7 +1,7 @@
 [timestart] 0
 [size] 1366 691
 [pos] -1 -1
-*-30.546513 1000162666 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-30.598024 1000162666 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] onewire_tb.
 @28
 onewire_tb.clk
@@ -11,62 +11,75 @@ onewire_tb.rst
 @28
 onewire_tb.avalon_write
 onewire_tb.avalon_read
-onewire_tb.avalon_address
+onewire_tb.avalon_address[1:0]
 @22
-onewire_tb.avalon_writedata[31:0]
-onewire_tb.avalon_readdata[31:0]
+onewire_tb.avalon_writedata[7:0]
+onewire_tb.avalon_readdata[7:0]
 @28
 onewire_tb.avalon_interrupt
 @1000200
 -Avalon MM bus
 @800200
 -1-wire master
-@22
-onewire_tb.onewire_master.cdr_n[15:0]
-onewire_tb.onewire_master.cdr_o[15:0]
-onewire_tb.onewire_master.cnt[6:0]
-@29
-onewire_tb.onewire_master.pls
+@200
+-clock divider
+@24
+onewire_tb.onewire_master.cdr_n[5:0]
+onewire_tb.onewire_master.div[5:0]
 @28
-onewire_tb.onewire_master.irq_etx
-onewire_tb.onewire_master.irq_erx
-onewire_tb.onewire_master.irq_stx
-onewire_tb.onewire_master.irq_srx
+onewire_tb.onewire_master.pls
+@200
+-control/satus
+@28
 onewire_tb.onewire_master.owr_cyc
-onewire_tb.onewire_master.owr_drx
-onewire_tb.onewire_master.owr_dtx
-onewire_tb.onewire_master.owr_rst
 onewire_tb.onewire_master.owr_ovd
-onewire_tb.onewire_master.owr_i
+onewire_tb.onewire_master.owr_rst
+onewire_tb.onewire_master.owr_dat
+@200
+-state machine
+@24
+onewire_tb.onewire_master.cnt[6:0]
+@c00200
+-timing
+@204
+-reset timing
+@24
+onewire_tb.onewire_master.t_rst[6:0]
+onewire_tb.onewire_master.t_rsth[6:0]
+onewire_tb.onewire_master.t_rstp[6:0]
+@204
+-read/write timing
+@24
+onewire_tb.onewire_master.t_bit[6:0]
+onewire_tb.onewire_master.t_dat0[6:0]
+onewire_tb.onewire_master.t_dat1[6:0]
+onewire_tb.onewire_master.t_bits[6:0]
+@1401200
+-timing
+@200
+-select & power
+@28
+onewire_tb.onewire_master.owr_sel[1:0]
+onewire_tb.onewire_master.owr_pwr[2:0]
 @1000200
 -1-wire master
-@22
-onewire_tb.owr_e[5:0]
-@c00022
-onewire_tb.owr_i[5:0]
 @28
-(0)onewire_tb.owr_i[5:0]
-(1)onewire_tb.owr_i[5:0]
-(2)onewire_tb.owr_i[5:0]
-(3)onewire_tb.owr_i[5:0]
-(4)onewire_tb.owr_i[5:0]
-(5)onewire_tb.owr_i[5:0]
+onewire_tb.owr_p[2:0]
+@c00028
+onewire_tb.owr_e[2:0]
+@28
+(0)onewire_tb.owr_e[2:0]
+(1)onewire_tb.owr_e[2:0]
+(2)onewire_tb.owr_e[2:0]
 @1401200
 -group_end
-@22
-onewire_tb.owr_p[5:0]
-@800200
--1-wire slave
-@28
-onewire_tb.onewire_slave_n_typ.dat_r
-onewire_tb.onewire_slave_n_typ.dat_w
-onewire_tb.onewire_slave_n_typ.ena
-onewire_tb.onewire_slave_n_typ.ovd
-onewire_tb.onewire_slave_n_typ.owr
-onewire_tb.onewire_slave_n_typ.pul
-onewire_tb.onewire_slave_n_typ.sample_dat
-onewire_tb.onewire_slave_n_typ.sample_rst
-@1000200
--1-wire slave
+@800029
+onewire_tb.owr_i[2:0]
+@29
+(0)onewire_tb.owr_i[2:0]
+(1)onewire_tb.owr_i[2:0]
+(2)onewire_tb.owr_i[2:0]
+@1001201
+-group_end
 [pattern_trace] 1
 [pattern_trace] 0

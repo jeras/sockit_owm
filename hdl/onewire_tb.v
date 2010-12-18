@@ -174,11 +174,13 @@ initial begin
   // set clock divider ratios
   if (CDR_E) begin
     if (BDW==32) begin
-      avalon_cycle (1, 1, 4'hf, {16'h0001, 16'h0001}, data);
-      avalon_cycle (1, 1, 4'hf, CDR_O << 16 | CDR_N, data);
+      avalon_cycle (1, 1, 4'hf, {   16'h0001,    16'h0001}, data);
+      avalon_cycle (1, 1, 4'hf, {CDR_O[15:0], CDR_N[15:0]}, data);
     end else if (BDW==8) begin
-      avalon_cycle (1, 2, 1'b1, 8'h01, data);
-      avalon_cycle (1, 3, 1'b1, 8'h01, data);
+      avalon_cycle (1, 2, 1'b1,      8'h01, data);
+      avalon_cycle (1, 3, 1'b1,      8'h01, data);
+      avalon_cycle (1, 2, 1'b1, CDR_N[7:0], data);
+      avalon_cycle (1, 3, 1'b1, CDR_O[7:0], data);
     end
   end
 
@@ -322,10 +324,10 @@ task avalon_request (
   reg [BDW-1:0] data;  // read data
 begin
   if (BDW==32) begin
-    avalon_cycle (1, 0, 4'hf, {pwr<<sel, 4'h0, sel, 5'b00000, cmd}, data);  
+    avalon_cycle (1, 0, 4'hf, {pwr<<sel, 4'h0, sel, 5'b00001, cmd}, data);  
   end else begin
     avalon_cycle (1, 1, 1'b1, {pwr[3:0]<<sel, 2'h0, sel[1:0]}, data);  
-    avalon_cycle (1, 0, 1'b1, {                5'b00000, cmd}, data);  
+    avalon_cycle (1, 0, 1'b1, {                5'b00001, cmd}, data);  
   end
 end endtask
 
@@ -336,7 +338,7 @@ task avalon_polling (
 ); begin
   // set cycle counter to zero
   n = 0;
-  // pool till owr_cyc ends
+  // poll till owr_cyc ends
   if (BDW==32) begin
     data = 32'h08;
     while (data & 32'h08) begin

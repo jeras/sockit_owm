@@ -138,7 +138,7 @@ reg  [CDW-1:0] cdr_n;
 reg  [CDW-1:0] cdr_o;
 wire           pls;
 
-// cycle status and control
+// cycle control and status
 reg            owr_cyc;  // cycle status
 reg  [TDW-1:0] cnt;      // cycle counter
 
@@ -205,7 +205,7 @@ assign t_zero = 'd0;
 // bus read
 //////////////////////////////////////////////////////////////////////////////
 
-// bus segnemt - controll status register
+// bus segnemt - controll/status register
 assign bus_rdt_ctl_sts = {irq_ena, irq_sts, 1'b0, owr_pwr[0], owr_cyc, owr_ovd, owr_rst, owr_dat};
 
 // bus segnemt - power and select register
@@ -258,7 +258,7 @@ end endgenerate
 // clock divider
 //////////////////////////////////////////////////////////////////////////////
 
-// slock divider ration registers
+// clock divider ratio registers
 generate
   if (CDR_E) begin
     if (BDW==32) begin
@@ -372,7 +372,7 @@ end
 always @ (posedge clk, posedge rst)
 if (rst)                           owr_cyc <= 1'b0;
 else begin
-  if (bus_wen_ctl_sts)             owr_cyc <= ~&bus_wdt[2:0];
+  if (bus_wen_ctl_sts)             owr_cyc <= bus_wdt[3] & ~&bus_wdt[2:0];
   else if (pls & (cnt == t_zero))  owr_cyc <= 1'b0;
 end
 
