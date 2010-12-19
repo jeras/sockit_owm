@@ -58,13 +58,20 @@ localparam BTP_O = "1.0";  // overdrive mode
 
 // port width parameters
 `ifdef BDW_32
-localparam BDW   = 32;     // bus data width
+localparam BDW   = 32;     // 32bit bus data width
 `elsif BDW_8
-localparam BDW   =  8;     // bus data width
+localparam BDW   =  8;     //  8bit bus data width
 `else // default
-localparam BDW   = 32;     // bus data width
+localparam BDW   = 32;     //       bus data width
 `endif
-localparam OWN   =  3;    // number of wires
+
+// number of wires
+`ifdef OWN
+localparam OWN   = `OWN;  // number of wires
+`else
+localparam OWN   =  3;    // slaves with different timing (min, typ, max)
+`endif
+
 // computed bus address port width
 localparam BAW   = (BDW==32) ? 1 : 2;
 
@@ -133,7 +140,7 @@ end
 
 // print configuration
 initial begin
-  $display ("NOTE: Ports : BDW=%0d, BAW=%0d", BDW, BAW);
+  $display ("NOTE: Ports : BDW=%0d, BAW=%0d, OWN=%0d", BDW, BAW, OWN);
   $display ("NOTE: Clock : FRQ=%3.2fMHz, TCP=%3.2fns", FRQ/1_000_000.0, TCP);
   $display ("NOTE: Divide: CDR_E=%0b, CDR_N=%0d, CDR_O=%0d", CDR_E, CDR_N, CDR_O);
   $display ("NOTE: Config: OVD_E=%0b, BTP_N=%1.2fus, BTP_O=%1.2fus",
@@ -185,7 +192,7 @@ initial begin
   end
 
   // test with slaves with different timing (each slave one one of the wires)
-  for (slave_sel=0; slave_sel<3; slave_sel=slave_sel+1) begin
+  for (slave_sel=0; slave_sel<OWN; slave_sel=slave_sel+1) begin
 
     // select normal/overdrive mode
     //for (slave_ovd=0; slave_ovd<(OVD_E?2:1); slave_ovd=slave_ovd+1) begin
@@ -194,7 +201,7 @@ initial begin
       slave_ovd = i[0];
 
       // testbench status message 
-      $display("NOTE: Loop: speed=%s, ovd=%b, BTP=\"%s\")", (slave_sel==0) ? "min" : (slave_sel==2) ? "max" : "typ", slave_ovd, slave_ovd ? BTP_O : BTP_N);
+      $display("NOTE: Loop: speed=%s, ovd=%b, BTP=\"%s\")", (slave_sel==0) ? "typ" : (slave_sel==1) ? "min" : "max", slave_ovd, slave_ovd ? BTP_O : BTP_N);
 
       // generate a reset pulse
       slave_ena   = 1'b0;
@@ -271,7 +278,7 @@ initial begin
   end  // slave_sel
 
   // test power supply on a typical normal mode slave
-  slave_sel = 1;
+  slave_sel = 0;
 
   // generate a delay pulse (1ms) with power supply enabled
   avalon_request (16'd1, slave_sel, 3'b011);
@@ -324,10 +331,10 @@ task avalon_request (
   reg [BDW-1:0] data;  // read data
 begin
   if (BDW==32) begin
-    avalon_cycle (1, 0, 4'hf, {pwr<<sel, 4'h0, sel, 5'b00001, cmd}, data);  
+    avalon_cycle (1, 0, 4'hf, {pwr<<sel, 4'h0, sel, 3'b000, pwr[0], 1'b1, cmd}, data);  
   end else begin
     avalon_cycle (1, 1, 1'b1, {pwr[3:0]<<sel, 2'h0, sel[1:0]}, data);  
-    avalon_cycle (1, 0, 1'b1, {                5'b00001, cmd}, data);  
+    avalon_cycle (1, 0, 1'b1, {    3'b000, pwr[0], 1'b1, cmd}, data);  
   end
 end endtask
 
@@ -432,13 +439,30 @@ bufif1 onewire_buffer [OWN-1:0] (owr, owr_p, owr_e | owr_p);
 assign owr_i = owr;
 
 //////////////////////////////////////////////////////////////////////////////
-// Verilog onewire slave models for normal mode
+// Verilog onewire slave models
 //////////////////////////////////////////////////////////////////////////////
 
+`ifdef OWN
+
 // fast slave device
+onewire_slave_model onewire_slave [OWN-1:0] (
+  // configuration
+  .ena    (slave_ena),
+  .ovd    (slave_ovd),
+  .dat_r  (slave_dat_r),
+  .dat_w  (slave_dat_w),
+  // 1-wire signal
+  .owr    (owr)
+);
+
+`else
+
+// Verilog onewire slave models for normal mode
+
+// typical slave device
 onewire_slave_model #(
-  .TS     (15 + 0.1)
-) onewire_slave_n_min (
+  .TS     (30)
+) onewire_slave_n_typ (
   // configuration
   .ena    (slave_ena & (slave_ovd==0)),
   .ovd    (slave_ovd     ),
@@ -448,10 +472,10 @@ onewire_slave_model #(
   .owr    (owr[0])
 );
 
-// typical slave device
+// fast slave device
 onewire_slave_model #(
-  .TS     (30)
-) onewire_slave_n_typ (
+  .TS     (15 + 0.1)
+) onewire_slave_n_min (
   // configuration
   .ena    (slave_ena & (slave_ovd==0)),
   .ovd    (slave_ovd     ),
@@ -473,14 +497,12 @@ onewire_slave_model #(
   .owr    (owr[2])
 );
 
-//////////////////////////////////////////////////////////////////////////////
 // Verilog onewire slave models for overdrive mode
-//////////////////////////////////////////////////////////////////////////////
 
-// fast slave device
+// typical slave device
 onewire_slave_model #(
-  .TS     (16)
-) onewire_slave_o_min (
+  .TS     (30)
+) onewire_slave_o_typ (
   // configuration
   .ena    (slave_ena & (slave_ovd==1)),
   .ovd    (slave_ovd     ),
@@ -490,10 +512,10 @@ onewire_slave_model #(
   .owr    (owr[0])
 );
 
-// typical slave device
+// fast slave device
 onewire_slave_model #(
-  .TS     (30)
-) onewire_slave_o_typ (
+  .TS     (16)
+) onewire_slave_o_min (
   // configuration
   .ena    (slave_ena & (slave_ovd==1)),
   .ovd    (slave_ovd     ),
@@ -514,5 +536,7 @@ onewire_slave_model #(
   // 1-wire signal
   .owr    (owr[2])
 );
+
+`endif
 
 endmodule

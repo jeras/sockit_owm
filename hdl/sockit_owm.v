@@ -108,7 +108,7 @@ module sockit_owm #(
 localparam PDW = (BDW==32) ? 24 : 8;
 
 // size of boudrate generator counter (divider for normal mode is largest)
-localparam CDW = (CDR_E==0) ? $clog2(CDR_N) : (BDW==32) ? 16 : 8;
+localparam CDW = CDR_E ? ((BDW==32) ? 16 : 8) : $clog2(CDR_N);
 
 // size of port select signal
 localparam SDW = $clog2(OWN);
@@ -227,7 +227,7 @@ endgenerate
 
 // bus read data
 generate if (BDW==32) begin
-  assign bus_rdt = (bus_adr[0]==1'b0) ? {bus_rdt_pwr_sel, bus_rdt_ctl_sts} : {cdr_o, cdr_n};
+  assign bus_rdt = (bus_adr[0]==1'b0) ? {bus_rdt_pwr_sel, bus_rdt_ctl_sts} : (cdr_o << 16 | cdr_n);
 end else if (BDW==8) begin
   assign bus_rdt = (bus_adr[1]==1'b0) ? ((bus_adr[0]==1'b0) ? bus_rdt_ctl_sts
                                                             : bus_rdt_pwr_sel)
@@ -316,11 +316,11 @@ generate if (OWN>1) begin : sel_implementation
   else if (bus_wen_pwr_sel)  owr_pwr <= bus_wdt[(BDW==32 ? 16 : 4)+:OWN];
 end else begin
   // port select
-  always @ (*)               owr_sel <= {SDW{1'b0}}; 
+  initial                    owr_sel <= 'd0; 
   // power delivery
   always @ (posedge clk, posedge rst)
   if (rst)                   owr_pwr <= 1'b0;
-  else if (bus_wen_ctl_sts)  owr_pwr <= bus_wdt[3];
+  else if (bus_wen_ctl_sts)  owr_pwr <= bus_wdt[4];
 end endgenerate
 
 //////////////////////////////////////////////////////////////////////////////

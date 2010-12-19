@@ -24,8 +24,8 @@ do
   done
 done
 
-# this configuration is needed for waveform creation
-iverilog -o onewire.out $sources -DPRESET_75 -DCDR_NONE -DBDW_8
+# test a single 1-wire line configuration (waveform generation is enabled)
+iverilog -o onewire.out $sources -DPRESET_50_10 -DCDR_NONE -DBDW_32 -DOWN=1
 vvp onewire.out
 
 # open the waveform and detach it
