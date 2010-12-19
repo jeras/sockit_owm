@@ -78,7 +78,7 @@ SMALLINT owTouchReset(int portnum)
    // lock transfer
    ALT_SEM_PEND (sockit_owm.cyc, 0);
 
-   // write RST
+   // reset pulse
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST    )
                                    | (portnum        << SOCKIT_OWM_SEL_OFST      )
                                    | (sockit_owm.ien  ? SOCKIT_OWM_IEN_MSK : 0x00)
@@ -94,8 +94,8 @@ SMALLINT owTouchReset(int portnum)
    // release transfer lock
    ALT_SEM_POST (sockit_owm.cyc);
 
-   // return DRX (presence detect)
-   return (~reg >> SOCKIT_OWM_DAT_OFST) & 0x1;
+   // return negated DAT (presence detect)
+   return (~reg & SOCKIT_OWM_DAT_MSK);  // NOTE the shortcut
 }
 
 //--------------------------------------------------------------------------
@@ -119,7 +119,7 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
    // lock transfer
    ALT_SEM_PEND (sockit_owm.cyc, 0);
 
-   // write RST
+   // read/write data
    IOWR_SOCKIT_OWM (sockit_owm.base, (sockit_owm.pwr << SOCKIT_OWM_POWER_OFST    )
       	                           | (portnum        << SOCKIT_OWM_SEL_OFST      )
                                    | (sockit_owm.ien  ? SOCKIT_OWM_IEN_MSK : 0x00)
@@ -135,7 +135,7 @@ SMALLINT owTouchBit(int portnum, SMALLINT sendbit)
    // release transfer lock
    ALT_SEM_POST (sockit_owm.cyc);
 
-   // return DRX (read bit)
+   // return DAT (read bit)
    return (reg & SOCKIT_OWM_DAT_MSK);  // NOTE the shortcut
 }
 
