@@ -26,23 +26,24 @@
 //                                                                          //
 // The clock divider parameter is computed with the next formula:           //
 //                                                                          //
-// CDR_N = f_CLK * BTP_N - 1  (example: CDR_N = 2MHz * 7.5us - 1 = 15-1)    //
-// CDR_O = f_CLK * BTP_O - 1  (example: CDR_O = 2MHz * 1.0us - 1 =  2-1)    //
+// CDR_N = f_CLK * BTP_N - 1  (example: CDR_N = 1MHz * 5.0us - 1 = 5-1)     //
+// CDR_O = f_CLK * BTP_O - 1  (example: CDR_O = 1MHz * 1.0us - 1 = 1-1)     //
 //                                                                          //
 // If the dividing factor is not a round integer, than the timing of the    //
 // controller will be slightly off, and would support only a subset of      //
 // 1-wire devices with timing closer to the typical 30us slot.              //
 //                                                                          //
-// Base time periods BTP_N = "7.5" and BTP_O = "1.0" are optimized for      //
-// logic consumption and optimal onewire timing.                            //
-// Since the default timing might shrink the range of available frequences  //
-// to multiples of 2MHz, a less restrictive timing is offered,              //
-// BTP_N = "5.0" and BTP_O = "1.0", this limits the frequency to multiples  //
-// of 1MHz.                                                                 //
+// Base time periods BTP_N = "5.0" and BTP_O = "1.0" are optimized for      //
+// onewire timing. The default timing restricts the range of available      //
+// frequences to multiples of 1MHz.                                         //
+//                                                                          //
 // If even this restrictions are too strict use timing BTP_N = "6.0" and    //
 // BTP_O = "0.5", where the actual periods can be in the range:             //
 // 6.0us <= BTP_N <= 7.5us                                                  //
 // 0.5us <= BTP_O <= 0.66us                                                 //
+//                                                                          //
+// A third timing option is available for normal mode BTP_N = "7.5", this   //
+// option is optimized for logic size.                                      //
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -81,8 +82,8 @@ module sockit_owm #(
   parameter T_RCVR_O = (BTP_O == "1.0") ?   1 :   2,  // recovery
   parameter T_IDLE_O = (BTP_O == "1.0") ?  96 : 192,  // idle timer
   // clock divider ratios (defaults are for a 2MHz clock)
-  parameter CDR_N = 15-1,  // normal    mode
-  parameter CDR_O =  2-1   // overdrive mode
+  parameter CDR_N = 5-1,  // normal    mode
+  parameter CDR_O = 1-1   // overdrive mode
 )(
   // system signals
   input            clk,
