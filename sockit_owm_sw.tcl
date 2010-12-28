@@ -44,16 +44,16 @@ set_sw_property auto_initialize true
 set_sw_property bsp_subdirectory drivers
 
 # C source files
+add_sw_property       c_source HAL/src/sockit_owm.c
 add_sw_property       c_source HAL/src/ownet.c
 add_sw_property       c_source HAL/src/owtran.c
 add_sw_property       c_source HAL/src/owlnk.c
 add_sw_property       c_source HAL/src/owses.c
-add_sw_property       c_source HAL/src/sockit_owm.c
 
 # Include files
-add_sw_property include_source HAL/inc/ownet.h
-add_sw_property include_source HAL/inc/sockit_owm.h
 add_sw_property include_source inc/sockit_owm_regs.h
+add_sw_property include_source HAL/inc/sockit_owm.h
+add_sw_property include_source HAL/inc/ownet.h
 
 # Common files
 add_sw_property       c_source HAL/src/owerr.c
