@@ -1,0 +1,12 @@
+Verilog RTL and testbench files are licensed under LGPL 3.
+
+TCL scripts for integration into Altera tools is licensed under LGPL 3. This
+files were at first based on Altera demos, but are now entirely rewritten
+according requirements described in SOPC Builder documentation.
+
+The glue code for the Nios II HAL is licensed under GPL. This files were at
+first based on Altera demos, but are now entirely rewritten according
+requirements described in Nios II documentation.
+
+The license for the "public domein kit" has not been change. The modified code
+is public domain.
