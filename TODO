@@ -1,4 +1,8 @@
 TODO:
+1. test overdrive mode
+2. test power delivery
+3. check the delay code (why is usleep longer than 1us), calculate number of cycles depending on base time period
+
 1. add software description, note limitation to a single instance
 2. write Linux kernel driver
 3. port owfs
