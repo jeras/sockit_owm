@@ -207,10 +207,15 @@ SMALLINT owReadByte(int portnum)
 //
 SMALLINT owSpeed(int portnum, SMALLINT new_speed)
 {
-   if (new_speed == MODE_OVERDRIVE)  sockit_owm.ovd |=  (1 << portnum);
-   if (new_speed == MODE_NORMAL   )  sockit_owm.ovd &= ~(1 << portnum);
+   int select;
+   select = 0x1 << portnum;
+   // if overdrive is implemented use it
+   if (sockit_owm.ovd_e) {
+      if (new_speed == MODE_OVERDRIVE)  sockit_owm.ovd |=  select;
+      if (new_speed == MODE_NORMAL   )  sockit_owm.ovd &= ~select;
+   }
    // return the current port state
-   return ((sockit_owm.ovd >> portnum) & 0x1) ? MODE_OVERDRIVE : MODE_NORMAL;
+   return (sockit_owm.ovd & select) ? MODE_OVERDRIVE : MODE_NORMAL;
 }
 
 //--------------------------------------------------------------------------
