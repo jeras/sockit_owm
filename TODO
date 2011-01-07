@@ -1,7 +1,8 @@
 TODO:
-1. test overdrive mode
-2. test power delivery
+0. recheck overdrive timing with based on DS28EA00, there have been timing changes compared to old devices
+1. rethink overdrive mode
 3. check the delay code (why is usleep longer than 1us), calculate number of cycles depending on base time period
+4. check comments related to a global structure in the driver, sockit_owm also usses global variables
 
 1. add software description, note limitation to a single instance
 2. write Linux kernel driver
