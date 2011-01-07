@@ -26,8 +26,6 @@
 //
 //  temp10.C - Module to read the DS1920/DS1820 - temperature measurement.
 //
-//  Version: 2.00
-//
 // ---------------------------------------------------------------------------
 //
 //
@@ -53,25 +51,40 @@ int ReadTemperature10(int portnum, uchar *SerialNum, float *Temp)
    uchar send_block[30],lastcrc8;
    int send_cnt, tsht, i, loop=0;
    float tmp,cr,cpc;
+   int power;
 
    // set the device serial number to the counter device
    owSerialNum(portnum,SerialNum,FALSE);
 
    for (loop = 0; loop < 2; loop ++)
    {
+      // check if the chip is connected to VDD
+      if (owAccess(portnum))
+      {
+         owWriteByte(portnum,0xB4);
+         power = owReadByte(portnum);
+      } 
+
       // access the device
       if (owAccess(portnum))
       {
-         // send the convert command and start power delivery
-         if (!owWriteBytePower(portnum,0x44))
-            return FALSE;
+         // send the convert command and if nesessary start power delivery
+         if (power) { 
+            if (!owWriteBytePower(portnum,0x44))
+               return FALSE;
+         } else {
+            if (!owWriteByte(portnum,0x44))
+               return FALSE;
+         }
 
          // sleep for 1 second
          msDelay(1000);
 
          // turn off the 1-Wire Net strong pull-up
-         if (owLevel(portnum,MODE_NORMAL) != MODE_NORMAL)
-            return FALSE;
+         if (power) { 
+            if (owLevel(portnum,MODE_NORMAL) != MODE_NORMAL)
+               return FALSE;
+         }
 
          // access the device
          if (owAccess(portnum))

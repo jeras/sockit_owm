@@ -24,8 +24,8 @@
 // Branding Policy.
 // ---------------------------------------------------------------------------
 //
-//  temp10.h - Header to read the DS1920/DS1820 - temperature measurement.
+//  temp42.h - Header to read the DS28EA00 - temperature measurement.
 //
 // ---------------------------------------------------------------------------
 
-int ReadTemperature10(int,uchar *,float *);
+int ReadTemperature42(int,uchar *,float *);

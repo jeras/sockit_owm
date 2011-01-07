@@ -66,6 +66,8 @@ add_sw_property include_source HAL/inc/temp10.h
 add_sw_property       c_source HAL/src/temp10.c
 add_sw_property include_source HAL/inc/temp28.h
 add_sw_property       c_source HAL/src/temp28.c
+add_sw_property include_source HAL/inc/temp42.h
+add_sw_property       c_source HAL/src/temp42.c
 
 # This driver supports HAL & UCOSII BSP (OS) types
 add_sw_property supported_bsp_type HAL

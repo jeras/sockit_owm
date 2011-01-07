@@ -24,9 +24,7 @@
 // Branding Policy.
 // ---------------------------------------------------------------------------
 //
-//  temp10.h - Header to read the DS18B20 - temperature measurement.
-//
-//  Version: 2.00
+//  temp28.h - Header to read the DS18B20 - temperature measurement.
 //
 // ---------------------------------------------------------------------------
 

@@ -21,6 +21,7 @@
 #include "findtype.h"
 #include "temp10.h"
 #include "temp28.h"
+#include "temp42.h"
 
 // defines
 #define MAXDEVICES         20
@@ -60,8 +61,10 @@ int main()
   {
      j = 0;
      // Find the device(s)
-     NumDevices  = FindDevices(portnum,  FamilySN            , 0x10, MAXDEVICES           );
+     NumDevices  = 0;
+     NumDevices += FindDevices(portnum, &FamilySN[NumDevices], 0x10, MAXDEVICES-NumDevices);
      NumDevices += FindDevices(portnum, &FamilySN[NumDevices], 0x28, MAXDEVICES-NumDevices);
+     NumDevices += FindDevices(portnum, &FamilySN[NumDevices], 0x42, MAXDEVICES-NumDevices);
      if (NumDevices)
      {
         printf("\r\n");
@@ -74,6 +77,8 @@ int main()
               didRead = ReadTemperature10(portnum, FamilySN[i-1],&current_temp);
            if (FamilySN[i-1][0] == 0x28)
               didRead = ReadTemperature28(portnum, FamilySN[i-1],&current_temp);
+           if (FamilySN[i-1][0] == 0x42)
+              didRead = ReadTemperature42(portnum, FamilySN[i-1],&current_temp);
 
            if (didRead)
            {

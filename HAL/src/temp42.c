@@ -24,7 +24,7 @@
 // Branding Policy.
 // ---------------------------------------------------------------------------
 //
-//  temp28.C - Module to read the DS18B20 - temperature measurement.
+//  temp42.C - Module to read the DS28EA00 - temperature measurement.
 //
 // ---------------------------------------------------------------------------
 //
@@ -33,7 +33,7 @@
 #include "temp28.h"
 
 //----------------------------------------------------------------------
-// Read the temperature of a DS18B20 (family code 0x28)
+// Read the temperature of a DS28EA00 (family code 0x42)
 //
 // 'portnum'     - number 0 to MAX_PORTNUM-1.  This number was provided to
 //                 OpenCOM to indicate the port number.
@@ -45,7 +45,7 @@
 //          FALSE(0) could not read the temperature, perhaps device is not
 //                   in contact
 //
-int ReadTemperature28(int portnum, uchar *SerialNum, float *Temp)
+int ReadTemperature42(int portnum, uchar *SerialNum, float *Temp)
 {
    uchar rt=FALSE;
    uchar send_block[30],lastcrc8;
