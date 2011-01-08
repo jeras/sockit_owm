@@ -1,5 +1,4 @@
 TODO:
-0. recheck overdrive timing with based on DS28EA00, there have been timing changes compared to old devices
 1. rethink overdrive mode
 3. check the delay code (why is usleep longer than 1us), calculate number of cycles depending on base time period
 4. check comments related to a global structure in the driver, sockit_owm also usses global variables

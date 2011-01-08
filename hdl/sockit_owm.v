@@ -79,7 +79,7 @@ module sockit_owm #(
   parameter T_DAT0_O = (BTP_O == "1.0") ?   6 :  12,  // bit 0 low
   parameter T_DAT1_O = (BTP_O == "1.0") ?   1 :   2,  // bit 1 low
   parameter T_BITS_O = (BTP_O == "1.0") ?   2 :   3,  // bit sample
-  parameter T_RCVR_O = (BTP_O == "1.0") ?   1 :   2,  // recovery
+  parameter T_RCVR_O = (BTP_O == "1.0") ?   2 :   4,  // recovery
   parameter T_IDLE_O = (BTP_O == "1.0") ?  96 : 192,  // idle timer
   // clock divider ratios (defaults are for a 2MHz clock)
   parameter CDR_N = 5-1,  // normal    mode
