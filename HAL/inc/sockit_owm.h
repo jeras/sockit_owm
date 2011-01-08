@@ -1,34 +1,3 @@
-/******************************************************************************
-*                                                                             *
-* License Agreement                                                           *
-*                                                                             *
-* Copyright (c) 2008 Altera Corporation, San Jose, California, USA.           *
-* All rights reserved.                                                        *
-*                                                                             *
-* Permission is hereby granted, free of charge, to any person obtaining a     *
-* copy of this software and associated documentation files (the "Software"),  *
-* to deal in the Software without restriction, including without limitation   *
-* the rights to use, copy, modify, merge, publish, distribute, sublicense,    *
-* and/or sell copies of the Software, and to permit persons to whom the       *
-* Software is furnished to do so, subject to the following conditions:        *
-*                                                                             *
-* The above copyright notice and this permission notice shall be included in  *
-* all copies or substantial portions of the Software.                         *
-*                                                                             *
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  *
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,    *
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE *
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER      *
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING     *
-* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER         *
-* DEALINGS IN THE SOFTWARE.                                                   *
-*                                                                             *
-* This agreement shall be governed in all respects by the laws of the State   *
-* of California and by the laws of the United States of America.              *
-*                                                                             *
-******************************************************************************/
-
-
 //////////////////////////////////////////////////////////////////////////////
 //                                                                          //
 //  Minimalistic 1-wire (onewire) master with Avalon MM bus interface       //
@@ -67,16 +36,11 @@
 #ifdef __cplusplus
 extern "C"
 {
-#endif /* __cplusplus */
+#endif // __cplusplus
 
-/*
- * The sockit_owm_state structure is used to hold device specific data.
- * This includes the transmit and receive buffers.
- *
- * An instance of this structure is created in the auto-generated
- * alt_sys_init.c file for each UART listed in the systems SOPC file. This is
- * done using the SOCKIT_OWM_STATE_INSTANCE macro given below.
- */
+//////////////////////////////////////////////////////////////////////////////
+// global structure containing the current state of the sockit_owm driver
+//////////////////////////////////////////////////////////////////////////////
 
 typedef struct sockit_owm_state_s
 {
@@ -100,11 +64,10 @@ typedef struct sockit_owm_state_s
   ALT_SEM         (cyc)             // transfer lock semaphore
 } sockit_owm_state;
 
-/*
- * The macro ALTERA_AVALON_UART_INSTANCE is used by the auto-generated file
- * alt_sys_init.c to create an instance of this device driver state.
- * ALTERA_AVALON_UART_INSTANCE is mapped below to SOCKIT_OWM_STATE_INSTANCE.
- */
+//////////////////////////////////////////////////////////////////////////////
+// instantiation macro
+// can be used oly once, since the driver is based on global variables
+//////////////////////////////////////////////////////////////////////////////
 
 #define SOCKIT_OWM_INSTANCE(name, state) \
   sockit_owm_state sockit_owm = { (void*) name##_BASE,  \
@@ -117,37 +80,28 @@ typedef struct sockit_owm_state_s
                                           name##_CDR_O, \
                                           0, 0, 0, 0};  \
   void* state = (void*) name##_BASE
-/*
- * sockit_owm_init() is called by the auto-generated function
- * alt_sys_init() for each UART in the system. This is done using the
- * SOCKIT_OWM_INIT macro given below.
- *
- * This function is responsible for performing all the run time initialization
- * for a device instance, i.e. registering the interrupt handler, and
- * regestering the device with the system.
- */
+
+//////////////////////////////////////////////////////////////////////////////
+// initialization function, registers the interrupt handler
+//////////////////////////////////////////////////////////////////////////////
 
 extern void sockit_owm_init(alt_u32 irq);
 
-/*
- * The macro SOCKIT_OWM_STATE_INIT is used by the auto-generated file
- * alt_sys_init.c to initialize an instance of the device driver state.
- *
- * This macro performs a sanity check to ensure that the interrupt has been
- * connected for this device. If not, then an appropriate error message is
- * generated at build time.
- */
+//////////////////////////////////////////////////////////////////////////////
+// initialization macro
+//////////////////////////////////////////////////////////////////////////////
+
 #ifndef SOCKIT_OWM_POLLING
 #define SOCKIT_OWM_INIT(name, state)                                       \
   if (name##_IRQ == ALT_IRQ_NOT_CONNECTED)                                 \
   {                                                                        \
     ALT_LINK_ERROR ("Error: Interrupt not connected for " #name ". "       \
                     "You have selected the interrupt driven version of "   \
-                    "the SocKit Avalon 1-wire master (mini) driver, but "  \
+                    "the sockit_owm (SoCkit 1-wire master) driver, but "   \
                     "the interrupt is not connected for this device. You " \
                     "can select a polled mode driver by checking the "     \
                     "'small driver' option in the HAL configuration "      \
-                    " window, or by using the -DSOCKIT_OWM_SMALL "         \
+                    "window, or by using the -DSOCKIT_OWM_POLLING "        \
                     "preprocessor flag.");                                 \
   }                                                                        \
   else                                                                     \
@@ -160,6 +114,6 @@ extern void sockit_owm_init(alt_u32 irq);
 
 #ifdef __cplusplus
 }
-#endif /* __cplusplus */
+#endif // __cplusplus
 
-#endif /* __SOCKIT_OWM_H__ */
+#endif // __SOCKIT_OWM_H__

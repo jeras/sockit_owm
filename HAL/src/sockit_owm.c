@@ -1,34 +1,3 @@
-/******************************************************************************
-*                                                                             *
-* License Agreement                                                           *
-*                                                                             *
-* Copyright (c) 2008 Altera Corporation, San Jose, California, USA.           *
-* All rights reserved.                                                        *
-*                                                                             *
-* Permission is hereby granted, free of charge, to any person obtaining a     *
-* copy of this software and associated documentation files (the "Software"),  *
-* to deal in the Software without restriction, including without limitation   *
-* the rights to use, copy, modify, merge, publish, distribute, sublicense,    *
-* and/or sell copies of the Software, and to permit persons to whom the       *
-* Software is furnished to do so, subject to the following conditions:        *
-*                                                                             *
-* The above copyright notice and this permission notice shall be included in  *
-* all copies or substantial portions of the Software.                         *
-*                                                                             *
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  *
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,    *
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE *
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER      *
-* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING     *
-* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER         *
-* DEALINGS IN THE SOFTWARE.                                                   *
-*                                                                             *
-* This agreement shall be governed in all respects by the laws of the State   *
-* of California and by the laws of the United States of America.              *
-*                                                                             *
-******************************************************************************/
-
-
 //////////////////////////////////////////////////////////////////////////////
 //                                                                          //
 //  Minimalistic 1-wire (onewire) master with Avalon MM bus interface       //
@@ -80,7 +49,7 @@ static void sockit_owm_irq (alt_u32 id);
 void sockit_owm_init (alt_u32 irq)
 {
   int error;
-  // initialize semaphore for transfer locking
+  // initialize semaphore for 1-wire cycle locking
   error = ALT_FLAG_CREATE (sockit_owm.irq, 0) ||
           ALT_SEM_CREATE  (sockit_owm.cyc, 1);
 
@@ -104,7 +73,7 @@ static void sockit_owm_irq(void * state, alt_u32 id)
 {
   // clear onewire interrupts
   IORD_SOCKIT_OWM (sockit_owm.base);
-  // set the flag indicating a completed transfer
+  // set the flag indicating a completed 1-wire cycle
   ALT_FLAG_POST (sockit_owm.irq, 0x1, OS_FLAG_SET);
 }
 #else
