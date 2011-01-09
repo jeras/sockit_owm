@@ -30,7 +30,7 @@
 //
 //
 #include "ownet.h"
-#include "temp28.h"
+#include "temp42.h"
 
 //----------------------------------------------------------------------
 // Read the temperature of a DS28EA00 (family code 0x42)
@@ -58,14 +58,14 @@ int ReadTemperature42(int portnum, uchar *SerialNum, float *Temp)
    for (loop = 0; loop < 2; loop ++)
    {
       // check if the chip is connected to VDD
-      if (owAccess(portnum))
+      if (owOverdriveAccess(portnum))
       {
          owWriteByte(portnum,0xB4);
          power = owReadByte(portnum);
       } 
 
       // access the device
-      if (owAccess(portnum))
+      if (owOverdriveAccess(portnum))
       {
          // send the convert command and if nesessary start power delivery
          if (power) { 
@@ -86,7 +86,7 @@ int ReadTemperature42(int portnum, uchar *SerialNum, float *Temp)
          }
 
          // access the device
-         if (owAccess(portnum))
+         if (owOverdriveAccess(portnum))
          {
             // create a block to send that reads the temperature
             // read scratchpad command
@@ -121,9 +121,9 @@ int ReadTemperature42(int portnum, uchar *SerialNum, float *Temp)
             }
          }
       }
-
    }
-
+   // exit overdrive mode
+   owSpeed(portnum, MODE_NORMAL);
    // return the result flag rt
    return rt;
 }
