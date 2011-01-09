@@ -272,6 +272,15 @@ void msDelay(int len)
 #if SOCKIT_OWM_HW_DLY
    int i;
 
+   // compute the number delay cycles depending on delay time
+   #if   ONEWIRE_BTP_N == "5.0"
+   // T_dly = 1000us
+   len = len;
+   #else
+   // T_dly = 960us
+   len = (len * 246) >> 8;
+   #endif
+
    // lock transfer
    ALT_SEM_PEND (sockit_owm.cyc, 0);
 
