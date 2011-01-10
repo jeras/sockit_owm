@@ -202,7 +202,7 @@ proc validation_callback {} {
   # get base time periods
   set btp_n [get_parameter_value BTP_N]
   set btp_o [get_parameter_value BTP_O]
-  # disable editing od dividers
+  # enable/disable editing of overdrive divider
   set_parameter_property BTP_O ENABLED [expr {$ovd_e ? "true" : "false"}]
   # compute normal mode divider
   if {$btp_n=="5.0"} {
@@ -260,4 +260,20 @@ proc elaboration_callback {} {
   set_module_assignment embeddedsw.CMacro.BTP_O        [get_parameter_value BTP_O]
   set_module_assignment embeddedsw.CMacro.CDR_N        [get_parameter_value CDR_N]
   set_module_assignment embeddedsw.CMacro.CDR_O        [get_parameter_value CDR_O]
+  # get clock frequency in Hz
+  set f     [get_parameter_value F_CLK]
+  # get base time period
+  set btp_n [get_parameter_value BTP_N]
+  # get clock divider ratio
+  set cdr_n [get_parameter_value CDR_N]
+  # compute delay time in seconds [s]
+  if {$btp_n=="5.0"} {
+    set t_dly [expr {200.*($cdr_n+1)/$f}]
+  } elseif {$btp_n=="7.5"} {
+    set t_dly [expr {128.*($cdr_n+1)/$f}]
+  } elseif {$btp_n=="6.0"} {
+    set t_dly [expr {160.*($cdr_n+1)/$f}]
+  }
+  # give the software a u16.16 representation of delay frequency in kilo hertz [kHz]
+  set_module_assignment embeddedsw.CMacro.F_DLY [format %.0f [expr {pow(2,16) / (1000*$t_dly)}]]
 }

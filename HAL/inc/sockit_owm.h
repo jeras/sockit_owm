@@ -54,6 +54,7 @@ typedef struct sockit_owm_state_s
   // clock divider ratio
   alt_u32          cdr_n;           // cdr for normal    mode
   alt_u32          cdr_o;           // cdr for overdrive mode
+  alt_u32          f_dly;           // u16.16 1/ms (inverse of delay time)
   // status
   alt_u32          ien;             // interrupt enable status
   alt_u32          use;             // Aquire status
@@ -78,6 +79,7 @@ typedef struct sockit_owm_state_s
                                           name##_BTP_O, \
                                           name##_CDR_N, \
                                           name##_CDR_O, \
+                                          name##_F_DLY, \
                                           0, 0, 0, 0};  \
   void* state = (void*) name##_BASE
 

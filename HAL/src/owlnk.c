@@ -273,8 +273,7 @@ void msDelay(int len)
    int i;
 
    // compute the number delay cycles depending on delay time
-   len *= 1;
-   // len *= SOCKIT_OWM_T_DLY;
+   len = (len * sockit_owm.f_dly) >> 16;
 
    // lock transfer
    ALT_SEM_PEND (sockit_owm.cyc, 0);
