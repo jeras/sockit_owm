@@ -1,7 +1,5 @@
 TODO:
-0. ask Maxim about interrupts
-3. check the delay code (why is usleep longer than 1us), fing macro for detecting OS
-4. check comments related to a global structure in the driver, sockit_owm also usses global variables
-
+1. check the delay code (why is usleep longer than 1us), find macro for detecting OS
+2. run some more uCOS-II tests
 2. write Linux kernel driver
 3. port owfs
