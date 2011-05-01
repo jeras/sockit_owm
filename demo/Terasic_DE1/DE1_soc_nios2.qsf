@@ -15,7 +15,7 @@
 set_global_assignment -name TOP_LEVEL_ENTITY DE1_soc_nios2
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 9.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "15:21:40  APRIL 17, 2010"
-set_global_assignment -name LAST_QUARTUS_VERSION "10.0 SP1"
+set_global_assignment -name LAST_QUARTUS_VERSION "10.1 SP1"
 
 # Terasic DE1 board FPGA
 set_global_assignment -name FAMILY "Cyclone II"
