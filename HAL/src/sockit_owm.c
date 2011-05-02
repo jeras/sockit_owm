@@ -32,8 +32,9 @@
 *                                                                             *
 ******************************************************************************/
 
-
-#include <fcntl.h>
+// this header would be used if a proper file handler could be assidned,
+// but due to global variables in the public domain kit, this is not possible
+//#include <fcntl.h>
 
 #include "sys/alt_dev.h"
 #include "sys/alt_irq.h"
