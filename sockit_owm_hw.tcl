@@ -32,7 +32,7 @@ set_module_property DISPLAY_NAME "1-wire (onewire) master"
 set_module_property DESCRIPTION  "1-wire (onewire) master"
 set_module_property AUTHOR       "Iztok Jeras"
 
-set_module_property TOP_LEVEL_HDL_FILE           sockit_owm.v
+set_module_property TOP_LEVEL_HDL_FILE           hdl/sockit_owm.v
 set_module_property TOP_LEVEL_HDL_MODULE         sockit_owm
 set_module_property INSTANTIATE_IN_SYSTEM_MODULE true
 set_module_property EDITABLE                     true
