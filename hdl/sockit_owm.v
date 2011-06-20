@@ -379,7 +379,7 @@ end
 
 // state counter (initial value depends whether the cycle is reset or data)
 always @ (posedge clk, posedge rst)
-if (rst)                 cnt <= 0;
+if (rst)                 cnt <= 'd0;
 else begin
   if (bus_wen_ctl_sts)   cnt <= (&bus_wdt[1:0] ? t_idl : bus_wdt[1] ? t_rst : t_bit) - 'd1;
   else if (pls)          cnt <= cnt - 'd1;
