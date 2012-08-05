@@ -116,18 +116,18 @@ debouncer #(.CN (FRQ/100)) debouncer_i [3:0] (.clk (clk), .d_i (~KEY), .d_o (btn
 
 // soc_nios RTL instance
 soc soc_i (
-  // 1) global signals:
+  // global signals:
   .clk                             (clk),
   .reset_n                         (~rst),
-  // the_epcs_flash
+  // epcs_flash
   .ds_MISO_from_the_epcs_flash     (),
-  // the_pio_7seg
+  // pio_7seg
   .out_port_from_the_pio_7seg      (seg7),
-  // the_pio_ledg
+  // pio_ledg
   .out_port_from_the_pio_ledg      (LEDG),
-  // the_pio_ledr
+  // pio_ledr
   .out_port_from_the_pio_ledr      (LEDR),
-  // the_sdram
+  // sdram
   .zs_cke_from_the_sdram           (DRAM_CKE),
   .zs_cs_n_from_the_sdram          (DRAM_CS_N),
   .zs_we_n_from_the_sdram          (DRAM_WE_N),
@@ -137,13 +137,21 @@ soc soc_i (
   .zs_addr_from_the_sdram          (DRAM_ADDR),
   .zs_dq_to_and_from_the_sdram     (DRAM_DQ),
   .zs_dqm_from_the_sdram           (DRAM_DQM),
-  // the_tri_state_bridge_flash_avalon_slave
-  .select_n_to_the_cfi_flash       (FL_CE_N),
-  .write_n_to_the_cfi_flash        (FL_WE_N),
-  .read_n_to_the_cfi_flash         (FL_OE_N),
-  .address_to_the_cfi_flash        (FL_ADDR),
-  .data_to_and_from_the_cfi_flash  (FL_DQ),
-  // the_uart
+  // flash
+  .flash_tcm_chipselect_n_out      (FL_CE_N),
+  .flash_tcm_write_n_out           (FL_WE_N),
+  .flash_tcm_read_n_out            (FL_OE_N),
+  .flash_tcm_address_out           (FL_ADDR),
+  .flash_tcm_data_out              (FL_DQ),
+  // sram
+  .sram_tcm_chipselect_n_out       (SRAM_CE_N),
+  .sram_tcm_write_n_out            (SRAM_WE_N),
+  .sram_tcm_read_n_out             (),
+  .sram_tcm_outputenable_n_out     (SRAM_OE_N),
+  .sram_tcm_byteenable_n_out       (SRAM_B_N),
+  .sram_tcm_address_out            (SRAM_ADDR),
+  .sram_tcm_data_out               (SRAM_DQ),
+  // uart
   .rxd_to_the_uart                 (UART_TXD),
   .txd_from_the_uart               (UART_RXD),
   // onewire
